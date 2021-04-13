@@ -12783,49 +12783,6 @@
       </tags>
   </entry>
   <entry>
-    <title>SQL的连表查询</title>
-    <url>/2021/01/01/SQL/SQL%E7%9A%84%E8%BF%9E%E8%A1%A8%E6%9F%A5%E8%AF%A2/</url>
-    <content><![CDATA[<p>表的连接包括：内连接、左连接、右连接、外连接，交叉连接、左排除连接、右排除连接、非交集连接</p>
-<a id="more"></a>
-
-<ul>
-<li><p>内连接查询  inner join</p>
-<p>该查询将返回两表满足匹配关系的记录。</p>
-</li>
-<li><p>外连接</p>
-<p>外连接可分为：左连接、右连接、完全外连接</p>
-<ul>
-<li><p>左连接  left join   left outer join</p>
-<p>获取左表中的所有记录，即使在右表没有对应匹配的记录。</p>
-<blockquote>
-<p>左外连接包含left join左表所有行，如果左表中某行在右表没有匹配，则结果中对应行右表的部分全部为空(NULL).</p>
-<p>注：此时我们不能说结果的行数等于左表数据的行数（只有表关系为一对一的时候相同）。</p>
-</blockquote>
-</li>
-<li><p>右连接  right join </p>
-<blockquote>
-<p>右外连接包含right join右表所有行，如果左表中某行在右表没有匹配，则结果中对应左表的部分全部为空(NULL)。</p>
-</blockquote>
-</li>
-<li><p>完全连接. Full join</p>
-</li>
-</ul>
-</li>
-<li><p>交叉连接 cross join</p>
-</li>
-</ul>
-<p>参考资料</p>
-<p><a href="https://www.codeproject.com/Articles/33052/Visual-Representation-of-SQL-Joins">Visual Representation of SQL Joins - CodeProject</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/68136613">SQL多表查询</a></p>
-]]></content>
-      <categories>
-        <category>SQL</category>
-      </categories>
-      <tags>
-        <tag>SQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Spring Boot</title>
     <url>/2021/04/12/Spring/Spring-Boot/</url>
     <content><![CDATA[<p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can “just run”.</p>
