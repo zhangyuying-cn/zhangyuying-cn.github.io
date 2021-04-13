@@ -200,6 +200,221 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2021/04/12/Spring/Spring-Boot/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/04/12/Spring/Spring-Boot/" class="post-title-link" itemprop="url">Spring Boot</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-04-12 10:38:09 / Modified: 16:39:57" itemprop="dateCreated datePublished" datetime="2021-04-12T10:38:09+08:00">2021-04-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can “just run”.</p>
+<p>(Spring Boot使得创建独立的、生产级的、基于Spring的应用程序变得很容易，您可以“直接运行”。)</p>
+<h4 id="一、Spring-Boot的理解"><a href="#一、Spring-Boot的理解" class="headerlink" title="一、Spring Boot的理解"></a>一、Spring Boot的理解</h4><h5 id="1-Spring-Boot-是什么"><a href="#1-Spring-Boot-是什么" class="headerlink" title="1.Spring Boot 是什么"></a>1.Spring Boot 是什么</h5><p>提供了快速构建Spring Framework 应用的框架，即 Spring Framwork是Spring Boot的内核</p>
+<h5 id="2-Spring-Boot-是如何简化Spring配置的"><a href="#2-Spring-Boot-是如何简化Spring配置的" class="headerlink" title="2.Spring Boot 是如何简化Spring配置的"></a>2.Spring Boot 是如何简化Spring配置的</h5><p>主要思想就是 <strong>约定优于配置</strong>：通过约定的方式来减少配置，从而提升开发效率，具体体现：</p>
+<p>（1）默认的Maven结构，以及默认的打包方式</p>
+<p>（2）默认的配置文件<code>application.properties</code></p>
+<p>（3）Starter的相关jar包依赖</p>
+<p>（4）Web默认包含Spring-mvc以及内置tomcat容器</p>
+<p>（5）部署到tomcat</p>
+<h4 id="二、简化配置的原理"><a href="#二、简化配置的原理" class="headerlink" title="二、简化配置的原理"></a>二、简化配置的原理</h4><h5 id="1-Spring-注解驱动"><a href="#1-Spring-注解驱动" class="headerlink" title="1.Spring 注解驱动"></a>1.Spring 注解驱动</h5><p>由xml配置逐渐转变为注解驱动方式，通过注解实现Spring对Bean的管理</p>
+<h5 id="2-Spring-Boot的自动装配"><a href="#2-Spring-Boot的自动装配" class="headerlink" title="2.Spring Boot的自动装配"></a>2.Spring Boot的自动装配</h5><p>SpringBoot starter机制（自动装配）：SpringBoot中的starter是一种非常重要的机制，starter遵循“约定大于配置”的理念，将繁杂的配置和需要的Bean统一集成进starter，应用者只需要在maven中引入starter依赖，Spring Boot 就能：1)自动扫描到要加载的信息并启动相应的默认配置 ，2)自动通过classpath路径下的类发现需要的Bean，并注册进IOC容器</p>
+<p>SpringBoot提供了针对日常企业应用研发各种场景的spring-boot-starter依赖模块</p>
+<p>（1）自定义starter原理：</p>
+<p>也是约定优于配置：Spring Boot启动时自动加载<code>META-INF/spring.factories</code>文件的配置Bean</p>
+<ul>
+<li><p>官方starter：(比如<code>spring-boot-starter-data-redis</code>)由于官方需要加载的配置类都是已知的，所以官方的starter一般不需要在<code>META-INF/spring.factories</code>文件中配置的</p>
+</li>
+<li><p>自定义的starter：在starter中的<code>META-INF/spring.factories</code>配置当前starter中使用<code>@Configuration</code>的配置类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#-------starter自动装配---------</span><br><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration&#x3D;com.demo.starter.config.DemoConfig</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>Spring Boot中加载<code>META-INF/spring.factories</code>中配置源码：</p>
+<p>Spring Boot中是通过<code> EnableAutoConfiguration</code> 注解加载的<code> META-INF/spring.facteries</code>文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication ——&gt;  @EnableAutoConfiguration  ——&gt;  @Import(AutoConfigurationImportSelector.class) </span><br></pre></td></tr></table></figure>
+
+<p><code>AutoConfigurationImportSelector.class</code>加载代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector)</span> </span>&#123;</span><br><span class="line">    Assert.state(deferredImportSelector <span class="keyword">instanceof</span> AutoConfigurationImportSelector,</span><br><span class="line">            () -&gt; String.format(<span class="string">&quot;Only %s implementations are supported, got %s&quot;</span>,</span><br><span class="line">                    AutoConfigurationImportSelector.class.getSimpleName(),</span><br><span class="line">                    deferredImportSelector.getClass().getName()));</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)</span><br><span class="line">            .getAutoConfigurationEntry(annotationMetadata);</span><br><span class="line">    <span class="keyword">this</span>.autoConfigurationEntries.add(autoConfigurationEntry);</span><br><span class="line">    <span class="keyword">for</span> (String importClassName : autoConfigurationEntry.getConfigurations()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.entries.putIfAbsent(importClassName, annotationMetadata);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> AutoConfigurationEntry <span class="title">getAutoConfigurationEntry</span><span class="params">(AnnotationMetadata annotationMetadata)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isEnabled(annotationMetadata)) &#123;</span><br><span class="line">        <span class="keyword">return</span> EMPTY_ENTRY;</span><br><span class="line">    &#125;</span><br><span class="line">    AnnotationAttributes attributes = getAttributes(annotationMetadata);</span><br><span class="line">    <span class="comment">//2</span></span><br><span class="line">    List&lt;String&gt; configurations = getCandidateConfigurations(annotationMetadata, attributes);</span><br><span class="line">    configurations = removeDuplicates(configurations);</span><br><span class="line">    Set&lt;String&gt; exclusions = getExclusions(annotationMetadata, attributes);</span><br><span class="line">    checkExcludedClasses(configurations, exclusions);</span><br><span class="line">    configurations.removeAll(exclusions);</span><br><span class="line">    configurations = getConfigurationClassFilter().filter(configurations);</span><br><span class="line">    fireAutoConfigurationImportEvents(configurations, exclusions);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> AutoConfigurationEntry(configurations, exclusions);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> List&lt;String&gt; <span class="title">getCandidateConfigurations</span><span class="params">(AnnotationMetadata metadata, AnnotationAttributes attributes)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 3</span></span><br><span class="line">    List&lt;String&gt; configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(),</span><br><span class="line">            getBeanClassLoader());</span><br><span class="line">    Assert.notEmpty(configurations, <span class="string">&quot;No auto configuration classes found in META-INF/spring.factories. If you &quot;</span></span><br><span class="line">            + <span class="string">&quot;are using a custom packaging, make sure that file is correct.&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> configurations;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; getSpringFactoriesLoaderFactoryClass() &#123;</span><br><span class="line">    <span class="keyword">return</span> EnableAutoConfiguration.class;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//factoryClass 传入EnableAutoConfiguration.class;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;String&gt; <span class="title">loadFactoryNames</span><span class="params">(Class&lt;?&gt; factoryClass, <span class="meta">@Nullable</span> ClassLoader classLoader)</span> </span>&#123;</span><br><span class="line">    String factoryClassName = factoryClass.getName();</span><br><span class="line">    <span class="comment">// 4</span></span><br><span class="line">    <span class="keyword">return</span> loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Map&lt;String, List&lt;String&gt;&gt; loadSpringFactories(<span class="meta">@Nullable</span> ClassLoader classLoader) &#123;</span><br><span class="line">    MultiValueMap&lt;String, String&gt; result = cache.get(classLoader);</span><br><span class="line">    <span class="keyword">if</span> (result != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 5</span></span><br><span class="line">        Enumeration&lt;URL&gt; urls = (classLoader != <span class="keyword">null</span> ?</span><br><span class="line">                classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :</span><br><span class="line">                ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));</span><br><span class="line">        result = <span class="keyword">new</span> LinkedMultiValueMap&lt;&gt;();</span><br><span class="line">        <span class="keyword">while</span> (urls.hasMoreElements()) &#123;</span><br><span class="line">            URL url = urls.nextElement();</span><br><span class="line">            UrlResource resource = <span class="keyword">new</span> UrlResource(url);</span><br><span class="line">            Properties properties = PropertiesLoaderUtils.loadProperties(resource);</span><br><span class="line">            <span class="keyword">for</span> (Map.Entry&lt;?, ?&gt; entry : properties.entrySet()) &#123;</span><br><span class="line">                String factoryClassName = ((String) entry.getKey()).trim();</span><br><span class="line">                <span class="keyword">for</span> (String factoryName : StringUtils.commaDelimitedListToStringArray((String) entry.getValue())) &#123;</span><br><span class="line">                    result.add(factoryClassName, factoryName.trim());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cache.put(classLoader, result);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Unable to load factories from location [&quot;</span> +</span><br><span class="line">                FACTORIES_RESOURCE_LOCATION + <span class="string">&quot;]&quot;</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>（2）Spring Boot中的SPI机制实现</p>
+<ul>
+<li><p>SPI思想</p>
+<ul>
+<li><p>SPI的全名为Service Provider Interface.这个是针对厂商或者插件的。</p>
+</li>
+<li><p>SPI的思想：系统里抽象的各个模块，往往有很多不同的实现方案，比如日志模块的方案，xml解析模块、jdbc模块的方案等。面向的对象的设计里，我们一般推荐模块之间基于接口编程，模块之间不对实现类进行硬编码。一旦代码里涉及具体的实现类，就违反了可拔插的原则，如果需要替换一种实现，就需要修改代码。为了实现在模块装配的时候能不在程序里动态指明，这就需要一种服务发现机制。<strong>java spi就是提供这样的一个机制：为某个接口寻找服务实现的机制</strong></p>
+</li>
+</ul>
+</li>
+<li><p>在Spring Boot的自动装配过程中，最终加载META-INF/spring.factories文件的配置，即是SPI思想的一种实现方式，</p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/0d196ad23915">Spring Boot中的SPI机制-简书</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hello-shf/p/10864977.html#_label4">SpringBoot应用篇（一）：自定义starter</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2021/01/01/SQL/SQL%E7%9A%84%E8%BF%9E%E8%A1%A8%E6%9F%A5%E8%AF%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/01/01/SQL/SQL%E7%9A%84%E8%BF%9E%E8%A1%A8%E6%9F%A5%E8%AF%A2/" class="post-title-link" itemprop="url">SQL的连表查询</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-01-01 14:22:59" itemprop="dateCreated datePublished" datetime="2021-01-01T14:22:59+08:00">2021-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-07 15:20:23" itemprop="dateModified" datetime="2021-01-07T15:20:23+08:00">2021-01-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/SQL/" itemprop="url" rel="index"><span itemprop="name">SQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>表的连接包括：内连接、左连接、右连接、外连接，交叉连接、左排除连接、右排除连接、非交集连接</p>
+<ul>
+<li><p>内连接查询  inner join</p>
+<p>该查询将返回两表满足匹配关系的记录。</p>
+</li>
+<li><p>外连接</p>
+<p>外连接可分为：左连接、右连接、完全外连接</p>
+<ul>
+<li><p>左连接  left join   left outer join</p>
+<p>获取左表中的所有记录，即使在右表没有对应匹配的记录。</p>
+<blockquote>
+<p>左外连接包含left join左表所有行，如果左表中某行在右表没有匹配，则结果中对应行右表的部分全部为空(NULL).</p>
+<p>注：此时我们不能说结果的行数等于左表数据的行数（只有表关系为一对一的时候相同）。</p>
+</blockquote>
+</li>
+<li><p>右连接  right join </p>
+<blockquote>
+<p>右外连接包含right join右表所有行，如果左表中某行在右表没有匹配，则结果中对应左表的部分全部为空(NULL)。</p>
+</blockquote>
+</li>
+<li><p>完全连接. Full join</p>
+</li>
+</ul>
+</li>
+<li><p>交叉连接 cross join</p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://www.codeproject.com/Articles/33052/Visual-Representation-of-SQL-Joins">Visual Representation of SQL Joins - CodeProject</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/68136613">SQL多表查询</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
     <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/12/08/%E6%9E%B6%E6%9E%84/%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -686,87 +901,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
-    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/09/02/%E6%8A%80%E6%9C%AF/java%E9%9B%86%E5%90%88/ConcurrentHashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="张玉莹">
-      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张玉莹的个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/02/%E6%8A%80%E6%9C%AF/java%E9%9B%86%E5%90%88/ConcurrentHashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">ConcurrentHashMap源码分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-09-02 14:45:24" itemprop="dateCreated datePublished" datetime="2020-09-02T14:45:24+08:00">2020-09-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-11-20 09:49:05" itemprop="dateModified" datetime="2020-11-20T09:49:05+08:00">2020-11-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">java基础</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本文主要详述JDK 1.8的ConcurrentHashMap</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/09/02/%E6%8A%80%E6%9C%AF/java%E9%9B%86%E5%90%88/ConcurrentHashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
     <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/08/27/UML/%E7%B1%BB%E5%9B%BE/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -907,88 +1041,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
-    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/06/16/%E6%9E%B6%E6%9E%84/%E5%88%9D%E8%AF%86%E6%9E%B6%E6%9E%84%E4%BA%94%E8%A7%86%E5%9B%BE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="张玉莹">
-      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张玉莹的个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/16/%E6%9E%B6%E6%9E%84/%E5%88%9D%E8%AF%86%E6%9E%B6%E6%9E%84%E4%BA%94%E8%A7%86%E5%9B%BE/" class="post-title-link" itemprop="url">初识架构五视图</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-06-16 09:43:59" itemprop="dateCreated datePublished" datetime="2020-06-16T09:43:59+08:00">2020-06-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-12-08 11:34:45" itemprop="dateModified" datetime="2020-12-08T11:34:45+08:00">2020-12-08</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">架构</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>架构是从整体看到局部，架构五视图是实现架构设计的方法</p>
-<p>五视图方法论从不同的方面，不同视角，可以一次只围绕少数概念和技术展开，分别着重研究软件架构的不同方面，清晰、简化的描述架构</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/16/%E6%9E%B6%E6%9E%84/%E5%88%9D%E8%AF%86%E6%9E%B6%E6%9E%84%E4%BA%94%E8%A7%86%E5%9B%BE/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1060,20 +1112,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">159</span>
+          <span class="site-state-item-count">160</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -1105,7 +1157,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

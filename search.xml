@@ -3110,26 +3110,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ConcurrentHashMap源码分析</title>
-    <url>/2020/09/02/%E6%8A%80%E6%9C%AF/java%E9%9B%86%E5%90%88/ConcurrentHashMap%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<p>本文主要详述JDK 1.8的ConcurrentHashMap</p>
-<a id="more"></a>
-<h1 id="待完成"><a href="#待完成" class="headerlink" title="待完成"></a>待完成</h1><h3 id="ConcurrentHashMap概述"><a href="#ConcurrentHashMap概述" class="headerlink" title="ConcurrentHashMap概述"></a>ConcurrentHashMap概述</h3><p>JDK 1.8的ConcurrentHashMap在JDK 1.8HashMap的基础上实现了线程安全的版本，即也是采用<strong>数组+链表+红黑树</strong>的形式。</p>
-<h3 id="ConcurrentHashMap的数据结构"><a href="#ConcurrentHashMap的数据结构" class="headerlink" title="ConcurrentHashMap的数据结构"></a>ConcurrentHashMap的数据结构</h3><h3 id="ConcurrentHashMap源码分析"><a href="#ConcurrentHashMap源码分析" class="headerlink" title="ConcurrentHashMap源码分析"></a>ConcurrentHashMap源码分析</h3><p>构造</p>
-<p>put</p>
-<p>扩容</p>
-<p>get</p>
-<p>delete</p>
-<p>其他</p>
-<h3 id="ConcurrentHashMap总结"><a href="#ConcurrentHashMap总结" class="headerlink" title="ConcurrentHashMap总结"></a>ConcurrentHashMap总结</h3>]]></content>
-      <categories>
-        <category>java基础</category>
-      </categories>
-      <tags>
-        <tag>java集合</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>HashSet源码分析</title>
     <url>/2019/06/27/%E6%8A%80%E6%9C%AF/java%E9%9B%86%E5%90%88/HashSet%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<p>HashSet是Set接口的典型实现，实现了Set接口中的所有方法。</p>
@@ -12800,6 +12780,103 @@
       </categories>
       <tags>
         <tag>架构</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SQL的连表查询</title>
+    <url>/2021/01/01/SQL/SQL%E7%9A%84%E8%BF%9E%E8%A1%A8%E6%9F%A5%E8%AF%A2/</url>
+    <content><![CDATA[<p>表的连接包括：内连接、左连接、右连接、外连接，交叉连接、左排除连接、右排除连接、非交集连接</p>
+<ul>
+<li><p>内连接查询  inner join</p>
+<p>该查询将返回两表满足匹配关系的记录。</p>
+</li>
+<li><p>外连接</p>
+<p>外连接可分为：左连接、右连接、完全外连接</p>
+<ul>
+<li><p>左连接  left join   left outer join</p>
+<p>获取左表中的所有记录，即使在右表没有对应匹配的记录。</p>
+<blockquote>
+<p>左外连接包含left join左表所有行，如果左表中某行在右表没有匹配，则结果中对应行右表的部分全部为空(NULL).</p>
+<p>注：此时我们不能说结果的行数等于左表数据的行数（只有表关系为一对一的时候相同）。</p>
+</blockquote>
+</li>
+<li><p>右连接  right join </p>
+<blockquote>
+<p>右外连接包含right join右表所有行，如果左表中某行在右表没有匹配，则结果中对应左表的部分全部为空(NULL)。</p>
+</blockquote>
+</li>
+<li><p>完全连接. Full join</p>
+</li>
+</ul>
+</li>
+<li><p>交叉连接 cross join</p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a href="https://www.codeproject.com/Articles/33052/Visual-Representation-of-SQL-Joins">Visual Representation of SQL Joins - CodeProject</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/68136613">SQL多表查询</a></p>
+]]></content>
+      <categories>
+        <category>SQL</category>
+      </categories>
+      <tags>
+        <tag>SQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring Boot</title>
+    <url>/2021/04/12/Spring/Spring-Boot/</url>
+    <content><![CDATA[<p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can “just run”.</p>
+<p>(Spring Boot使得创建独立的、生产级的、基于Spring的应用程序变得很容易，您可以“直接运行”。)</p>
+<h4 id="一、Spring-Boot的理解"><a href="#一、Spring-Boot的理解" class="headerlink" title="一、Spring Boot的理解"></a>一、Spring Boot的理解</h4><h5 id="1-Spring-Boot-是什么"><a href="#1-Spring-Boot-是什么" class="headerlink" title="1.Spring Boot 是什么"></a>1.Spring Boot 是什么</h5><p>提供了快速构建Spring Framework 应用的框架，即 Spring Framwork是Spring Boot的内核</p>
+<h5 id="2-Spring-Boot-是如何简化Spring配置的"><a href="#2-Spring-Boot-是如何简化Spring配置的" class="headerlink" title="2.Spring Boot 是如何简化Spring配置的"></a>2.Spring Boot 是如何简化Spring配置的</h5><p>主要思想就是 <strong>约定优于配置</strong>：通过约定的方式来减少配置，从而提升开发效率，具体体现：</p>
+<p>（1）默认的Maven结构，以及默认的打包方式</p>
+<p>（2）默认的配置文件<code>application.properties</code></p>
+<p>（3）Starter的相关jar包依赖</p>
+<p>（4）Web默认包含Spring-mvc以及内置tomcat容器</p>
+<p>（5）部署到tomcat</p>
+<h4 id="二、简化配置的原理"><a href="#二、简化配置的原理" class="headerlink" title="二、简化配置的原理"></a>二、简化配置的原理</h4><h5 id="1-Spring-注解驱动"><a href="#1-Spring-注解驱动" class="headerlink" title="1.Spring 注解驱动"></a>1.Spring 注解驱动</h5><p>由xml配置逐渐转变为注解驱动方式，通过注解实现Spring对Bean的管理</p>
+<h5 id="2-Spring-Boot的自动装配"><a href="#2-Spring-Boot的自动装配" class="headerlink" title="2.Spring Boot的自动装配"></a>2.Spring Boot的自动装配</h5><p>SpringBoot starter机制（自动装配）：SpringBoot中的starter是一种非常重要的机制，starter遵循“约定大于配置”的理念，将繁杂的配置和需要的Bean统一集成进starter，应用者只需要在maven中引入starter依赖，Spring Boot 就能：1)自动扫描到要加载的信息并启动相应的默认配置 ，2)自动通过classpath路径下的类发现需要的Bean，并注册进IOC容器</p>
+<p>SpringBoot提供了针对日常企业应用研发各种场景的spring-boot-starter依赖模块</p>
+<p>（1）自定义starter原理：</p>
+<p>也是约定优于配置：Spring Boot启动时自动加载<code>META-INF/spring.factories</code>文件的配置Bean</p>
+<ul>
+<li><p>官方starter：(比如<code>spring-boot-starter-data-redis</code>)由于官方需要加载的配置类都是已知的，所以官方的starter一般不需要在<code>META-INF/spring.factories</code>文件中配置的</p>
+</li>
+<li><p>自定义的starter：在starter中的<code>META-INF/spring.factories</code>配置当前starter中使用<code>@Configuration</code>的配置类</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#-------starter自动装配---------</span><br><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration&#x3D;com.demo.starter.config.DemoConfig</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>Spring Boot中加载<code>META-INF/spring.factories</code>中配置源码：</p>
+<p>Spring Boot中是通过<code> EnableAutoConfiguration</code> 注解加载的<code> META-INF/spring.facteries</code>文件。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@SpringBootApplication ——&gt;  @EnableAutoConfiguration  ——&gt;  @Import(AutoConfigurationImportSelector.class) </span><br></pre></td></tr></table></figure>
+
+<p><code>AutoConfigurationImportSelector.class</code>加载代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector)</span> </span>&#123;</span><br><span class="line">    Assert.state(deferredImportSelector <span class="keyword">instanceof</span> AutoConfigurationImportSelector,</span><br><span class="line">            () -&gt; String.format(<span class="string">&quot;Only %s implementations are supported, got %s&quot;</span>,</span><br><span class="line">                    AutoConfigurationImportSelector.class.getSimpleName(),</span><br><span class="line">                    deferredImportSelector.getClass().getName()));</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)</span><br><span class="line">            .getAutoConfigurationEntry(annotationMetadata);</span><br><span class="line">    <span class="keyword">this</span>.autoConfigurationEntries.add(autoConfigurationEntry);</span><br><span class="line">    <span class="keyword">for</span> (String importClassName : autoConfigurationEntry.getConfigurations()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.entries.putIfAbsent(importClassName, annotationMetadata);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> AutoConfigurationEntry <span class="title">getAutoConfigurationEntry</span><span class="params">(AnnotationMetadata annotationMetadata)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isEnabled(annotationMetadata)) &#123;</span><br><span class="line">        <span class="keyword">return</span> EMPTY_ENTRY;</span><br><span class="line">    &#125;</span><br><span class="line">    AnnotationAttributes attributes = getAttributes(annotationMetadata);</span><br><span class="line">    <span class="comment">//2</span></span><br><span class="line">    List&lt;String&gt; configurations = getCandidateConfigurations(annotationMetadata, attributes);</span><br><span class="line">    configurations = removeDuplicates(configurations);</span><br><span class="line">    Set&lt;String&gt; exclusions = getExclusions(annotationMetadata, attributes);</span><br><span class="line">    checkExcludedClasses(configurations, exclusions);</span><br><span class="line">    configurations.removeAll(exclusions);</span><br><span class="line">    configurations = getConfigurationClassFilter().filter(configurations);</span><br><span class="line">    fireAutoConfigurationImportEvents(configurations, exclusions);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> AutoConfigurationEntry(configurations, exclusions);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> List&lt;String&gt; <span class="title">getCandidateConfigurations</span><span class="params">(AnnotationMetadata metadata, AnnotationAttributes attributes)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 3</span></span><br><span class="line">    List&lt;String&gt; configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(),</span><br><span class="line">            getBeanClassLoader());</span><br><span class="line">    Assert.notEmpty(configurations, <span class="string">&quot;No auto configuration classes found in META-INF/spring.factories. If you &quot;</span></span><br><span class="line">            + <span class="string">&quot;are using a custom packaging, make sure that file is correct.&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> configurations;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; getSpringFactoriesLoaderFactoryClass() &#123;</span><br><span class="line">    <span class="keyword">return</span> EnableAutoConfiguration.class;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//factoryClass 传入EnableAutoConfiguration.class;</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;String&gt; <span class="title">loadFactoryNames</span><span class="params">(Class&lt;?&gt; factoryClass, <span class="meta">@Nullable</span> ClassLoader classLoader)</span> </span>&#123;</span><br><span class="line">    String factoryClassName = factoryClass.getName();</span><br><span class="line">    <span class="comment">// 4</span></span><br><span class="line">    <span class="keyword">return</span> loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Map&lt;String, List&lt;String&gt;&gt; loadSpringFactories(<span class="meta">@Nullable</span> ClassLoader classLoader) &#123;</span><br><span class="line">    MultiValueMap&lt;String, String&gt; result = cache.get(classLoader);</span><br><span class="line">    <span class="keyword">if</span> (result != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 5</span></span><br><span class="line">        Enumeration&lt;URL&gt; urls = (classLoader != <span class="keyword">null</span> ?</span><br><span class="line">                classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :</span><br><span class="line">                ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));</span><br><span class="line">        result = <span class="keyword">new</span> LinkedMultiValueMap&lt;&gt;();</span><br><span class="line">        <span class="keyword">while</span> (urls.hasMoreElements()) &#123;</span><br><span class="line">            URL url = urls.nextElement();</span><br><span class="line">            UrlResource resource = <span class="keyword">new</span> UrlResource(url);</span><br><span class="line">            Properties properties = PropertiesLoaderUtils.loadProperties(resource);</span><br><span class="line">            <span class="keyword">for</span> (Map.Entry&lt;?, ?&gt; entry : properties.entrySet()) &#123;</span><br><span class="line">                String factoryClassName = ((String) entry.getKey()).trim();</span><br><span class="line">                <span class="keyword">for</span> (String factoryName : StringUtils.commaDelimitedListToStringArray((String) entry.getValue())) &#123;</span><br><span class="line">                    result.add(factoryClassName, factoryName.trim());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        cache.put(classLoader, result);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Unable to load factories from location [&quot;</span> +</span><br><span class="line">                FACTORIES_RESOURCE_LOCATION + <span class="string">&quot;]&quot;</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>（2）Spring Boot中的SPI机制实现</p>
+<ul>
+<li><p>SPI思想</p>
+<ul>
+<li><p>SPI的全名为Service Provider Interface.这个是针对厂商或者插件的。</p>
+</li>
+<li><p>SPI的思想：系统里抽象的各个模块，往往有很多不同的实现方案，比如日志模块的方案，xml解析模块、jdbc模块的方案等。面向的对象的设计里，我们一般推荐模块之间基于接口编程，模块之间不对实现类进行硬编码。一旦代码里涉及具体的实现类，就违反了可拔插的原则，如果需要替换一种实现，就需要修改代码。为了实现在模块装配的时候能不在程序里动态指明，这就需要一种服务发现机制。<strong>java spi就是提供这样的一个机制：为某个接口寻找服务实现的机制</strong></p>
+</li>
+</ul>
+</li>
+<li><p>在Spring Boot的自动装配过程中，最终加载META-INF/spring.factories文件的配置，即是SPI思想的一种实现方式，</p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a href="https://www.jianshu.com/p/0d196ad23915">Spring Boot中的SPI机制-简书</a></p>
+<p><a href="https://www.cnblogs.com/hello-shf/p/10864977.html#_label4">SpringBoot应用篇（一）：自定义starter</a></p>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
       </tags>
   </entry>
 </search>
