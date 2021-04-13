@@ -12785,7 +12785,8 @@
   <entry>
     <title>Spring Boot</title>
     <url>/2021/04/12/Spring/Spring-Boot/</url>
-    <content><![CDATA[<p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can “just run”.</p>
+    <content><![CDATA[<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can &quot;just run&quot;.</span><br></pre></td></tr></table></figure>
+
 <a id="more"></a>
 
 <p>(Spring Boot使得创建独立的、生产级的、基于Spring的应用程序变得很容易，您可以“直接运行”。)</p>
