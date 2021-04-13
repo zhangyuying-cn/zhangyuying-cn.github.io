@@ -12786,6 +12786,8 @@
     <title>SQL的连表查询</title>
     <url>/2021/01/01/SQL/SQL%E7%9A%84%E8%BF%9E%E8%A1%A8%E6%9F%A5%E8%AF%A2/</url>
     <content><![CDATA[<p>表的连接包括：内连接、左连接、右连接、外连接，交叉连接、左排除连接、右排除连接、非交集连接</p>
+<a id="more"></a>
+
 <ul>
 <li><p>内连接查询  inner join</p>
 <p>该查询将返回两表满足匹配关系的记录。</p>
@@ -12827,6 +12829,8 @@
     <title>Spring Boot</title>
     <url>/2021/04/12/Spring/Spring-Boot/</url>
     <content><![CDATA[<p>Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can “just run”.</p>
+<a id="more"></a>
+
 <p>(Spring Boot使得创建独立的、生产级的、基于Spring的应用程序变得很容易，您可以“直接运行”。)</p>
 <h4 id="一、Spring-Boot的理解"><a href="#一、Spring-Boot的理解" class="headerlink" title="一、Spring Boot的理解"></a>一、Spring Boot的理解</h4><h5 id="1-Spring-Boot-是什么"><a href="#1-Spring-Boot-是什么" class="headerlink" title="1.Spring Boot 是什么"></a>1.Spring Boot 是什么</h5><p>提供了快速构建Spring Framework 应用的框架，即 Spring Framwork是Spring Boot的内核</p>
 <h5 id="2-Spring-Boot-是如何简化Spring配置的"><a href="#2-Spring-Boot-是如何简化Spring配置的" class="headerlink" title="2.Spring Boot 是如何简化Spring配置的"></a>2.Spring Boot 是如何简化Spring配置的</h5><p>主要思想就是 <strong>约定优于配置</strong>：通过约定的方式来减少配置，从而提升开发效率，具体体现：</p>
