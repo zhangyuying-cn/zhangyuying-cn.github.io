@@ -13183,4 +13183,224 @@
         <tag>Cron表达式</tag>
       </tags>
   </entry>
+  <entry>
+    <title>SQL实践</title>
+    <url>/2021/05/21/SQL/SQL%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<p>主要是实际遇到的SQL场景记录</p>
+<a id="more"></a>
+
+<p>目录:</p>
+<ul>
+<li>一.按时间分段排序</li>
+<li>二.字符串批量对批量的查询</li>
+</ul>
+<h3 id="一-按时间分段排序"><a href="#一-按时间分段排序" class="headerlink" title="一.按时间分段排序"></a>一.按时间分段排序</h3><ol>
+<li><p>需求描述</p>
+<p>存在一个 健身房预定权限表<code>authority_reserve</code>：规定了每个人可以预定健身多长时间，</p>
+<p>获取数据列表，列表排序方式：</p>
+<p>​    ① 当前日期在授权日期范围内的，按照授权开始日期正序；</p>
+<p>​    ② 当前日期未到授权日期范围内，按照授权开始日期正序；</p>
+<p>​    ③ 当前日期已过授权日期范围内的，按照授权开始日期正序。</p>
+</li>
+</ol>
+<p>具体表数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>user_id</th>
+<th>auth_start_time</th>
+<th>auth_end_time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>100</td>
+<td>2021-05-02</td>
+<td>2021-05-10</td>
+</tr>
+<tr>
+<td>2</td>
+<td>101</td>
+<td>2021-05-25</td>
+<td>2021-05-30</td>
+</tr>
+<tr>
+<td>3</td>
+<td>102</td>
+<td>2021-05-20</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>4</td>
+<td>103</td>
+<td>2021-05-05</td>
+<td>2021-05-08</td>
+</tr>
+<tr>
+<td>5</td>
+<td>104</td>
+<td>2021-05-22</td>
+<td>2021-05-23</td>
+</tr>
+<tr>
+<td>6</td>
+<td>105</td>
+<td>2021-05-19</td>
+<td>2021-05-25</td>
+</tr>
+</tbody></table>
+<p>首先注意今天为：2021-05-21</p>
+<ol start="2">
+<li>SQL实现</li>
+</ol>
+<ul>
+<li><p>使用 <code>order by case when</code></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>, user_id, auth_start_time, auth_end_time</span><br><span class="line"><span class="keyword">from</span> authority_reserve</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> </span><br><span class="line"><span class="keyword">case</span> </span><br><span class="line">   <span class="keyword">when</span> (auth_start_time &lt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">and</span> auth_end_time &gt; <span class="string">&#x27;2021-05-21&#x27;</span>) <span class="keyword">then</span> <span class="number">0</span></span><br><span class="line">   <span class="keyword">when</span> auth_start_time &gt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">then</span> <span class="number">1</span></span><br><span class="line">   <span class="keyword">when</span> auth_end_time &lt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">then</span> <span class="number">2</span> <span class="keyword">end</span>,</span><br><span class="line">auth_start_time <span class="keyword">asc</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>order by case when</code> 在这个例子中不是很灵活，其更适用于排序随意数字，比如:</p>
+<p>健身房<code>gym</code>状态字段state，0:未投入使用 1:正常使用中 2:停止使用，按照正常使用–未投入使用–停止使用的顺序排序</p>
+<p>select  id,  state  from  gym<br>order  by  case<br>   when  state=1  then 0<br>   when  state=0  then 1<br>   when  state=2  then 2  end;</p>
+</blockquote>
+</li>
+<li><p>使用 <code>union all</code></p>
+<p>使用 <code>union all</code> 灵活性比较高，比如第一段当前日期在授权日期范围内的，也可以按照授权开始时间倒序</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">(<span class="keyword">select</span> <span class="keyword">id</span>, user_id, auth_start_time, auth_end_time</span><br><span class="line"> <span class="keyword">from</span> authority_reserve</span><br><span class="line"> <span class="keyword">where</span> auth_start_time &lt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">and</span>  auth_end_time &gt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> auth_start_time <span class="keyword">asc</span>)</span><br><span class="line"><span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">(<span class="keyword">select</span> <span class="keyword">id</span>, user_id, auth_start_time, auth_end_time</span><br><span class="line"> <span class="keyword">from</span> authority_reserve</span><br><span class="line"> <span class="keyword">where</span> auth_start_time &gt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> auth_start_time <span class="keyword">asc</span>)</span><br><span class="line"><span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">(<span class="keyword">select</span> <span class="keyword">id</span>, user_id, auth_start_time, auth_end_time</span><br><span class="line"> <span class="keyword">from</span> authority_reserve</span><br><span class="line"> <span class="keyword">where</span> auth_end_time &lt; <span class="string">&#x27;2021-05-21&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> auth_start_time <span class="keyword">asc</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ol start="3">
+<li>查询结果</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>user_id</th>
+<th>auth_start_time</th>
+<th>auth_end_time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>6</td>
+<td>105</td>
+<td>2021-05-19</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>3</td>
+<td>102</td>
+<td>2021-05-20</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>5</td>
+<td>104</td>
+<td>2021-05-22</td>
+<td>2021-05-23</td>
+</tr>
+<tr>
+<td>2</td>
+<td>101</td>
+<td>2021-05-25</td>
+<td>2021-05-30</td>
+</tr>
+<tr>
+<td>1</td>
+<td>100</td>
+<td>2021-05-02</td>
+<td>2021-05-10</td>
+</tr>
+<tr>
+<td>4</td>
+<td>103</td>
+<td>2021-05-05</td>
+<td>2021-05-08</td>
+</tr>
+</tbody></table>
+<h3 id="二-字符串批量对批量的查询"><a href="#二-字符串批量对批量的查询" class="headerlink" title="二.字符串批量对批量的查询"></a>二.字符串批量对批量的查询</h3><p>注意：当前实践实现方式仅限<code>postgreal</code>数据库</p>
+<ol>
+<li><p>需求描述：健身房<code>gym</code>包括设备：跑步机、高位下拉、俯卧屈腿、倒蹬器   等等</p>
+<p>查询条件传入多个设备，健身房有其中任意一个设备即可被查询出来（正常数据库健身房设备应该使用字典表示，此时为了查看方便直接使用汉字表示）</p>
+<p>具体表数据如下：</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>equipment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>高位下拉,跑步机</td>
+</tr>
+<tr>
+<td>2</td>
+<td>俯卧屈腿,高位下拉</td>
+</tr>
+<tr>
+<td>3</td>
+<td>俯卧屈腿,跑步机</td>
+</tr>
+<tr>
+<td>4</td>
+<td>跑步机,俯卧屈腿</td>
+</tr>
+<tr>
+<td>5</td>
+<td>倒蹬器</td>
+</tr>
+<tr>
+<td>6</td>
+<td>倒蹬器,俯卧屈腿,高位下拉</td>
+</tr>
+</tbody></table>
+<ol start="2">
+<li><p>SQL实现</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>, equipment <span class="keyword">from</span> gym</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">substring</span>(equipment <span class="keyword">from</span> <span class="string">&#x27;[高位下拉|倒蹬器]&#x27;</span>) != <span class="string">&#x27;&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">id</span> </span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>substring(string from pattern)</code>  :  从字符串中找出与POSIX正则表达式匹配的子字符串。    </p>
+<p>示例 : <code>substring(&#39;Thomas&#39; from &#39;...$&#39;)    mas</code></p>
+</blockquote>
+</li>
+<li><p>查询结果</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>equipment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>高位下拉,跑步机</td>
+</tr>
+<tr>
+<td>2</td>
+<td>跑步机,俯卧屈腿</td>
+</tr>
+<tr>
+<td>5</td>
+<td>倒蹬器</td>
+</tr>
+<tr>
+<td>6</td>
+<td>倒蹬器,俯卧屈腿,高位下拉</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<p>参考资料</p>
+<p><a href="https://help.aliyun.com/document_detail/166200.html">PostgreSQL字符串函数</a></p>
+]]></content>
+      <categories>
+        <category>SQL</category>
+      </categories>
+      <tags>
+        <tag>SQL</tag>
+      </tags>
+  </entry>
 </search>

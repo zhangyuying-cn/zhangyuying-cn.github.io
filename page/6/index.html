@@ -200,6 +200,79 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">EffectiveJava(13)-谨慎的覆盖clone方法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-07-26 23:48:36" itemprop="dateCreated datePublished" datetime="2019-07-26T23:48:36+08:00">2019-07-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-11-19 11:43:01" itemprop="dateModified" datetime="2020-11-19T11:43:01+08:00">2020-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>第13条：谨慎的覆盖<code>clone</code>方法</p>
+<p>1.可以通过实现Cloneable接口重载对象的clone方法，若不实现Cloneable接口而重载clone方法，将会抛出<code>CloneNotSupportedException</code>异常。（这是比较反常的接口使用，因为Cloneable中没有任何方法，它所修改的父类上受保护方法的行为）</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
     <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/07/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(12)-%E5%A7%8B%E7%BB%88%E8%A6%81%E8%A6%86%E7%9B%96toString/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -847,80 +920,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="">
-    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/07/17/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(4)-%E4%BD%BF%E7%94%A8%E7%A7%81%E6%9C%89%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E5%AE%9E%E7%8E%B0%E9%9D%9E%E5%AE%9E%E4%BE%8B%E5%8C%96/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="张玉莹">
-      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张玉莹的个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/07/17/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(4)-%E4%BD%BF%E7%94%A8%E7%A7%81%E6%9C%89%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E5%AE%9E%E7%8E%B0%E9%9D%9E%E5%AE%9E%E4%BE%8B%E5%8C%96/" class="post-title-link" itemprop="url">EffectiveJava(4)-使用私有构造方法实现非实例化</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-07-17 10:00:11" itemprop="dateCreated datePublished" datetime="2019-07-17T10:00:11+08:00">2019-07-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-11-26 11:39:33" itemprop="dateModified" datetime="2020-11-26T11:39:33+08:00">2020-11-26</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>第4条：使用私有构造方法实现非实例化</p>
-<p>有时会编写这样的类：只包含一些静态方法和属性，例如：<code>java.lang.Math</code> 、<code>java.util.Arrays</code> 或<code>java.util.Collections</code></p>
-<p>这样的类(<code>utility classes</code>) 不是设计用来被实例化的：因为实例对于这样的类是没有意义的</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/07/17/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(4)-%E4%BD%BF%E7%94%A8%E7%A7%81%E6%9C%89%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95%E5%AE%9E%E7%8E%B0%E9%9D%9E%E5%AE%9E%E4%BE%8B%E5%8C%96/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -992,7 +991,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">162</span>
+          <span class="site-state-item-count">163</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
