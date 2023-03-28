@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring AOP是AOP技术在Spring中的具体实现，构建于IoC之上，是构成Spring框架的另一个重要基石">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring AOP基础">
+<meta property="og:url" content="http://zhangyuying.cn/2020/03/24/Spring/Spring-AOP%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Spring AOP是AOP技术在Spring中的具体实现，构建于IoC之上，是构成Spring框架的另一个重要基石">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E6%A8%AA%E5%88%87%E9%80%BB%E8%BE%91%E7%A4%BA%E6%84%8F%E5%9B%BE.jpg">
+<meta property="article:published_time" content="2020-03-24T03:01:32.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.753Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E6%A8%AA%E5%88%87%E9%80%BB%E8%BE%91%E7%A4%BA%E6%84%8F%E5%9B%BE.jpg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2020/03/24/Spring/Spring-AOP%E5%9F%BA%E7%A1%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Spring AOP基础 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/03/24/Spring/Spring-AOP%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring AOP基础
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-03-24 11:01:32" itemprop="dateCreated datePublished" datetime="2020-03-24T11:01:32+08:00">2020-03-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Spring AOP是AOP技术在Spring中的具体实现，构建于IoC之上，是构成Spring框架的另一个重要基石</p>
+<span id="more"></span>
+
+<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>AOP是OOP的有益补充，AOP是有特定的应用场合的，他只适合那些具有横切逻辑的应用场合，如性能检测、访问控制等</p>
+<p>AOP是什么：</p>
+<p>AOP是<code>Aspect Oriented Programing</code>的简称，译为：面向切面编程</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E6%A8%AA%E5%88%87%E9%80%BB%E8%BE%91%E7%A4%BA%E6%84%8F%E5%9B%BE.jpg" alt="横切逻辑示意图"></p>
+<p>AOP术语：</p>
+<ol>
+<li><p>连接点（<code>Joinpoint</code>）</p>
+<p>特定点是程序执行的某个特定位置，如类开始初始化前、类初始化后、类的某个方法调用前/调用后、方法抛出异常后，一个类或一段程序代码拥有一些具有边界性质的特定点，这些代码的特定点就被称为连接点</p>
+<p>Spring仅支持方法的连接点，即仅能在方法的调用前、方法调用后、方法抛出异常及方法调用前后这些程序执行点织入增强</p>
+<p>连接点由两个信息确定：一是用方法表示的程序执行点，二是用相对位置表示的方位，如Test.foo()方法执行前的连接点，执行点为Test.foo(),方位为该方法执行前的位置，</p>
+<p>Spring中使用切点对执行点进行定位，而方位则在增强类型中定义</p>
+</li>
+<li><p>切点（<code>Pointcut</code>）</p>
+<p>每个程序类都拥有许多连接点，即连接点是程序类中客观存在的事物。AOP通过切点定位特定的连接点，一个切点可以匹配多个连接点</p>
+<p>在Spring中，切点通过<code>org.springframework.aop.Pointcut</code>接口进行描述，他是用类和方法作为连接点的查询条件，Spring AOP的规则解析引擎负责解析切点所设定的查询条件，找到对应的连接点(应该叫执行点，因为切点结合方位信息才是连接点)</p>
+</li>
+<li><p>增强（<code>Advice</code>）</p>
+<p>增强是织入目标类连接点上的一段程序代码，在Spring中，增强除了用于描述一段程序代码外，还拥有另一个和连接点相关的信息，这便是执行点的方位，结合执行点的方位信息和切点信息，就可以找到特定的连接点</p>
+<p>因为增强既包含用于添加到目标连接点上的一段执行逻辑，又包含用于定位连接点的方位信息，所以Spring所提供的增强接口都是带方位名的，如<code>BeforeAdvice</code>、<code>AfterReturningAdvice</code>、<code>ThrowsAdvice</code>等</p>
+<p>只有结合切点和增强，才能确定特定的连接点并实施增强逻辑</p>
+</li>
+<li><p>目标对象（<code>Target</code>）</p>
+<p>增强逻辑织入的目标类</p>
+</li>
+<li><p>引介（<code>Introduction</code>）</p>
+<p>引介是一种特殊的增强，他为类添加了一些属性和方法，这样，即使一个业务类原本没有实现某个接口，通过AOP的引介功能，也可以动态地为该业务类添加接口的实现逻辑，让业务类成为这个接口的实现类</p>
+</li>
+<li><p>织入（<code>Weaving</code>）</p>
+<p>织入是将增强添加到目标类的具体连接点上的过程，AOP有3中织入方式：</p>
+<p>(1). 编译期织入，这要求使用特殊的Java编译器</p>
+<p>(2).类装载期织入，这要求使用特殊的类加载器</p>
+<p>(3).动态代理织入，在运行期为目标类添加增强生成子类的方式</p>
+<p>Spring采用动态代理织入，而AspectJ采用编译器织入和类装载期织入</p>
+</li>
+<li><p>代理（<code>Proxy</code>）</p>
+<p>一个类被AOP织入增强后，就产生了一个结果类，他是融合了原类和增强逻辑的代理类</p>
+<p>根据不同的代理方式，代理类既可能是和原类具有相同接口的类，也可能就是原类的子类，所以可以采用与调用原类相同的方式调用代理类</p>
+</li>
+<li><p>切面（<code>Aspect</code>）</p>
+<p>切面由切点和增强（引介）组成，它既包括横切逻辑的定义，也包括连接点的定义</p>
+<p>Spring AOP就是负责实施切面的框架，它将切面所定义的横切逻辑织入切面所指定的连接点中</p>
+</li>
+</ol>
+<p>AOP的实现者：</p>
+<p>AOP工具的设计目标是把横切问题(如性能监视、事物管理)模块化，使用类似OOP的方式进行切面的编程工作，位于AOP工具核心的是连接点模型，他提供了一种机制，可以定位到需要在哪里发生横切</p>
+<ol>
+<li>AspectJ：是语言级的AOP实现，扩展了Java语言，定义了AOP语法，能够在编译期提供横切代码的织入（所以他有专门的编译期来生成最受Java字节码编码规范的Class文件）</li>
+<li>AspectWerkz：是基于Java的简单、动态、轻量级的AOP框架，支持运行期或类装载期织入横切代码，所以它拥有一个特殊的类装载器，现已和AspectJ项目合并</li>
+<li>JBoss AOP</li>
+<li>Spring AOP：使用纯Java实现，不需要专门的编译过程，也不需要特殊的类装载器，他在运行期通过代理方式向目标类织入增强代码，Spring并不尝试提供最完整的AOP实现，相反，他侧重与提供一种和Spring IoC容器整合的AOP实现，在Spring中可以无缝地将Spring AOP、Io、AspectJ整合在一起</li>
+</ol>
+<h4 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h4><p>Spring AOP使用动态代理技术在运行期织入增强的代码，Spring AOP使用了两种代理机制：</p>
+<ol>
+<li><p>基于<strong>JDK的动态代理</strong> </p>
+<p>JDK动态代理：Java 1.3之后，Java提供了动态代理技术，允许开发者在运行期创建接口的代理实例</p>
+<p>JDK的动态代理主要涉及<code>java.lang.reflect</code>包中的两个类：<code>Proxy</code>和<code>InvocationHandler</code></p>
+<ul>
+<li><p><code>InvocationHandler</code>是一个接口，可以通过实现该接口定义横切逻辑，并通过反射机制调用目标类的代码，动态地将横切逻辑和业务逻辑编织在一起</p>
+</li>
+<li><p><code>Proxy</code>利用<code>InvocationHandler</code>动态创建一个符合某一接口的实例，生成目标类的代理对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Proxy.newProxy.newProxyInstance(ClassLoader loader,Class[] interfaces,InvocationHandler handler);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>JDk动态代理有一个限制，即它只能为接口创建代理实例(<code>Proxy</code>的第二个参数就是接口)</p>
+</li>
+<li><p>基于<strong>CGLib的动态代理</strong> </p>
+<p>CGLib动态代理：JDK动态代理只能为接口创建代理，而CGLib填补了空缺</p>
+<p>CGLib采用底层的字节码技术，可以为一个类创建子类，在子类中采用方法拦截的技术拦截所有父类方法的调用，并顺势织入横切逻辑</p>
+<p>不过由于CGLib采用动态代理创建子类的方式生成代理对象，所以不能对目标类中的<code>final</code>或<code>private</code>方法进行代理</p>
+</li>
+</ol>
+<p>之所以需要两种代理机制，很大程度上是因为JDK本身只提供接口的代码，而不支持类的代理</p>
+<p>有研究表明CGLib所创建的动态代理对象的性能比JDK所创建对象的性能高不少（大概10倍），但CGLib在创建代理对象时所花费的时间却比JDK动态代理多（大概8倍），所以对于<code>singleton</code>的代理对象或者具有实例池的代理，因为无须频繁的创建代理对象，所以比较适合采用CGLib动态代理技术，反之则适合采用JDK动态代理技术</p>
+<h4 id="增强的类型"><a href="#增强的类型" class="headerlink" title="增强的类型"></a>增强的类型</h4><p>AOP联盟为增强定义了<code>org.aopalliance.aop.Advice</code>接口， Spring支持五种类型的增强(注意Spring只支持方法级的增强)：</p>
+<ul>
+<li><p>前置增强：<code>BeforeAdvice</code>，现可用的是<code>MethodBeforeAdvice</code>，表示在目标方法执行前实施增强</p>
+</li>
+<li><p>后置增强：<code>AfterReturningAdvice</code>，表示在目标方法执行后实施增强</p>
+</li>
+<li><p>环绕增强：<code>MethodInterceptor</code>，表示在目标方法执行前后实施增强</p>
+</li>
+<li><p>异常抛出增强：<code>ThrowsAdvice</code>，表示在目标方法抛出异常后实施增强</p>
+</li>
+<li><p>引介增强：<code>IntroductionInterceptor</code>，表示在目标类型添加一些新的方法和属性，</p>
+<p>引介增强的连接点是类级别的，而非方法级别的，通过引介增强，可以为目标类添加一个接口的实现，即原来目标类为实现某个接口，通过引介增强可以为目标类创建实现某接口的代理</p>
+</li>
+</ul>
+<h4 id="切面"><a href="#切面" class="headerlink" title="切面"></a>切面</h4><p>Spring通过<code>Pointcut</code>接口描述切点，<code>Pointcut</code>由<code>ClassFilter</code>和<code>MethodMatcher</code>构成，通过<code>ClassFilter</code>定位到某些特定类上，通过<code>MethodMatcher</code>定位到某些方法上，这样<code>Pointcut</code>就拥有了描述某些类的某些特定方法的能力</p>
+<p>切点类型</p>
+<p>Spring提供了6种类型的切点</p>
+<ul>
+<li>静态方法切点，<code>StaticMethodMatcherPointcut</code></li>
+<li>动态方法切点：<code>DynamicMethodMatcherPointcut</code></li>
+<li>注解切点：<code>AnnotationMatchingPointcut</code></li>
+<li>表达式切点：<code>ExpressionPointcut</code>，主要是为了支持AspectJ切点表达式语法而定义的接口</li>
+<li>流程切点：<code>ControlFlowPointcut</code></li>
+<li>复合切点：<code>ComposablePointcut</code></li>
+</ul>
+<p>切面类型</p>
+<p>Spring使用<code>Advistor</code>接口表示切面的概念，一个切面同时包含横切代码和连接点信息，Spring中切面可分为3类：</p>
+<ul>
+<li>一般切面：<code>Advisor</code>，仅包含一个<code>Advice</code>，因为是所有目标类的所有方法,太广泛，所以一般不会直接使用</li>
+<li>切点切面：<code>PointcutAdvisor</code>，具有切点的切面，包含<code>Advice</code>和<code>Pointcut</code>两个类，能提供更灵活，更适用的切面</li>
+<li>引介切面：<code>IntroductionAdvisor</code>，引介切面是对应引介增强的特殊切面，他应用于类层面上，所以引介切点使用<code>ClassFilter</code>进行定义</li>
+</ul>
+<h4 id="AOP无法增强疑难问题剖析"><a href="#AOP无法增强疑难问题剖析" class="headerlink" title="AOP无法增强疑难问题剖析"></a>AOP无法增强疑难问题剖析</h4><p>使用Spring AOP的时，可能会碰到一些方法无法被增强的问题，有时同一个类里面的方法有的可以被增强，有的却无法增强，要分析原因，要从Spring AOP的实现机制入手：</p>
+<ul>
+<li><p>在JDk动态代理中通过接口来实现方法拦截，所以必须确保要拦截的目标方法在接口中有定义，否则将无法实现拦截</p>
+</li>
+<li><p>在CGLib动态代理中通过动态生成代理子类来实现方法拦截，所以必须确保要拦截的目标方法可被子类访问，也就是目标方法必须定义为非<code>final</code>，且非私有</p>
+</li>
+<li><p>除了以上两种情况，还有一种特殊情况：在方法内部之间调用的时候，不会使用被增强的代理类，而是直接调用未被增强原类的方法</p>
+<p>可在调用的时候通过注入本类实例，然后通过本类实例来调用本类想要同样被增强的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BeAopProxy</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> BeAopProxy beAopProxy;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test1</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;test1方法&quot;</span>);</span><br><span class="line">        <span class="comment">//通过注入的beAopProxy 调用test2()</span></span><br><span class="line">        beAopProxy.test2();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test2</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;test2方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/20/Spring/Spring%E5%AE%B9%E5%99%A8%E9%AB%98%E7%BA%A7%E4%B8%BB%E9%A2%98/" rel="prev" title="Spring容器高级主题">
+      <i class="fa fa-chevron-left"></i> Spring容器高级主题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/03/26/Spring/%E5%9F%BA%E4%BA%8E@AspectJ%E7%9A%84AOP/" rel="next" title="基于@AspectJ的AOP">
+      基于@AspectJ的AOP <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">2.</span> <span class="nav-text">基础知识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">增强的类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E9%9D%A2"><span class="nav-number">4.</span> <span class="nav-text">切面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOP%E6%97%A0%E6%B3%95%E5%A2%9E%E5%BC%BA%E7%96%91%E9%9A%BE%E9%97%AE%E9%A2%98%E5%89%96%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">AOP无法增强疑难问题剖析</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

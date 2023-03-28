@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Redis支持给key设置过期时间，并提供过期策略对key进行过期处理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis数据的过期策略">
+<meta property="og:url" content="http://zhangyuying.cn/2022/07/06/Redis/Redis%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Redis支持给key设置过期时间，并提供过期策略对key进行过期处理">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E6%83%B0%E6%80%A7%E8%BF%87%E6%9C%9F%E6%B5%81%E7%A8%8B.png">
+<meta property="article:published_time" content="2022-07-06T08:21:49.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.751Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E6%83%B0%E6%80%A7%E8%BF%87%E6%9C%9F%E6%B5%81%E7%A8%8B.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2022/07/06/Redis/Redis%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Redis数据的过期策略 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2022/07/06/Redis/Redis%E6%95%B0%E6%8D%AE%E7%9A%84%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis数据的过期策略
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-07-06 16:21:49" itemprop="dateCreated datePublished" datetime="2022-07-06T16:21:49+08:00">2022-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Redis支持给<code>key</code>设置过期时间，并提供过期策略对<code>key</code>进行过期处理</p>
+<span id="more"></span>
+
+<h3 id="设置过期时间"><a href="#设置过期时间" class="headerlink" title="设置过期时间"></a>设置过期时间</h3><p>Redis可以为<code>key</code>设置过期时间</p>
+<ul>
+<li><code>expire</code>：设置<code>key</code>的过期时间，以秒为单位</li>
+<li><code>pexpire</code>：设置<code>key</code>的过期时间，以毫秒为单位</li>
+<li><code>expireat</code>：设置<code>key</code>的过期时间，参数为以秒为单位的时间戳格式</li>
+<li><code>pexpireat</code>：设置<code>key</code>的过期时间，参数为以毫秒为单位的时间戳格式</li>
+</ul>
+<p>其实<code>expire</code>、<code>pexpire</code>、<code>expireat</code>最终实现都是通过<code>pexpireat</code>实现的，也就是说无论客户端执行哪个命令，Redis都会转换成<code>pexpireat</code>命令执行。所以<code>expires</code>字典中存的时间是用<strong>毫秒时间戳表示的键的过期时间。</strong></p>
+<h3 id="Key存储"><a href="#Key存储" class="headerlink" title="Key存储"></a>Key存储</h3><p>Redis会将每个设置了过期时间的<code>key</code>放入一个独立的字典中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisDb</span> &#123;</span> </span><br><span class="line"><span class="keyword">int</span> id; <span class="comment">//id是数据库序号，为0-15(默认Redis有16个数据库) </span></span><br><span class="line"><span class="keyword">long</span> avg_ttl; <span class="comment">//存储的数据库对象的平均ttl(time to live)，用于统计 </span></span><br><span class="line">dict *dict; <span class="comment">//存储数据库所有的key-value </span></span><br><span class="line">dict *expires; <span class="comment">//存储key的过期时间 </span></span><br><span class="line">dict *blocking_keys;<span class="comment">//blpop 存储阻塞key和客户端对象 </span></span><br><span class="line">dict *ready_keys;<span class="comment">//阻塞后push 响应阻塞客户端 存储阻塞后push的key和客户端对象 </span></span><br><span class="line">dict *watched_keys;<span class="comment">//存储watch监控的的key和客户端对象 </span></span><br><span class="line">&#125; redisDb;</span><br></pre></td></tr></table></figure>
+
+<p><code>dict</code> 用来维护一个 Redis 数据库中包含的所有 <code>Key-Value</code> 键值对，<code>expires</code>则用于维护一个 Redis 数据库中设置了失效时间的键(即<code>key</code>与失效时间的映射)，当我们使用<code>expire</code>命令设置一个<code>key</code>的失效时间时，Redis 首先到 <code>dict</code> 这个字典表中查找要设置的<code>key</code>是否存在，</p>
+<ul>
+<li>如果存在，就将这个<code>key</code>和失效时间添加到 <code>expires</code> 这个字典表</li>
+<li>如果不存在，Redis 首先将 <code>key</code> 和 <code>value</code> 添加到 <code>dict</code> 这个字典表中，然后将 <code>key</code> 和失效时间添加到 <code>expires</code> 这个字典表中</li>
+</ul>
+<blockquote>
+<p>注意这里的失效时间是用毫秒的时间戳表示的，比如2022-01-02 22:45:02过期则value为1641134702000</p>
+</blockquote>
+<h3 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h3><p>一般处理过期数据，常用的过期策略有三种</p>
+<ul>
+<li><p>定时删除：在设置键的过期时间的同时，创建一个定时器，让定时器在键的过期时间来临时，立即执行对键的删除操作。（<strong>创建定时器删除</strong>）</p>
+<ul>
+<li><p>优点</p>
+<p>对内存最友好：通过使用定时器，可以保证过期的键会尽可能快地被删除，释放所占内存</p>
+</li>
+<li><p>缺点</p>
+<p>对CPU最不友好：在过期键比较多的情况下，删除过期键这一行为可能会占用相当一部分CPU的时间，对服务器的响应时间和吞吐量造成影响。</p>
+</li>
+</ul>
+</li>
+<li><p>惰性删除：放任键的过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，就返回该键。（<strong>使用的时候删除</strong>）</p>
+<ul>
+<li><p>优点</p>
+<p>对CPU最友好：只有在取出键的时候才会对过期键进行检查，即不需要CPU定期扫描，也不需要创建大量的定时器。</p>
+</li>
+<li><p>缺点</p>
+<p>对内存最不友好：如果一个键已经过期，但是后面不会被访问到的话，那么就一直保留在数据库中。如果这样的键过多，无疑会占用很大的内存。</p>
+</li>
+</ul>
+</li>
+<li><p>定期删除：每隔一段时间，程序就对数据库进行一次检查，删除里面过期的键。至于要删除多少过期键，以及要检查多少个数据库，则有算法决定。（<strong>定期扫描删除</strong>）</p>
+<p>定期删除是上面的定时删除和惰性删除的一中折中方案。</p>
+<ul>
+<li><p>优点</p>
+<p>① 定期删除每隔一段时间执行一次过期键操作，并通过限制删除操作执行的时长和频率来减少删除操作对CPU时间的影响。</p>
+<p>② 通过删除过期键，能有效的减少因为过期键而带来的内存浪费</p>
+</li>
+<li><p>缺点</p>
+<p>难以确定删除操作执行的时长和频率</p>
+<p>① 如果删除操作执行得太频繁，或者执行的时间太长，定期删除策略就会退化成定时删除，以至于占用太多CPU的执行时间。</p>
+<p>② 如果删除操作执行的时间太少，或执行时间太短，定期删除策略又会和惰性删除一样，出现内存浪费。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Redis的过期策略"><a href="#Redis的过期策略" class="headerlink" title="Redis的过期策略"></a>Redis的过期策略</h4><p>Redis采用的是：<strong>惰性删除</strong>和<strong>定期删除</strong>两种策略，通过合理配置，服务器可以很好地在合理使用<code>cpu</code>时间和避免浪费内存空间之间取得平衡。</p>
+<p><strong>惰性删除策略</strong></p>
+<p>Redis中所有读写数据库的命令在执行之前都会调用先对输入键进行检查，另外因为每个被访问的键都可能被删除，所以每个命令都必须能同时处理键存在以及不存在的情况。</p>
+<p>读写操作和访问操作惰性删除流程如下图：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E6%83%B0%E6%80%A7%E8%BF%87%E6%9C%9F%E6%B5%81%E7%A8%8B.png" alt="惰性删除策略流程"></p>
+<p><strong>定期删除策略</strong></p>
+<p>Redis的定期删除策略周期性的在规定时间内，分多次遍历服务器中各个数据库对过期的key进行删除</p>
+<p>Redis默认每秒进行10次过期扫描，且每次循环时间不能超过最大执行时间上限25ms，且每次检查的数据库最大数量就是Redis中的数据库个数</p>
+<ol>
+<li><p>从当前数据库(<code>current_db</code>)的过期字典中随机选出20个<code>key</code></p>
+<blockquote>
+<p>以<code>Hash</code>桶的维度，拿到20个<code>key</code>为止，如果到最后一个<code>Hash</code>桶位置拿到所有<code>key</code>后超过20也会一次性取出</p>
+</blockquote>
+</li>
+<li><p>删除这个20key中已经过期的<code>key</code></p>
+</li>
+<li><p>如果过期<code>key</code>的比例超过1/4，那就循环1、2、3这个过程</p>
+</li>
+<li><p>如果过期<code>key</code>的比例小于1/4，那么继续检查下一个数据库，循环1、2、3、4</p>
+</li>
+</ol>
+<p>由定期删除过程可以发现：定期删除的定时时间十分重要，如果时间过短，就会对CPU造成很大压力。如果时间过长，就会造成过期数据挤压内存</p>
+<h4 id="Redis过期对持久化的影响"><a href="#Redis过期对持久化的影响" class="headerlink" title="Redis过期对持久化的影响"></a>Redis过期对持久化的影响</h4><p><strong>RDB</strong></p>
+<p>过期<code>key</code>对RDB没有任何影响</p>
+<ul>
+<li><p>生成RDB文件：从内存数据库持久化数据到RDB文件</p>
+<p>持久化key之前，会检查是否过期，过期的<code>key</code>不进入RDB文件</p>
+</li>
+<li><p>载入RDB文件：从RDB文件恢复数据到内存数据库</p>
+<ul>
+<li>如果是主库：数据载入数据库之前，会对<code>key</code>先进行过期检查，如果过期，不导入数据库</li>
+<li>如果是从库：无论<code>key</code>是否过期，均会载入到数据库中，过期键会通过与主服务器同步而删除</li>
+</ul>
+</li>
+</ul>
+<p><strong>AOF</strong></p>
+<p>过期<code>key</code>对AOF没有任何影响</p>
+<ul>
+<li><p>从内存数据库持久化数据到AOF文件</p>
+<ul>
+<li>当<code>key</code>过期后，还没有被删除，<code>aof</code>文件不会产生因为影响，此时正常进行执行持久化操作（该<code>key</code>是不会进入<code>aof</code>文件的，因为没有发生修改命令）</li>
+<li>当<code>key</code>过期后，在发生删除操作时，程序会向<code>aof</code>文件追加一条<code>del</code>命令（在将来的以<code>aof</code>文件恢复数据的时候该过期的键就会被删掉）</li>
+</ul>
+</li>
+<li><p>AOF重写</p>
+<p>重写时，会先判断<code>key</code>是否过期，已过期的<code>key不</code>会重写到<code>aof</code>文件</p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7048988049589895175">Redis的过期策略-掘金</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_40276626/article/details/120607202">Redis过期时间三种删除策略详解</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xuliangxing/p/7151812.html">Redis学习笔记–Redis数据过期策略详解</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/04/Redis/Redis-Key%E9%94%AE/" rel="prev" title="Redis-Key键">
+      <i class="fa fa-chevron-left"></i> Redis-Key键
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/08/Redis/Redis%E6%95%B0%E6%8D%AE%E7%9A%84%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/" rel="next" title="Redis数据的淘汰策略">
+      Redis数据的淘汰策略 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4"><span class="nav-number">1.</span> <span class="nav-text">设置过期时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Key%E5%AD%98%E5%82%A8"><span class="nav-number">2.</span> <span class="nav-text">Key存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5"><span class="nav-number">3.</span> <span class="nav-text">过期策略</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis%E7%9A%84%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5"><span class="nav-number">3.1.</span> <span class="nav-text">Redis的过期策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis%E8%BF%87%E6%9C%9F%E5%AF%B9%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">3.2.</span> <span class="nav-text">Redis过期对持久化的影响</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

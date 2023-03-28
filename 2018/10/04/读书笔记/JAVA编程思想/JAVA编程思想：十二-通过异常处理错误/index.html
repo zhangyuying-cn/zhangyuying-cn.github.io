@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Java的基本理念是：结构不佳的代码不能运行 发现错误的理想时机是在编译阶段，也就是在你试图运行代码之前。 异常处理是Java中唯一正式的错误报告机制，并且通过编译器强制执行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA编程思想：十二.通过异常处理错误">
+<meta property="og:url" content="http://zhangyuying.cn/2018/10/04/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E4%BA%8C-%E9%80%9A%E8%BF%87%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E9%94%99%E8%AF%AF/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Java的基本理念是：结构不佳的代码不能运行 发现错误的理想时机是在编译阶段，也就是在你试图运行代码之前。 异常处理是Java中唯一正式的错误报告机制，并且通过编译器强制执行">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-10-04T07:24:27.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.767Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Thinking in Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/10/04/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E4%BA%8C-%E9%80%9A%E8%BF%87%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E9%94%99%E8%AF%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA编程思想：十二.通过异常处理错误 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/10/04/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E4%BA%8C-%E9%80%9A%E8%BF%87%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E9%94%99%E8%AF%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA编程思想：十二.通过异常处理错误
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-04 15:24:27" itemprop="dateCreated datePublished" datetime="2018-10-04T15:24:27+08:00">2018-10-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Java的基本理念是：结构不佳的代码不能运行</p>
+<p>发现错误的理想时机是在编译阶段，也就是在你试图运行代码之前。</p>
+<p>异常处理是Java中唯一正式的错误报告机制，并且通过编译器强制执行</p>
+<span id="more"></span>
+
+<h4 id="1-概念"><a href="#1-概念" class="headerlink" title="1.概念"></a>1.概念</h4><p><code>&quot;异常&quot;</code>这个词有<code>&quot;我对此感到意外的意思&quot;</code></p>
+<ul>
+<li>使问题出现了，并可以被注意并且被处理</li>
+<li>异常能降低错误处理代码的复杂度（只需在<code>异常处理程序</code>中处理），并且可以把“描述在正常执行过程中做什么事”的代码和“出了问题怎么办”的代码相分离</li>
+</ul>
+<p>异常的基本概念是用名称代表发生的问题，并且异常的名称应该可以望文知意。</p>
+<h4 id="2-基本异常"><a href="#2-基本异常" class="headerlink" title="2.基本异常"></a>2.基本异常</h4><p> <strong>异常情形</strong>：是指阻止当前方法或作用域继续执行的问题</p>
+<p>抛出异常后，有几件事会随之发生：</p>
+<ul>
+<li><p>同java其他对象的创建一样，将使用<code>new</code>在堆上创建异常对象</p>
+</li>
+<li><p>当前的执行路径被终止，并且从当前环境中弹出对异常对象的引用，此时，异常机制结果程序，并开始寻找一个恰当的地方来继续执行程序，这个恰当的地方就是<strong>异常处理程序</strong>，他的任务就是将程序从错误状态中恢复，以使程序要么换一种方式执行，要么继续执行下去</p>
+</li>
+<li><p>*异常参数**：与使用java中其他的对象一样，我们总是用<code>new</code>在对上创建异常对象，这也伴随着存储空间的分配和构造器的调用。</p>
+</li>
+</ul>
+<p>所有的标准异常类都有两个构造器：</p>
+<ul>
+<li><p>一个是默认构造器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p>另一个是接受字符串作为参数，以便能把相关信息放入异常对象的构造器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">&quot;传入对象为null&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>关键字**<code>throw</code>** :使用<code>new</code>创建了异常对象之后，此对象的引用将传给<code>throw</code> 。</p>
+<p>可使用抛出异常的方式从当前作用域退出，这时将会返回一个异常对象，然后退出方法或作用域</p>
+<h4 id="3-捕获异常"><a href="#3-捕获异常" class="headerlink" title="3.捕获异常"></a>3.捕获异常</h4><p><strong>监控区域</strong> ：是一段可能产生异常的代码，并且后面跟着处理这些异常的代码</p>
+<p><strong><code>try</code>块</strong> ：因为在这个块里“尝试”各种方法调用，所以称为：<code>try</code>块</p>
+<p>如果方法内部抛出异常，这个方法将在抛出异常的过程中结束。要是不希望方法就此结束，可以在方法中使用<code>try块</code>,来捕获异常。示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>异常处理程序</strong> ：抛出的异常必须在某处得到处理，这个“地点”就是 <code>异常处理程序</code> 。紧跟在try块之后，使用**<code>catch</code>**表示:</p>
+<p>需的针对每个要捕获的异常准备相应的处理程序</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125; <span class="keyword">catch</span>(Type1 t1)&#123;</span><br><span class="line">  <span class="comment">//Handle Type1</span></span><br><span class="line">&#125; <span class="keyword">catch</span>(Type2 t2)&#123;</span><br><span class="line">  <span class="comment">//Handle Type2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每个<code>catch</code> 字句（异常处理程序）看起来就像是接受一个且仅接受一个特殊类型的参数的方法</p>
+<p>异常处理程序必须紧跟在try块之后，当异常被抛出的时，异常处理机制将负责搜寻参数与异常类型相匹配的第一个处理程序，然后进入<code>catch</code>字句执行，此时认为异常得到了处理</p>
+<p>注意：只有匹配的<code>catch</code>字句才能得到执行。（与<code>switch</code>不用）</p>
+<p>异常处理理论上有两种基本模型：</p>
+<ul>
+<li>终止模型：Java支持的模型，在这种模型中将假设错误非常关键，以至于程序无法返回到异常发生的地方继续执行，一旦异常被抛出，就表明错误已无法挽回，也不能要回来继续执行。</li>
+<li>恢复模型：意思是异常处理程序的工作是修正错误，然后尝试重新调用出问题的方法，并认为第二次可以成功。java想实现类似行为：一是遇见错误调用方法修正而不抛出异常，二是将try块放到while循环中，这样能不断进入try块，直到达到满意的结果</li>
+</ul>
+<h4 id="4-创建自定义异常"><a href="#4-创建自定义异常" class="headerlink" title="4.创建自定义异常"></a>4.创建自定义异常</h4><p>要自己定义异常类，必须从已有的异常类继承，最好是选择意思相近的异常类继承。建立新的异常类型最简单的方法就是让编译器为你生成默认的构造器。</p>
+<p>对异常来说：最重要的部分就是类名。</p>
+<p>在异常处理程序中可调用<code>Thriwable</code>类声明（<code>Exception</code>即从此类继承）的<code>printStackTrace()</code>方法，他将打印“从方法调用处直到异常抛出处”的方法调用序列（默认情况信息将会被输出带标准错误流）。</p>
+<p>对于异常类来说：<code>getMessage()</code>方法有点类似与toString()方法。</p>
+<p>异常也是对象的一种，所以可以修改（自定义的异常）以得到更强的功能，但是大多数情况下用不上。</p>
+<h4 id="5-异常说明"><a href="#5-异常说明" class="headerlink" title="5.异常说明"></a>5.异常说明</h4><p>异常说明：属于方法声明的一部分，紧跟在形式参数列表之后。</p>
+<p>异常说明主要作用是说明某个方法可能会抛出的异常类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">function</span><span class="params">()</span> <span class="keyword">throws</span> E1,E2 </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码必须与异常说明保持一致，存在异常时，编译器会提示你，要么处理，要么抛出</p>
+<p>也可声明某个方法将抛出异常，实际上却不抛出：接口和抽象基类可以使用，这样为异常先占个位子，以后存在异常可以执行抛出</p>
+<p>这种在编译时被强制检查的异常称为 <strong>被检查的异常</strong></p>
+<h4 id="6-捕获所有异常"><a href="#6-捕获所有异常" class="headerlink" title="6.捕获所有异常"></a>6.捕获所有异常</h4><p>可以只写一个异常处理程序来捕获所有类型的异常：通过捕获异常类型的基类<code>Exception</code>可以做到这一点</p>
+<p>捕获异常类型的基类<code>Exception</code>将捕获所有异常，所以最好放在处理程序列表的末尾</p>
+<p>(1).栈轨迹（栈是先进后出）：</p>
+<p><code>printStackTrace()</code>方法所提供的信息可以通过<code>getStackTrace()</code>方法来直接访问，这个方法将返回一个由栈轨迹中的元素所构成的数组，其中每个元素都表示栈中的一帧。元素0是栈顶元素，并且是调用序列的最后一个方法调用（这个<code>Throwable</code>被创建和抛出之处）。数组中的最后一个元素和栈底是调用序列的第一个方法调用。</p>
+<blockquote>
+<p>由栈轨迹可看出：一个异常抛出，先看上边，此处才是这个异常被创建和抛出的地方</p>
+</blockquote>
+<p>(2).重新抛出异常</p>
+<p>有时希望把刚捕获的异常重新抛出</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span>(Exception e) &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">  <span class="keyword">throw</span> e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重抛异常会把异常抛给上一级环境中的异常处理程序，同一个<code>try块</code>的后续<code>catch</code>字句将被忽略。此外异常对象的所有信息都得以保持，所以高一级环境中捕获此异常的处理程序可以从这个异常对象中得到所有信息。</p>
+<p>如果只是把当前异常对象重新抛出，那么<code>printStackTrace()</code>方法显示的将是原来异常抛出点的调用栈信息，而非重新抛出点的信息。要想更新这个信息可以调用<code>fillInStackTrace()</code>方法，这将返回一个<code>Throwable</code>对象，他是通过把当前调用栈信息填入原来那个异常对象而建立的.（即：当前的栈轨迹是从重新抛出到调用处的，之前的轨迹不会再显示）示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">  <span class="keyword">throw</span> (Exception)e.fillInStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>fillInStackTrace()</code>的那一行就成了异常的新发生地了</p>
+<p>有可能在捕获异常之后抛出另一种异常，这么做的话，得到的效果类似于使用<code>fillInStackTrace()</code>,有关原来异常发生点的信息会丢失，剩下的是与新的抛出点有关的信息。</p>
+<p>永远不必为清理一个异常对象而担心，或者说为异常对象的清理而担心，他们都是用<code>new</code>在堆上创建的对象，所以垃圾回收器会自动把他们清理掉</p>
+<p>(3).异常链</p>
+<p>常常会想要在捕获一个异常的后抛出另一个异常，并且希望把原始的异常信息保存下来，这称为异常链。</p>
+<p>JDK1.4以后，<code>Throwable</code>子类在构造器中都可以接受一个<code>cause</code>(因由)对象作为参数，这个<code>cause</code>就用来表示原始异常，这样通过把原始异常传递给新的异常，使得即使在当前位置创建并抛出了新的异常，也能通过这个异常链追踪到异常最初发生的位置。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e)</span><br></pre></td></tr></table></figure>
+
+<p><code>Throwable</code>的子类中，只有三种基本的异常类提供了带<code>cause</code>参数的构造器，他们是<code>Error</code>、<code>Exception</code>、<code>RuntimeException</code>,如果要把其他类型的异常链接起来，使用<code>initCause</code>方法，而不是构造器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">e1.initCause(<span class="keyword">new</span> NullPointException());</span><br></pre></td></tr></table></figure>
+
+<h4 id="7-Java标准异常"><a href="#7-Java标准异常" class="headerlink" title="7.Java标准异常"></a>7.Java标准异常</h4><p><code>Throwable</code>这个Java类被用来表示任何可以作为异常被抛出的类，<code>Throwable</code>对象可分为两种类型（指从<code>Throwable</code>继承而得到的类型）</p>
+<ul>
+<li><code>Error</code>：用来表示编译时和系统错误（除特殊情况，一般无需关心）</li>
+<li><code>Exception</code>：是可以被抛出的基本类型。</li>
+</ul>
+<p>特例：<code>RuntimeException</code></p>
+<p>运行时异常，会自动被Java虚拟机抛出，所以不必在异常说明中把它们列出来，这类异常都是从<code>RuntimeException</code>类继承而来。它们也被称为<strong>不受检查异常</strong>。这种异常属于错误， 将被自动捕获。</p>
+<p>注：只能在代码中忽略<code>RuntimeException</code>(及其子类)类型的异常，其他类型异常的处理都是由编译器强制实施的，究其原因：<code>RuntimeException</code>代表的是变成错误：</p>
+<ul>
+<li>无法预料的错误。比如从你控制范围之外传递进来的null引用</li>
+<li>作为程序员，应该在代码中检查的错误（比如<code>ArrayIndexOutOfBoundsException</code>）</li>
+</ul>
+<h4 id="8-使用finally进行清理"><a href="#8-使用finally进行清理" class="headerlink" title="8.使用finally进行清理"></a>8.使用finally进行清理</h4><p>对于一些代码，可能会希望无论<code>try</code>块中的异常是否抛出，他们都能得到执行，这通常适用于内存回收之外的情况，为了达到这个效果，可在异常处理程序后面加上<code>finally</code>字句</p>
+<p>注： <code>finally</code>相当于在正常代码的<code>return</code>之前执行，没有return就是正常代码结束后执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>无论异常是否被抛出，<code>finally</code>字句总能被执行</p>
+<p>当涉及<code>break</code>、<code>continue</code>、<code>return</code>语句的时候，<code>finally</code>字句也会得到执行</p>
+<p><code>finally</code> 字句最强大的作用：把内存之外的资源恢复到他们的初始状态，这种资源包括：打开的文件、网络连接等</p>
+<p>异常丢失：某些特殊方式使用<code>finally</code>字句，会造成异常丢失,示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">&#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">  <span class="comment">//Code</span></span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="9-异常的限制"><a href="#9-异常的限制" class="headerlink" title="9.异常的限制"></a>9.异常的限制</h4><p>限制：当覆盖方法的时候，只能抛出在基类方法的异常说明里面列出的那些异常（或者这些异常的子类）</p>
+<p>异常限制对构造器不起作用，但是派生类的构造器的异常说明必须包含基类构造器的异常说明。且派生类构造器不能捕获基类构造器抛出的异常</p>
+<p>这些限制都是为了能产生更为强壮的异常处理代码</p>
+<p>尽管在继承过程中，编译器会对异常说明做强制要求，但是异常说明本身并不属于方法类型的一部分，方法类型是由方法的名字与参数的类型组成的，因此，不能基于异常说明来重载方法。</p>
+<h4 id="10-构造器"><a href="#10-构造器" class="headerlink" title="10.构造器"></a>10.构造器</h4><p>如果在构造器内抛出了异常，某些清理行为就不能正常工作了（例如关闭文件，在构造器中抛出异常文件还未打开，所以此时从里就是有问题）。</p>
+<p>对于构造阶段可能会抛出异常，并且要求清理的类，最安全的使用方式是使用嵌套的<code>try</code>字句</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  InputFile in = InputFile(<span class="string">&quot;clean.java&quot;</span>)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    String str = in.getLine();</span><br><span class="line">  &#125;<span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">    <span class="comment">//Code</span></span><br><span class="line">  &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">//在此处关闭，此时如果构造失败，不会进入关闭方法</span></span><br><span class="line">    in.dispose()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;<span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">  <span class="comment">//Code 初始化失败</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种通用的清理惯用法在构造器不抛出任何异常时也应该使用，其基本规则是：在创建需要清理的对象之后，立即进入一个<code>try-finally</code>语句块</p>
+<h4 id="11-异常匹配"><a href="#11-异常匹配" class="headerlink" title="11.异常匹配"></a>11.异常匹配</h4><p>抛出异常的时候，异常处理系统会按照代码的书写顺序找出“最近”的出来程序，找到匹配的处理程序之后，他就认为异常将得到处理，然后就不会再继续查找</p>
+<p>查找的时候并不要求抛出的异常同处理程序所声明的异常完全匹配，派生类的对象也可以匹配其基类的处理程序。<br>例如：<code>catch(Exception e)</code> , 会捕获Exception以及所有从他派生的类</p>
+<p>如果把 <code>catch(Exception e)</code>字句放在最前面，会将派生类的异常全部“屏蔽”掉。（此时如果这个<code>catch</code>字句后还存在派生类的<code>catch</code>字句，编译器会报错.）</p>
+<h4 id="12-其他可选方式"><a href="#12-其他可选方式" class="headerlink" title="12.其他可选方式"></a>12.其他可选方式</h4><p>如果某些“被检查异常”不知道该如何处理：</p>
+<ul>
+<li>把异常传递给控制台：即一直throws 出去</li>
+<li>把”被检查异常”转换为”不被检查异常”</li>
+</ul>
+<h4 id="13-异常使用指南"><a href="#13-异常使用指南" class="headerlink" title="13.异常使用指南"></a>13.异常使用指南</h4><p>应该在下列情况下使用异常：</p>
+<ul>
+<li>在恰当的级别处理问题。（在知道该如何处理的情况下才捕获异常）</li>
+<li>解决问题并重新调用产生异常的方法</li>
+<li>进行少许修补，然后绕过异常发生的地方继续执行</li>
+<li>用别的数据进行计算，以代替方法预计会返回的值</li>
+<li>把当前环境下能做的事情尽量做完，然后把 <strong>相同的</strong>异常重抛到更高层</li>
+<li>把当前环境下能做的事情尽量做完，然后把 <strong>不同的</strong>异常抛到更高层</li>
+<li>终止程序</li>
+<li>进行简化（如果你的异常模式使问题变得太复杂，那用启来会非常痛苦也很烦人）</li>
+<li>让类库和程序更安全：这既是在为调试做短期投资，也是在为程序的健壮性做长期投资</li>
+</ul>
+<h4 id="14-总结"><a href="#14-总结" class="headerlink" title="14.总结"></a>14.总结</h4><p>异常是Java程序不可分割的一部分</p>
+<p>异常的有点之一就是他使得你可以在某处集中精力处理你要解决的问题，而在另一处处理你编写的这段代码中产生的错误</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AThinking-in-Java%E3%80%8B/" rel="tag"># 《Thinking in Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/04/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E4%B8%80-%E6%8C%81%E6%9C%89%E5%AF%B9%E8%B1%A1/" rel="prev" title="JAVA编程思想：十一.持有对象">
+      <i class="fa fa-chevron-left"></i> JAVA编程思想：十一.持有对象
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/04/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E4%B8%89-%E5%AD%97%E7%AC%A6%E4%B8%B2/" rel="next" title="JAVA编程思想：十三.字符串">
+      JAVA编程思想：十三.字符串 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">1.概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%9F%BA%E6%9C%AC%E5%BC%82%E5%B8%B8"><span class="nav-number">2.</span> <span class="nav-text">2.基本异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8"><span class="nav-number">3.</span> <span class="nav-text">3.捕获异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%88%9B%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8"><span class="nav-number">4.</span> <span class="nav-text">4.创建自定义异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%BC%82%E5%B8%B8%E8%AF%B4%E6%98%8E"><span class="nav-number">5.</span> <span class="nav-text">5.异常说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E5%BC%82%E5%B8%B8"><span class="nav-number">6.</span> <span class="nav-text">6.捕获所有异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-Java%E6%A0%87%E5%87%86%E5%BC%82%E5%B8%B8"><span class="nav-number">7.</span> <span class="nav-text">7.Java标准异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E4%BD%BF%E7%94%A8finally%E8%BF%9B%E8%A1%8C%E6%B8%85%E7%90%86"><span class="nav-number">8.</span> <span class="nav-text">8.使用finally进行清理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E5%BC%82%E5%B8%B8%E7%9A%84%E9%99%90%E5%88%B6"><span class="nav-number">9.</span> <span class="nav-text">9.异常的限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10-%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">10.</span> <span class="nav-text">10.构造器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-%E5%BC%82%E5%B8%B8%E5%8C%B9%E9%85%8D"><span class="nav-number">11.</span> <span class="nav-text">11.异常匹配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12-%E5%85%B6%E4%BB%96%E5%8F%AF%E9%80%89%E6%96%B9%E5%BC%8F"><span class="nav-number">12.</span> <span class="nav-text">12.其他可选方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13-%E5%BC%82%E5%B8%B8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97"><span class="nav-number">13.</span> <span class="nav-text">13.异常使用指南</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#14-%E6%80%BB%E7%BB%93"><span class="nav-number">14.</span> <span class="nav-text">14.总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

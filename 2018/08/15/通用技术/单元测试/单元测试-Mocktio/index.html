@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="单元测试的定义及好处 MocktioMockito是一个流行的Mocking(模拟测试)框架，通过使用Mocking框架，可以尽可能使unit test 独立。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单元测试-Mocktio">
+<meta property="og:url" content="http://zhangyuying.cn/2018/08/15/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95-Mocktio/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="单元测试的定义及好处 MocktioMockito是一个流行的Mocking(模拟测试)框架，通过使用Mocking框架，可以尽可能使unit test 独立。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-15T05:12:14.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.772Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="单元测试">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/08/15/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95-Mocktio/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>单元测试-Mocktio | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/08/15/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95-Mocktio/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          单元测试-Mocktio
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-15 13:12:14" itemprop="dateCreated datePublished" datetime="2018-08-15T13:12:14+08:00">2018-08-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a href="http://zhangyuying.cn/2019/05/17/%E6%8A%80%E6%9C%AF/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">单元测试的定义及好处</a></p>
+<h4 id="Mocktio"><a href="#Mocktio" class="headerlink" title="Mocktio"></a>Mocktio</h4><p>Mockito是一个流行的Mocking(模拟测试)框架，通过使用Mocking框架，可以尽可能使unit test <strong>独立</strong>。</p>
+<span id="more"></span>
+
+<h4 id="Stub对象和Mock对象的区别"><a href="#Stub对象和Mock对象的区别" class="headerlink" title="Stub对象和Mock对象的区别"></a>Stub对象和Mock对象的区别</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Stub对象用来提供测试时所需要的测试数据，可以对各种交互设置相应的回应。例如我们可以设置方法调用的返回值等等。Mockito中when(…).thenReturn(…)。这样的语法便是设置方法调用的返回值。另外也可以设置方法在何时调用会抛异常等。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mock对象用来验证测试中所依赖对象间的交互是否能够达到预期。Mockito中用verify(…).methodXxx(…) 语法来验证 methodXxx 方法是否按照预期进行了调用</span><br></pre></td></tr></table></figure>
+
+<h4 id="mocktio支持注解："><a href="#mocktio支持注解：" class="headerlink" title="mocktio支持注解："></a>mocktio支持注解：</h4><ul>
+<li>@Mock ：将mock对象设为测试类的属性</li>
+<li>@Spy ：监视真实的对象</li>
+<li>@Captor ：参数捕获器</li>
+<li>@InjectMocks ：mock对象自动注入</li>
+</ul>
+<h3 id="mocktio的使用："><a href="#mocktio的使用：" class="headerlink" title="mocktio的使用："></a>mocktio的使用：</h3><h4 id="1-Mock-对象的期望行为及返回值设定"><a href="#1-Mock-对象的期望行为及返回值设定" class="headerlink" title="1.Mock 对象的期望行为及返回值设定"></a>1.Mock 对象的期望行为及返回值设定</h4><p>注意，Mockito的Stubbing有两种语法，并支持迭代。</p>
+<ul>
+<li><p>(1) Stubbing对方法设定返回值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">when(mock.someMethod()).thenReturn(value1).thenReturn(value2);  </span><br><span class="line">when(mock.someMethod()).thenReturn(value1, value2);  </span><br></pre></td></tr></table></figure>
+
+<p>上面两种方式等同于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">when(mock.someMethod()).thenReturn(value1);  </span><br><span class="line">when(mock.someMethod()).thenReturn(value2);  </span><br></pre></td></tr></table></figure>
+
+<p>另一种风格:doReturn，主要用于<code>spy</code>对象的情况下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">doReturn(value1).doReturn(value2).when(mock).someMethod();  </span><br></pre></td></tr></table></figure>
+
+<p>对 void 方法进行方法预期设定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">doNothing().when(mock).someMethod();  </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(2) 对方法设定返回异常</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">when(mock.someMethod()).thenThrow(new RuntimeException());  </span><br></pre></td></tr></table></figure>
+
+<p>对 void 方法进行方法预期设定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">doThrow(new RuntimeException()).when(mock).someMethod();  </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(3) Argument Matcher（参数匹配器）</p>
+<p>Mockito提供了参数匹配器，用于灵活的匹配参数。</p>
+<p>比如 any(User.class)，匹配任意User对象；anyString()匹配任意字符串；anyInt()匹配任意int型。</p>
+</li>
+</ul>
+<h4 id="2-Mock对象的行为验证"><a href="#2-Mock对象的行为验证" class="headerlink" title="2.Mock对象的行为验证"></a>2.Mock对象的行为验证</h4><p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@Test  </span><br><span class="line">public void verifyTestTest() &#123;  </span><br><span class="line">    List&lt;String&gt; mock &#x3D; mock(List.class);  </span><br><span class="line">    List&lt;String&gt; mock2 &#x3D; mock(List.class);  </span><br><span class="line">    when(mock.get(0)).thenReturn(&quot;Hello&quot;);  </span><br><span class="line">    when(mock.get(1)).thenReturn(&quot;World&quot;);  </span><br><span class="line">    mock.get(0);  </span><br><span class="line">    mock.get(1);  </span><br><span class="line">    &#x2F;&#x2F; 验证指定方法被调用一次  </span><br><span class="line">    verify(mock).get(0);  </span><br><span class="line">    &#x2F;&#x2F; 验证指定方法没有被调用  </span><br><span class="line">    verify(mock, never()).get(3);  </span><br><span class="line">    &#x2F;&#x2F; 验证get方法在100毫秒内被调用两次  </span><br><span class="line">    verify(mock, timeout(100).times(2)).get(anyInt());  </span><br><span class="line">  </span><br><span class="line">    &#x2F;&#x2F; 通过验证方法的执行顺序  </span><br><span class="line">    InOrder inOrder &#x3D; inOrder(mock, mock2);  </span><br><span class="line">    inOrder.verify(mock).get(0);  </span><br><span class="line">    inOrder.verify(mock).get(1);  </span><br><span class="line">    inOrder.verify(mock2, never()).get(1);  </span><br><span class="line">  </span><br><span class="line">    &#x2F;&#x2F; 查询多余的方法调用 mock所有调用的方法都已经被验证  </span><br><span class="line">    verifyNoMoreInteractions(mock);  </span><br><span class="line">    &#x2F;&#x2F; 查询没有交互的mock对象  </span><br><span class="line">    verifyZeroInteractions(mock2);  </span><br><span class="line">  </span><br><span class="line">    &#x2F;&#x2F; 创建ArgumentCaptor（参数捕获器）用于捕获方法参数进行验证  </span><br><span class="line">    ArgumentCaptor&lt;Integer&gt; argument &#x3D; ArgumentCaptor.forClass(Integer.class);  </span><br><span class="line">    &#x2F;&#x2F; 该方法被调用多次 只能捕捉到最后一次参数  </span><br><span class="line">    verify(mock, times(2)).get(argument.capture());  </span><br><span class="line">    assertThat(argument.getValue()).isEqualTo(1);  </span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>(1) 验证方法的调用次数</p>
+<p>通过 verify(mock,times(?)).someMethod()验证方法的调用次数，是常用的验证方式，包括可以验证指定明确的方法被调用次数、某方法未被调用。或一个方法总体被调用次数。</p>
+<p> Mockito除了提供times(N)方法供我们调用外，还提供了很多可选的方法：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">* never() 没有被调用，相当于times(0)</span><br><span class="line">* atLeast(N) 至少被调用N次</span><br><span class="line">* atLeastOnce() 相当于atLeast(1)</span><br><span class="line">*  atMost(N) 最多被调用N次</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>(2) 超时验证</p>
+<p>通过timeout，并制定毫秒数验证超时。注意，如果被调用多次，times还是需要的。</p>
+</li>
+<li><p>(3) 方法调用顺序</p>
+<p>通过InOrder对象，验证方法的执行顺序，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 通过验证方法的执行顺序  </span><br><span class="line">InOrder inOrder &#x3D; inOrder(mock, mock2); </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(4) verifyNoMoreInteractions</p>
+<p>查询是否存在被调用，但未被验证的方法，如果存在则抛出异常。这里因为验证了get(anyInt())，相当于所有的get方法被验证，所以通过。</p>
+</li>
+<li><p>(5) verifyZeroInteractions</p>
+<p>查询对象是否未产生交互，如果传入的mock对象的方法被调用过，则抛出异常。这里mock2的方法没有被调用过，所有通过。</p>
+</li>
+<li><p>(6) 利用ArgumentCaptor（参数捕获器）捕获方法</p>
+<p>参数进行验证通过 ArgumentCaptor 对象的forClass(Class<T> clazz)方法来构建ArgumentCaptor对象。然后便可在验证时对方法的参数进行捕获，最后验证捕获的参数值。如果方法有多个参数都要捕获验证，那就需要创建多个ArgumentCaptor对象处理。</p>
+<p>当某个对象进行了多次调用后，比如mock对象。这时调用argument.getValue()获取到的是最后一次调用的参数。如果要获取所有的参数值可以调用argument.getAllValues()，它将返回参数值的List。</p>
+</li>
+</ul>
+<h4 id="3-Spy-对象的监视"><a href="#3-Spy-对象的监视" class="headerlink" title="3.Spy-对象的监视"></a>3.Spy-对象的监视</h4><p>   Mock 对象只能调用stubbed 方法，调用不了它真实的方法。但Mockito 可以监视一个真实的对象，这时对它进行方法调用时它将调用真实的方法，同时也可以stubbing 这个对象的方法让它返回我们的期望值。另外不论是否是真实的方法调用都可以进行verify验证。和创建mock对象一样，对于final类、匿名类和Java的基本类型是无法进行spy的。</p>
+<ul>
+<li><p>监视对象</p>
+<p>监视一个对象需要调用spy(T object)方法，</p>
+<p>如下面的代码中spy变量就在监视LinkedList实例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List spy &#x3D; spy(new LinkedList());  </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被监视对象的Stubbing<br> stubbing 被监视对象的方法时要慎用when(Object)。比如下面的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List spy &#x3D; spy(new LinkedList());  </span><br><span class="line">&#x2F;&#x2F; IndexOutOfBoundsException (the list is yet empty)  </span><br><span class="line">when(spy.get(0)).thenReturn(&quot;foo&quot;);  </span><br><span class="line">&#x2F;&#x2F; You have to use doReturn() for stubbing  </span><br><span class="line">doReturn(&quot;foo&quot;).when(spy).get(0);  </span><br></pre></td></tr></table></figure>
+
+<p> 这时，when方法参数中spy.get(0)，调用的是真实list对象的get(0)，这会产生IndexOutOfBoundsException异常，所以这时需要用到doReturn方法来设置返回值。</p>
+<p>参考示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">@Test  </span><br><span class="line"> public void spyTest() &#123;  </span><br><span class="line">     List list &#x3D; new LinkedList();  </span><br><span class="line">     List spy &#x3D; spy(list);  </span><br><span class="line">     &#x2F;&#x2F; optionally, you can stub out some methods:  </span><br><span class="line">     when(spy.size()).thenReturn(100);  </span><br><span class="line">     &#x2F;&#x2F; using the spy calls real methods  </span><br><span class="line">     spy.add(&quot;one&quot;);  </span><br><span class="line">     spy.add(&quot;two&quot;);  </span><br><span class="line">     &#x2F;&#x2F; prints &quot;one&quot; - the first element of a list  </span><br><span class="line">     System.out.println(spy.get(0));  </span><br><span class="line">     &#x2F;&#x2F; size() method was stubbed - 100 is printed  </span><br><span class="line">     System.out.println(spy.size());  </span><br><span class="line">     &#x2F;&#x2F; optionally, you can verify  </span><br><span class="line">     verify(spy).add(&quot;one&quot;);  </span><br><span class="line">     verify(spy).add(&quot;two&quot;);  </span><br><span class="line"> &#125;  </span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<p>代码示例：（自己工程中的单元测试（JUnit+Mocktio），并没有将上面所说的方法全部覆盖到！）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="meta">@Rollback</span></span><br><span class="line"><span class="comment">//在单元测试中使用mocktio</span></span><br><span class="line"><span class="meta">@RunWith(MockitoJUnitRunner.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SystemServiceTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//需要测试的service</span></span><br><span class="line">    <span class="comment">//被@InjectMocks注解标注的属性，可以自动注入标记@Mock、@Spy等注解的属性值</span></span><br><span class="line">    <span class="comment">//@InjectMocks标注的属性不能使用接口，因为@InjectMocks不能传入参数指明实现类</span></span><br><span class="line">    <span class="meta">@InjectMocks</span></span><br><span class="line">    <span class="keyword">private</span> SystemService systemService;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//service中需要mock的数据</span></span><br><span class="line">    <span class="meta">@Mock</span></span><br><span class="line">    <span class="keyword">private</span> ISystemStorage mockSystemStorage;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUp</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//初始化</span></span><br><span class="line">        MockitoAnnotations.initMocks(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getAllSystemByValid_valid_null_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = SystemBean.buildTwoSystem_OneValid_OneNoValid();</span><br><span class="line">        <span class="comment">// Stud 设置方法调用的预期返回  </span></span><br><span class="line">        when(mockSystemStorage.getAllSystems()).thenReturn(systems);</span><br><span class="line"></span><br><span class="line">        List&lt;System&gt; systemsFromStorage = systemService.getAllSystemByValid(<span class="keyword">null</span>);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).getAllSystems();</span><br><span class="line">        Assert.assertEquals(<span class="number">2</span>, systemsFromStorage.size());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test(expected = RedisStorageException.class)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getAllSystemByValid_exception_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        <span class="comment">// Stud 设置方法调用的预期返回  //模拟抛出异常</span></span><br><span class="line">        when(mockSystemStorage.getAllSystems()).thenThrow(RedisStorageException.class);</span><br><span class="line">        systemService.getAllSystemByValid(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getAllSystemByValid_valid_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = SystemBean.buildTwoSystem_OneValid_OneNoValid();</span><br><span class="line">        <span class="comment">// Stud 设置方法调用的预期返回  </span></span><br><span class="line">        when(mockSystemStorage.getAllSystems()).thenReturn(systems);</span><br><span class="line"></span><br><span class="line">        List&lt;System&gt; systemsFromStorage = systemService.getAllSystemByValid(<span class="number">1</span>);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).getAllSystems();</span><br><span class="line">        Assert.assertEquals(<span class="number">1</span>, systemsFromStorage.size());</span><br><span class="line">        Assert.assertEquals(SystemBean.systemValid_valid, systemsFromStorage.get(<span class="number">0</span>).getValid());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getAllSystemByValid_noValid_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = SystemBean.buildTwoSystem_OneValid_OneNoValid();</span><br><span class="line">        <span class="comment">// Stud 设置方法调用的预期返回  </span></span><br><span class="line">        when(mockSystemStorage.getAllSystems()).thenReturn(systems);</span><br><span class="line"></span><br><span class="line">        List&lt;System&gt; systemsFromStorage = systemService.getAllSystemByValid(<span class="number">2</span>);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).getAllSystems();</span><br><span class="line">        Assert.assertEquals(<span class="number">1</span>, systemsFromStorage.size());</span><br><span class="line">        Assert.assertEquals(SystemBean.systemValid_noValid, systemsFromStorage.get(<span class="number">0</span>).getValid());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystem_normal_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = SystemBean.buildTwoSystem_OneValid_OneNoValid();</span><br><span class="line">        systemService.saveSystems(systems);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).saveSystem(eq(systems.get(<span class="number">0</span>)));</span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).saveSystem(eq(systems.get(<span class="number">1</span>)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystem_params_have_valid_null_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        systems.add(SystemBean.buildValidIsNullSystem());</span><br><span class="line">        systemService.saveSystems(systems);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).saveSystem(any(System.class));</span><br><span class="line">        Assert.assertEquals(Integer.valueOf(<span class="number">1</span>), systems.get(<span class="number">0</span>).getValid());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystem_params_is_null_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = <span class="keyword">null</span>;</span><br><span class="line">        systemService.saveSystems(systems);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">0</span>)).saveSystem(any(System.class));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystem_params_is_empty_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        systemService.saveSystems(systems);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">0</span>)).saveSystem(any(System.class));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test(expected = RedisStorageException.class)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystem_exception_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        <span class="comment">//模拟抛出异常</span></span><br><span class="line">        doThrow(RedisStorageException.class).when(mockSystemStorage).saveSystem(any(System.class));</span><br><span class="line">        List&lt;System&gt; systems = SystemBean.buildTwoSystem_OneValid_OneNoValid();</span><br><span class="line">        systemService.saveSystems(systems);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateSystem_normal_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        System system = SystemBean.buildValidSystem();</span><br><span class="line">        systemService.updateSystem(system);</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).saveSystem(eq(system));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Test(expected = RedisStorageException.class)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span>  <span class="title">updateSystem_exception_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        <span class="comment">//模拟抛出异常</span></span><br><span class="line">        doThrow(RedisStorageException.class).when(mockSystemStorage).saveSystem(any(System.class));</span><br><span class="line">        System system = SystemBean.buildValidSystem();</span><br><span class="line">        systemService.updateSystem(system);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getSystemById_normal_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        System system = SystemBean.buildValidSystem();</span><br><span class="line">        <span class="comment">// Stud 设置方法调用的预期返回  </span></span><br><span class="line">        when(mockSystemStorage.getSystemById(system.getId())).thenReturn(system);</span><br><span class="line">        System systemFromStorage = systemService.getSystemById(system.getId());</span><br><span class="line">         <span class="comment">// Mock 验证方法调用  </span></span><br><span class="line">        verify(mockSystemStorage, times(<span class="number">1</span>)).getSystemById(system.getId());</span><br><span class="line">        Assert.assertNotNull(systemFromStorage);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Test(expected = RedisStorageException.class)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getSystemById_exception_test</span><span class="params">()</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">       <span class="comment">//模拟抛出异常</span></span><br><span class="line">        doThrow(RedisStorageException.class).when(mockSystemStorage).getSystemById(anyString());</span><br><span class="line">        systemService.getSystemById(SystemBean.systemId1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service(&quot;systemService&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SystemService</span> <span class="keyword">extends</span> <span class="title">CommonService</span> <span class="keyword">implements</span> <span class="title">ISystemService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Integer VALID = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> ISystemStorage systemStorage;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;System&gt; <span class="title">getAllSystemByValid</span><span class="params">(Integer valid)</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        List&lt;System&gt; systems = systemStorage.getAllSystems();</span><br><span class="line">        <span class="keyword">if</span> (valid == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> systems;</span><br><span class="line">        &#125;</span><br><span class="line">        List&lt;System&gt; validSystems = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (System system : systems) &#123;</span><br><span class="line">            <span class="keyword">if</span> (valid.equals(system.getValid())) &#123;</span><br><span class="line">                validSystems.add(system);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> validSystems;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSystems</span><span class="params">(List&lt;System&gt; systems)</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isEmpty(systems)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (System system : systems) &#123;</span><br><span class="line">            <span class="keyword">if</span> (system.getValid() == <span class="keyword">null</span>) &#123;</span><br><span class="line">                system.setValid(VALID);</span><br><span class="line">            &#125;</span><br><span class="line">            systemStorage.saveSystem(system);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateSystem</span><span class="params">(System system)</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        systemStorage.saveSystem(system);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> System <span class="title">getSystemById</span><span class="params">(String systemId)</span> <span class="keyword">throws</span> RedisStorageException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> systemStorage.getSystemById(systemId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="http://sgq0085.iteye.com/blog/2031319">http://sgq0085.iteye.com/blog/2031319</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/andy2019/article/details/79546657">https://blog.csdn.net/andy2019/article/details/79546657</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/zishi/p/6780719.html">http://www.cnblogs.com/zishi/p/6780719.html</a></p>
+<p><a target="_blank" rel="noopener" href="http://hotdog.iteye.com/blog/937862">http://hotdog.iteye.com/blog/937862</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/" rel="tag"># 单元测试</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E9%87%8D%E6%9E%84,%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1/%E9%87%8D%E6%9E%84-%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%8D%81%E4%BA%94-%E6%80%BB%E7%BB%93/" rel="prev" title="重构-改善既有代码的设计：十五.总结">
+      <i class="fa fa-chevron-left"></i> 重构-改善既有代码的设计：十五.总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/16/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" rel="next" title="简单工厂">
+      简单工厂 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Mocktio"><span class="nav-number">1.</span> <span class="nav-text">Mocktio</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Stub%E5%AF%B9%E8%B1%A1%E5%92%8CMock%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">Stub对象和Mock对象的区别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mocktio%E6%94%AF%E6%8C%81%E6%B3%A8%E8%A7%A3%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">mocktio支持注解：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mocktio%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%9A"><span class="nav-number"></span> <span class="nav-text">mocktio的使用：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Mock-%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%9C%9F%E6%9C%9B%E8%A1%8C%E4%B8%BA%E5%8F%8A%E8%BF%94%E5%9B%9E%E5%80%BC%E8%AE%BE%E5%AE%9A"><span class="nav-number">1.</span> <span class="nav-text">1.Mock 对象的期望行为及返回值设定</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Mock%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%A1%8C%E4%B8%BA%E9%AA%8C%E8%AF%81"><span class="nav-number">2.</span> <span class="nav-text">2.Mock对象的行为验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Spy-%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%9B%91%E8%A7%86"><span class="nav-number">3.</span> <span class="nav-text">3.Spy-对象的监视</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

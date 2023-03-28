@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="第13条：谨慎的覆盖clone方法 1.可以通过实现Cloneable接口重载对象的clone方法，若不实现Cloneable接口而重载clone方法，将会抛出CloneNotSupportedException异常。（这是比较反常的接口使用，因为Cloneable中没有任何方法，它所修改的父类上受保护方法的行为）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EffectiveJava(13)-谨慎的覆盖clone方法">
+<meta property="og:url" content="http://zhangyuying.cn/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="第13条：谨慎的覆盖clone方法 1.可以通过实现Cloneable接口重载对象的clone方法，若不实现Cloneable接口而重载clone方法，将会抛出CloneNotSupportedException异常。（这是比较反常的接口使用，因为Cloneable中没有任何方法，它所修改的父类上受保护方法的行为）">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-07-26T15:48:36.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.764Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Effective Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>EffectiveJava(13)-谨慎的覆盖clone方法 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/07/26/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(13)-%E8%B0%A8%E6%85%8E%E7%9A%84%E8%A6%86%E7%9B%96clone%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          EffectiveJava(13)-谨慎的覆盖clone方法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-07-26 23:48:36" itemprop="dateCreated datePublished" datetime="2019-07-26T23:48:36+08:00">2019-07-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>第13条：谨慎的覆盖<code>clone</code>方法</p>
+<p>1.可以通过实现Cloneable接口重载对象的clone方法，若不实现Cloneable接口而重载clone方法，将会抛出<code>CloneNotSupportedException</code>异常。（这是比较反常的接口使用，因为Cloneable中没有任何方法，它所修改的父类上受保护方法的行为）</p>
+<span id="more"></span>
+
+<p>2.clone是唯一个创建对象但是却不需要调用构造方法的方法,正因为这样，也带来了很多问题。<br>3.clone方法通用规范：创建并返回此对象的副本</p>
+<ul>
+<li>对于任何对象x，<code>x.clone()!=x</code></li>
+<li><code>x.clone().getClass()==x.getClass()</code></li>
+</ul>
+<p>下面解析一下以上规则，<code>x.clone()!=x</code>，使用的是<code>!=</code>表示两个对象所引用的堆的对象的地址是不同的，因此不能用简单的<code>Type x=y;</code>进行复制，第二条：<code>x.clone().getClass==x.getClass()</code>用的是<code>getClass</code>而不是<code>instanceof</code>，说明是严格判断，对于派生类什么的是不行的。</p>
+<p>想要实现以上规则，我们需要：</p>
+<ul>
+<li>首先调用<code>super.clone()</code></li>
+<li>对于每个<code>clone</code>方法中，给每个对象赋值的时候，需要调用对象的<code>clone</code></li>
+<li>对于装载对象的容器，我们需要遍历容器调用容器里面的对象的<code>clone</code>方法，而不是直接调用容器的<code>clone</code>方法</li>
+</ul>
+<p>4.重写方法的返回类型可以是重写方法的返回类型的子类。</p>
+<p>5.为了使一个类可以被克隆，可能需要从一些属性中移除final修饰符。</p>
+<p>6.<code>clone</code>方法不能再构建过程中调用一个可以重写的方法。如果调用一个可重写的方法，子类很可能在克隆中的进行修复步骤之前执行该方法，这样可能会使得克隆和原始对象的损坏。</p>
+<p>7.具有易用性的公共<code>clone</code>方法最好不要抛出<code>CloneNotSupportedException</code></p>
+<p>8.父类不应该实现Cloneable接口，而是应该交由给子类自己选择是否支持<code>clone</code>方法。</p>
+<p>9.最好的clone方法：</p>
+<ul>
+<li><p>通过类似C++的拷贝构造函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public Yum(Yum yum)&#123;...&#125;；</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过静态工厂</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public static Yun newInstance(Yum yum)&#123;...&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>相比Cloneable/clone方法：</p>
+<ul>
+<li>不用依赖于风险很大的语言外的对象创建机制：子类依赖于父类的良好的clone();首先调用super.clone()；</li>
+<li>不要求遵守那些不太明确的管理– 不需要先实现Cloneable接口等</li>
+<li>不会与final属性相冲突</li>
+<li>不需要类型转换</li>
+<li>不需要抛出不必要的检查异常</li>
+</ul>
+</li>
+</ul>
+<p>总之，最好不要实现Cloneable接口，通常，复制功能最好由构造方法或者工厂提供，这个规则有个例外：数组最好使用clone方法复制。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AEffective-Java%E3%80%8B/" rel="tag"># 《Effective Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/07/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(12)-%E5%A7%8B%E7%BB%88%E8%A6%81%E8%A6%86%E7%9B%96toString/" rel="prev" title="EffectiveJava(12)-始终要覆盖toString">
+      <i class="fa fa-chevron-left"></i> EffectiveJava(12)-始终要覆盖toString
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/07/29/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Effective%20Java/EffectiveJava(14)-%E8%80%83%E8%99%91%E5%AE%9E%E7%8E%B0Comparable%E6%8E%A5%E5%8F%A3/" rel="next" title="EffectiveJava(14)-考虑实现Comparable接口">
+      EffectiveJava(14)-考虑实现Comparable接口 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

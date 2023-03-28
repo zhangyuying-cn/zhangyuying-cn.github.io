@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="网络知识中的基本概念：IP、端口、DNS、网关">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络基本概念">
+<meta property="og:url" content="http://zhangyuying.cn/2021/05/27/%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="网络知识中的基本概念：IP、端口、DNS、网关">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E7%BD%91%E7%BB%9C/%E5%9F%9F%E5%90%8D%E7%A9%BA%E9%97%B4%E7%BB%93%E6%9E%84.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E7%BD%91%E7%BB%9C/DNS%E6%9F%A5%E8%AF%A2%E8%BF%87%E7%A8%8B.png">
+<meta property="article:published_time" content="2021-05-27T07:27:33.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.759Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E7%BD%91%E7%BB%9C/%E5%9F%9F%E5%90%8D%E7%A9%BA%E9%97%B4%E7%BB%93%E6%9E%84.jpeg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2021/05/27/%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>网络基本概念 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2021/05/27/%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          网络基本概念
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-27 15:27:33" itemprop="dateCreated datePublished" datetime="2021-05-27T15:27:33+08:00">2021-05-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">网络</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>网络知识中的基本概念：IP、端口、DNS、网关</p>
+<span id="more"></span>
+
+<h3 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h3><p>IP协议的作用主要有两个，一个是为每一台计算机分配IP地址，另一个是确定哪些地址在同一个子网络。</p>
+<p>IP地址共32位，IP地址范围：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">00000000.00000000.00000000.00000000  -&gt;  0.0.0.0</span><br><span class="line">11111111.11111111.11111111.11111111  -&gt;  255.255.255.255</span><br></pre></td></tr></table></figure>
+
+<p>IP地址分类：</p>
+<p>IP地址分为 A、B、C、D、E五类，后两类不对民用组织开放</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>最大网络数</th>
+<th>IP地址范围</th>
+<th>最大主机数</th>
+<th>私有IP地址范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>126(2^7-2)</td>
+<td>1.0.0.0 – 126.255.255.255</td>
+<td>2^24-2</td>
+<td>10.0.0.0 – 10.255.255.255</td>
+</tr>
+<tr>
+<td>B</td>
+<td>16384(2^14)</td>
+<td>128.0.0.0 – 191.255.255.255</td>
+<td>2^16-2</td>
+<td>172.16.0.0 – 172.31.255.255</td>
+</tr>
+<tr>
+<td>C</td>
+<td>2097152(2^21)</td>
+<td>192.0.0.0 – 223.255.255.255</td>
+<td>2^8-2</td>
+<td>192.168.0.0 – 192.168.255.255</td>
+</tr>
+</tbody></table>
+<ol>
+<li><p>IP地址=网络号+主机号，即网段+主机 ,针对标准的子网掩码：</p>
+<ul>
+<li>A类IP前8位是网段，后24位是主机位（标准子网掩码：255.0.0.0）</li>
+<li>B类IP前16位是网段，后16位是主机位（标准子网掩码：255.255.0.0）</li>
+<li>C类IP前24位是网段，后8位是主机位（标准子网掩码：255.255.255.0）</li>
+</ul>
+</li>
+<li><p>每个网段地址的特殊地址，</p>
+<ul>
+<li>第一个地址代表网络本身(网络地址)，不能分配。比如1.0.0.0</li>
+<li>最后一个地址代表当前网络的广播地址，也不能分配，比如1.255.255.255</li>
+</ul>
+<p>因为这两类特殊地址不能分配所以每个网段的最大主机数都 -2</p>
+</li>
+<li><p>使用私有IP为了节约有限的IP资源，公网不能访问私有IP</p>
+</li>
+</ol>
+<blockquote>
+<p>同网段中使用二层交换机(mac地址)即可实现通信，跨网段需要使用路由器进行通信(IP)</p>
+</blockquote>
+<h4 id="子网掩码"><a href="#子网掩码" class="headerlink" title="子网掩码"></a>子网掩码</h4><p>IP和子网掩码不能单独使用，必须同时使用</p>
+<p>子网掩码决定了IP中的网段个数和主机位个数。</p>
+<p>例如</p>
+<ul>
+<li>A类IP的标准子网掩码：255.0.0.0</li>
+<li>B类标准子网掩码：255.255.0.0，</li>
+<li>C类标准子网掩码： 255.255.255.0</li>
+</ul>
+<p>和255匹配的IP代表不同网络，和0匹配的IP代表同一个网络中的不同主机</p>
+<blockquote>
+<p>子网掩码中：1必须是连续的</p>
+<p>即使是B类IP，子网掩码配置成 255.255.255.0，那么也是前三段是网段，后一段是主机</p>
+</blockquote>
+<h3 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h3><p>在网络通信中IP确定了服务器的位置，但是服务器上开启了许多服务，端口的作用就是为了定位服务</p>
+<p>端口共16位，端口范围:<code>0-65535</code>，<code>0-1023</code>为系统占用端口</p>
+<p>常见端口号</p>
+<table>
+<thead>
+<tr>
+<th>服务/协议</th>
+<th>端口号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FTP(文本传输协议)</td>
+<td>20、21</td>
+</tr>
+<tr>
+<td>SSH(安全shell协议)</td>
+<td>22</td>
+</tr>
+<tr>
+<td>telnet(远程登录协议)</td>
+<td>23(因为明文传输，一般禁止开启)</td>
+</tr>
+<tr>
+<td>DNS(域名系统)</td>
+<td>53</td>
+</tr>
+<tr>
+<td>http(超文本传输协议)</td>
+<td>80</td>
+</tr>
+<tr>
+<td>SMTP(简单邮件传输协议)</td>
+<td>25</td>
+</tr>
+<tr>
+<td>POP3(邮局协议3代)</td>
+<td>110</td>
+</tr>
+</tbody></table>
+<p>查看本机启用的端口号：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -an</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-a</code> 查看所有连接和监听端口</li>
+<li><code>-n</code> 显示IP地址和端口号，而不显示域名和服务名</li>
+</ul>
+<h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p><code>Domain Name System</code>，域名系统，也叫做名称解析</p>
+<p>DNS负责把域名翻译成IP（互相翻译）</p>
+<h4 id="hosts文件"><a href="#hosts文件" class="headerlink" title="hosts文件"></a>hosts文件</h4><p>在未使用DNS之前可以使用本机的hosts文件来做静态IP和域名的对应</p>
+<p>hosts文件的优先级高于DNS解析</p>
+<h4 id="DNS域名解析"><a href="#DNS域名解析" class="headerlink" title="DNS域名解析"></a>DNS域名解析</h4><ol>
+<li><p>域名空间结构：（域名使用.分隔，便于分级管理）</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E7%BD%91%E7%BB%9C/%E5%9F%9F%E5%90%8D%E7%A9%BA%E9%97%B4%E7%BB%93%E6%9E%84.jpeg" alt="域名空间结构"></p>
+<ul>
+<li>图中”.”表示根域名，根域名的服务器目前全球只有13台</li>
+<li>顶级域（一级域）：ISO规定的</li>
+</ul>
+</li>
+<li><p>DNS根据域名查询IP过程：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E7%BD%91%E7%BB%9C/DNS%E6%9F%A5%E8%AF%A2%E8%BF%87%E7%A8%8B.png" alt="DNS查询过程"></p>
+<ul>
+<li>DNS服务器是有本地缓存的</li>
+<li>递归查询和迭代查询<ul>
+<li>客户机像本地域名服务器发起的查询是递归查询（得到最后结果）</li>
+<li>DNS服务器检查的查询：本地域名服务器像其他域名服务器发起的查询是迭代查询（得到结果或者最优解）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="网关"><a href="#网关" class="headerlink" title="网关"></a>网关</h3><p>具有路由功能的设备，路由器就是网关设备</p>
+<blockquote>
+<p>路由器（Router）是连接两个或多个网络的硬件设备，在网络间起网关的作用，是读取每一个数据包中的地址然后决定如何传送的专用智能性的网络设备。</p>
+<p>它能够理解不同的协议，例如某个局域网使用的以太网协议，因特网使用的TCP/IP协议。这样，路由器可以分析各种不同类型网络传来的数据包的目的地址，把非TCP/IP网络的地址转换成TCP/IP地址，或者反之；再根据选定的路由算法把各数据包按最佳路线传送到指定位置。</p>
+</blockquote>
+<p>网关的功能：</p>
+<ol>
+<li><p>不同网段的信息交互</p>
+<p>网关在所有内网计算机访问的不是本网段的数据报使用</p>
+</li>
+<li><p>内网IP和公网IP互相转换</p>
+<p>网关负责将内网IP转换为公网IP,公网IP转换为内网IP</p>
+</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>想实现公网网络通信，每台主机需具备四要素</p>
+<ul>
+<li>本机的IP地址</li>
+<li>子网掩码</li>
+<li>网关的IP地址</li>
+<li>DNS的IP地址</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/22/%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%90%86%E8%A7%A3/" rel="prev" title="网络模型理解">
+      <i class="fa fa-chevron-left"></i> 网络模型理解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/07/27/MySQL/MySQL/" rel="next" title="MySQL">
+      MySQL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#IP"><span class="nav-number">1.</span> <span class="nav-text">IP</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%90%E7%BD%91%E6%8E%A9%E7%A0%81"><span class="nav-number">1.1.</span> <span class="nav-text">子网掩码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AB%AF%E5%8F%A3"><span class="nav-number">2.</span> <span class="nav-text">端口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS"><span class="nav-number">3.</span> <span class="nav-text">DNS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hosts%E6%96%87%E4%BB%B6"><span class="nav-number">3.1.</span> <span class="nav-text">hosts文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DNS%E5%9F%9F%E5%90%8D%E8%A7%A3%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">DNS域名解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E5%85%B3"><span class="nav-number">4.</span> <span class="nav-text">网关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

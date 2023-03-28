@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Java中把内存控制的权利交给了Java虚拟机，一旦出现内存泄漏和内存溢出方面的问题，不了解虚拟机是怎样使用内存的，排查错误将会很艰难">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM-2-Java内存区域与内存溢出异常">
+<meta property="og:url" content="http://zhangyuying.cn/2019/12/09/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-2-Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E5%BC%82%E5%B8%B8/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Java中把内存控制的权利交给了Java虚拟机，一旦出现内存泄漏和内存溢出方面的问题，不了解虚拟机是怎样使用内存的，排查错误将会很艰难">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E5%BC%95%E7%94%A8%E9%80%9A%E8%BF%87%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E5%BC%95%E7%94%A8%E9%80%9A%E8%BF%87%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png">
+<meta property="article:published_time" content="2019-12-09T11:52:26.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.769Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《深入理解Java虚拟机》">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.jpg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/12/09/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-2-Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E5%BC%82%E5%B8%B8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>深入理解JVM-2-Java内存区域与内存溢出异常 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/12/09/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-2-Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E5%BC%82%E5%B8%B8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入理解JVM-2-Java内存区域与内存溢出异常
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-12-09 19:52:26" itemprop="dateCreated datePublished" datetime="2019-12-09T19:52:26+08:00">2019-12-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Java中把内存控制的权利交给了Java虚拟机，一旦出现内存泄漏和内存溢出方面的问题，不了解虚拟机是怎样使用内存的，排查错误将会很艰难</p>
+<span id="more"></span>
+
+<h3 id="运行时数据区域"><a href="#运行时数据区域" class="headerlink" title="运行时数据区域"></a>运行时数据区域</h3><p>Java虚拟机所管理的内存包含以下几个运行时数据区域</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA.jpg" alt="JVM运行时数据区域"></p>
+<h4 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h4><p>Program Counter Register</p>
+<p>一块较小的内存空间，可以看作是当前线程所执行的字节码的行号指示器，字节码解释器工作时就是通过改变这个计数器的值来选择下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖计数器</p>
+<p>为了线程切换后能恢复到正确的执行位置，每个线程都需要一个独立的程序计数器，所以程序计数器是线程私有的。线程私有：各线程之间互不影响，独立存储的内存区域为线程私有的内存区域</p>
+<p>如果线程正在执行的是Java方法，则计数器记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是Native方法，则计数器值为空（Undefined）</p>
+<p>程序计数器是唯一一个没有规定任何OutOfMemoryError的区域</p>
+<h4 id="Java虚拟机栈"><a href="#Java虚拟机栈" class="headerlink" title="Java虚拟机栈"></a>Java虚拟机栈</h4><p>Java Virual Machine Stacks</p>
+<p>每个方法在执行的同时都会创建一个栈帧(Stack Frame)用于存储局部变量表、操作数栈、动态链接、方法出口的信息，每一个方法从调用直至执行完成的过程，就对应着一个栈帧在虚拟机栈中入栈到出栈的过程</p>
+<p>线程私有，声明周期与线程相同</p>
+<p>Java内存被粗糙的划分为堆内存和栈内存时，其中所指的栈内存就是现在将的虚拟机栈，或者说是虚拟机栈中局部变量表部分</p>
+<p>局部变量表存放了编译期可知的各种基本数据类型(boolean、byte、char、short、int、float、long、double)、对象引用(reference类型)和returnAddress类型</p>
+<p>此区域规定了两种异常情况：</p>
+<ol>
+<li>如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常</li>
+<li>如果虚拟机栈可以动态扩展，扩展时无法申请到足够的内存，就会抛出OutOfMemoryError异常</li>
+</ol>
+<h4 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h4><p>Native Method Stack</p>
+<p>与虚拟机栈作用很相似，区别不过是虚拟机栈为虚拟机执行Java方法(也就是字节码)服务,而本地方法栈则为虚拟机使用到的Native方法服务</p>
+<p>本地方法栈区域也会抛出StackOverflowError和OutOfMemoryError异常</p>
+<h4 id="Java堆"><a href="#Java堆" class="headerlink" title="Java堆"></a>Java堆</h4><p>Java heap</p>
+<p>是Java虚拟机所管理的内存中最大的一块，是被所有线程共享的一块区域，在虚拟机启动的时候创建。此内存区域的唯一目的就是存放对象实例，几乎所有的对象实例都在这里分配内存，不过由于JIT编译器的发展与逃逸分析技术的逐渐成熟，所有对象都分配在堆上也渐渐变得不那么绝对了</p>
+<p>Java堆是垃圾收集器管理的主要区域，因此很多时候称为“GC”堆(Garbage Collected Heap)</p>
+<ul>
+<li>从内存回收的角度来看，由于现在收集器基本采用分代收集算法，所以Java堆可细分为：新生代和老年代</li>
+<li>从内存分配的角度来看，线程共享的Java堆可能划分出多个线程私有的分配缓冲区(Thread Local Allocation Buffer TLAB)</li>
+</ul>
+<p>不过无论如何划分，都与存放的内容无关，无论哪个区域存储的都是仍然是对象实例，进一步划分是为了更好的回收内存或者更快的分配内存</p>
+<p>Java堆在主流的虚拟机中都实现为可扩展的(可以通过-Xmx和-Xms控制)</p>
+<p>如果堆中没有内存完成实例分配，并且堆也无法在扩展时，将会抛出OutOfMemoryError异常</p>
+<h4 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h4><p>Methid Area</p>
+<p>用于存储已被虚拟机加载的类信息、常量、静态常量、即时编辑器编译后的代码等数据</p>
+<p>各个线程共享的内存区域</p>
+<p>虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是他还有一个别名叫做Non Heap(非堆)，目的是和Java堆区分开</p>
+<p>方法区也被称为“永久代”，不过Java8开始已经没有“永久代”了</p>
+<p>方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常</p>
+<h4 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h4><p>Runtime Constant Pool</p>
+<p>是方法区的一部分</p>
+<p>Class文件除了有类的版本、字段、方法、接口等描述信息外，还有一项是常量池(Constant Pool Table)，用于存放编译期生成的各种字面量和符号引用，这部分内容将在类加载后进入方法区的运行时常量池中存放</p>
+<p>Java虚拟机对Class文件的每一部分(自然也包括常量池)的格式都有严格规定，每一个字节用于存储哪种数据都必须符合规范上的要求，才会被虚拟机认可、装载和执行，但是对于运行时常量池，Java虚拟机没有做任何细节的要求，可以按需实现，一般来说，除了保存Class文件中描述的符号引用外，还会把翻译出来的直接引用也存储在运行时常量池中</p>
+<p>运行时常量池相对Class文件常量池的另外一个重要特征是具备动态性，Java语言并不要求常量一定只有编译器才能产生，也就是并非预置入Class文件中常量池的内容才能进入方法区运行时常量池，运行期间也可能将新的常量池放入池中，这种特性被开发人员利用得比较多的便是String类放入intern()方法</p>
+<p>运行时常量池是方法区的一部分，自然受到方法区内存的限制，当常量池无法在申请到内存时会抛出OutOfMemoryError异常</p>
+<blockquote>
+<p>关于字面量和符号引用的说明</p>
+<p>字面量包括：</p>
+<ul>
+<li>文本字符串</li>
+<li>八种基本类型的值</li>
+<li>被声明为final的编译时常量</li>
+</ul>
+<blockquote>
+<p>有些比较小的基本数据类型会直接嵌入指令中，比如int a=1;会直接编译为 iconst_1,这种值不会放入常量池，也就说常量池找不到1，但是如果是具有final修饰的final int a=1;这个时候1便会放入常量池中,而比较大的基本数据类型是会放在运行时常量池的（比如int a=1234567）。</p>
+</blockquote>
+<p>符号（Symbol）引用包括：</p>
+<ul>
+<li>类和方法的全限定名称</li>
+<li>字段和名称的描述符</li>
+<li>方法的名称和描述符</li>
+</ul>
+<p>还有一种常量池，叫做常量池技术。比如<code>Integer</code>,<code>Short</code>等，在[-128,127]，（127可以通过配置扩大）之间能够缓存对象，这种常量池应该和运行时常量池区分开理解，基本类型包装类的常量池技术是通过包装类本身通过在<code>static</code>代码块中初始化256个对象实现的，而静态变量又是放在方法区中，所以包装类的常量池是放在方法区中的。</p>
+<p><code>Double</code>和<code>Float</code>并没有实现常量池，因为不确定[-128,127]中一共应该缓存多少个数</p>
+</blockquote>
+<h4 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h4><p>Direct Memory</p>
+<p>不是虚拟机运行时数据区的一部分，但是也会被频繁使用且也可能导致OutOfMemoryError异常</p>
+<p>JDK1.4增加了NIO类，引入了一种基于通道(Channel)与缓冲区(Buffer)的I/O方式，可以使用Native函数库直接分配堆外内存，然后通过一个存储在Java堆中的DirectByteBuffer对象作为这块内存的引用进行操作，这样能在一些场景中显著提高性能，因为避免了在Java堆和Native堆中来回复制数据</p>
+<p>本机直接内存不会受到Java堆大小的限制，但是会受到本机总内存(包括RAM以及SWAP区或者分页文件)大小以及处理器寻址空间的限制，如果使得各个内存区域总和大于物理内存限制(包括物理的和操作系统级的限制)，从而会导致动态扩展时出现OutOgMemoryError异常</p>
+<h3 id="HotSpot虚拟机对象探秘"><a href="#HotSpot虚拟机对象探秘" class="headerlink" title="HotSpot虚拟机对象探秘"></a>HotSpot虚拟机对象探秘</h3><p>HotSpot虚拟机在Java堆中对象分配、布局和访问的全过程</p>
+<ul>
+<li><p>对象的创建</p>
+<ol>
+<li>加载：new指令，首先检查指令的参数是否在常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已被加载、解析和初始化过，如果没有则先执行相应的类加载过程(第7章)</li>
+<li>为新生对象分配内存，对象所需内存在类加载完成后便可完全确定，<ul>
+<li>分配方式：指针碰撞(Java堆内存规整)或空闲列表(Java堆内存不规整)，取决于使用哪种垃圾收集器</li>
+<li>分配内存的线程安全问题，解决方案：一是对分配内存空间的动作进行同步处理——实际上虚拟机采用CAS配上失败重试的方式保证更新操作的原子性，二是本地线程分配缓冲(Thread Local Allocation Buffer,TLAB)，即为每个线程分配单独的空间</li>
+</ul>
+</li>
+<li>初始化内存空间为零值(不包括对象头)，这一步保证了对象的示例字段在Java代码中可以不赋初始值就直接使用，程序能访问到这些字段的数据类型所对应的零值</li>
+<li>对对象进行必要的设置，例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码、对象的GC分代年龄等信息，这些信息存放在对象的对象头中，根据虚拟机当前的运行状态不同，对象头会有不同的设置方式</li>
+<li>上面工作完成，虚拟机角度的一个新的对象已经产生了，但是Java程序视角来说，对象创建才刚刚开始——执行 <init> 方法，一般来说，执行new指令之后会接着执行<init> 方法，把对象按照程序员的意愿进行初始化，这样一个可用的对象才算完全产生出来</li>
+</ol>
+</li>
+<li><p>对象的内存布局</p>
+<p>HotSpot虚拟机中，对象在内存中存储的布局可以分为3个区域：对象头(Header)、实例数据(Instance Data)和对齐填充(padding)</p>
+<ul>
+<li><p>对象头</p>
+<ol>
+<li>第一部分用于存储对象自身的运行时数据，如哈希码、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等，这部分数据的长度在32位和64位的虚拟机中分别为32bit和64bit，官方称它为“Mark Word”，“Mark Word”是非固定的数据结构，会根据对象状态复用自己的存储空间</li>
+<li>第二部分是类型指针(非必须)，即对象指向他的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例</li>
+<li>如果对象是一个Java数组，对象头中必须存在一块用于记录数据长度的数据，因为虚拟机了可以通过普通Java对象的元数据信息确定Java对象的大小，但是从数组的元数据中却无法确定数据的大小</li>
+</ol>
+</li>
+<li><p>实例数据部分</p>
+<p>是对象真正存储的有效信息，是程序代码中所定义的各种类型的字段内容，包括父类继承的和子类定义的</p>
+</li>
+<li><p>对象填充</p>
+<p>非必须，无特别含义，仅仅起着占位符的作用</p>
+<p>HotSpot VM 的自动内存管理系统要求对象起始地址必须是8字节的整数倍，换句话说就是对象的大小必须是8字节的整数倍，对象头部分正好是8字节的倍数(1倍或者2倍)，因此对象实例数据部分没有对齐时，就需要通过对齐填充来补全</p>
+</li>
+</ul>
+</li>
+<li><p>对象的访问定位</p>
+<p>Java程序需要通过栈上的reference数据来操作堆上的具体对象，这个引用如何定位、访问堆中的对象的具体位置呢，句柄和直接指针(对象头中的类型指针)两种方式</p>
+<ul>
+<li><p>句柄</p>
+<p>如果使用句柄访问的话，Java堆中将会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与类型数据各自的具体地址信息</p>
+<p>优点：</p>
+<p>reference中存储的是稳定的句柄地址，在对象被移动(GC时移动对象是普遍行为)时只会改变句柄中的实例数据指针，而reference本身不需要修改</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E5%BC%95%E7%94%A8%E9%80%9A%E8%BF%87%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png"></p>
+</li>
+<li><p>直接指针</p>
+<p>如果使用直接指针访问，那么Java堆对象的布局中就必须考虑如何放置访问类型数据的相关信息，而reference中存储的直接就是对象地址</p>
+<p>优点：</p>
+<p>速度快，节省了一次指针定位的时间开销</p>
+<p>HotSpot虚拟机是使用直接指针进行对象访问的</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E5%BC%95%E7%94%A8%E9%80%9A%E8%BF%87%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png"></p>
+<p>​</p>
+</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B/" rel="tag"># 《深入理解Java虚拟机》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/22/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-13-%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E4%B8%8E%E9%94%81%E4%BC%98%E5%8C%96/" rel="prev" title="深入理解JVM-13-线程安全与锁优化">
+      <i class="fa fa-chevron-left"></i> 深入理解JVM-13-线程安全与锁优化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/13/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E5%8F%82%E6%95%B0/" rel="next" title="JVM参数">
+      JVM参数 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F"><span class="nav-number">1.</span> <span class="nav-text">运行时数据区域</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">程序计数器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88"><span class="nav-number">1.2.</span> <span class="nav-text">Java虚拟机栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88"><span class="nav-number">1.3.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java%E5%A0%86"><span class="nav-number">1.4.</span> <span class="nav-text">Java堆</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA"><span class="nav-number">1.5.</span> <span class="nav-text">方法区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">1.6.</span> <span class="nav-text">运行时常量池</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98"><span class="nav-number">1.7.</span> <span class="nav-text">直接内存</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HotSpot%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E8%B1%A1%E6%8E%A2%E7%A7%98"><span class="nav-number">2.</span> <span class="nav-text">HotSpot虚拟机对象探秘</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Redis 是 Key-Value 缓存型数据库 Redis 为了存储不同类型的数据，提供了五种常用数据类型，如下所示：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis数据类型">
+<meta property="og:url" content="http://zhangyuying.cn/2022/06/30/Redis/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Redis 是 Key-Value 缓存型数据库 Redis 为了存储不同类型的数据，提供了五种常用数据类型，如下所示：">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-Int%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-embstr%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-row%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Hash-zipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Hash-ht%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/List-quickList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Set-intSet%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84t.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/ZSet-zipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/ZSet-skipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="article:published_time" content="2022-06-30T08:20:59.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.751Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-Int%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2022/06/30/Redis/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Redis数据类型 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2022/06/30/Redis/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis数据类型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-30 16:20:59" itemprop="dateCreated datePublished" datetime="2022-06-30T16:20:59+08:00">2022-06-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>Redis</code> 是 <code>Key-Value</code> 缓存型数据库</p>
+<p><code>Redis</code> 为了存储不同类型的数据，提供了五种常用数据类型，如下所示：</p>
+<span id="more"></span>
+
+<ul>
+<li><code>string</code>（字符串）</li>
+<li><code>hash</code>（哈希散列）</li>
+<li><code>list</code>（列表）</li>
+<li><code>set</code>（集合）</li>
+<li><code>zset</code>（<code>sorted set</code>：有序集合）</li>
+</ul>
+<blockquote>
+<p>注意：这里指的数据类型是 <code>Value</code>（值） 的数据类型，而非 <code>key</code>。</p>
+<p>除了上述五种类型之外，Redis 还支持一些其他类型，但是不常用。在此不做介绍</p>
+</blockquote>
+<hr>
+<h4 id="redisObject"><a href="#redisObject" class="headerlink" title="redisObject"></a>redisObject</h4><p><code>redisObject</code>是<code>Redis</code>对内部存储的数据定义的抽象类型，<code>redisObject</code>负责装载Redis中的所有键和值，在具体分析<code>Redis</code>的每个数据类型前，我们先了解<code>redisObject</code>，它的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObject</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> type:<span class="number">4</span>;      <span class="comment">// 数据类型</span></span><br><span class="line">    <span class="keyword">unsigned</span> encoding:<span class="number">4</span>;  <span class="comment">// 编码格式，即存储数据使用的数据结构。同一个类型的数据，Redis会根据数据量、占用内存等情况使用不同的编码，最大限度地节省内存。</span></span><br><span class="line">    <span class="keyword">unsigned</span> lru:LRU_BITS;<span class="comment">// 24位，LRU时间戳或LFU计数。</span></span><br><span class="line">    <span class="keyword">int</span> refcount;         <span class="comment">// 引用计数，为了节省内存，Redis会在多处引用同一个redisObject。</span></span><br><span class="line">    <span class="keyword">void</span> *ptr;            <span class="comment">// 指向真正存储数据的数据结构，如sds，真正的数据存储在该数据结构中。</span></span><br><span class="line">&#125; robj;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>提示：<code>type</code>、<code>encoding</code>、<code>lru</code>使用了C语言中的位段定义，这3个属性使用同一个<code>unsigned int</code>的不同<code>bit</code>位。这样可以最大限度地节省内存。</p>
+</blockquote>
+<p><code>Redis</code>定义了以下数据类型和编码，如下表所示</p>
+<table>
+<thead>
+<tr>
+<th>数据类型(type)</th>
+<th>说明</th>
+<th>编码(encoding)</th>
+<th>使用的数据结构</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OBJ_STRING</td>
+<td>字符串</td>
+<td>`OBJ_ENCODING_INT</td>
+<td>long long、long</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OBJ_ENCODING_EMBSTR</td>
+<td>string</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OBJ_ENCODING_RAW</td>
+<td>string</td>
+</tr>
+<tr>
+<td>OBJ_HASH</td>
+<td>散列</td>
+<td>OBJ_ENCODING_HT</td>
+<td>dict</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OBJ_ENCODING_ZIPLIST</td>
+<td>ziplist</td>
+</tr>
+<tr>
+<td>OBJ_LIST</td>
+<td>列表</td>
+<td>OBJ_ENCODING_QUICKLIST</td>
+<td>quicklist</td>
+</tr>
+<tr>
+<td>OBJ_SET</td>
+<td>集合</td>
+<td>OBJ_ENCODING_HT</td>
+<td>dict</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OBJ_ENCODING_INTSET</td>
+<td>intset</td>
+</tr>
+<tr>
+<td>OBJ_ZSET</td>
+<td>有序集合</td>
+<td>OBJ_ENCODING_ZIPLIST</td>
+<td>ziplist</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>OBJ_ENCODING_SKIPLIST</td>
+<td>skiplist</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>object encoding key</code> : 查询某个键内部的编码</p>
+</blockquote>
+<hr>
+<h4 id="String，字符串"><a href="#String，字符串" class="headerlink" title="String，字符串"></a>String，字符串</h4><p><code>String</code> 是<code> Redis</code> 最基本的数据类型。<code>Redis</code>键都是字符串类型，<code>Redis</code>中最简单的值类型也是字符串类型，字符串是一组字节，在 <code>Redis</code> 数据库中，字符串具有二进制安全（<code>binary safe</code>）特性，这意味着它的长度是已知的，不由任何其他终止字符决定的，</p>
+<p>一个字符串类型的值最多能够存储 <code>512 MB</code> 的内容。</p>
+<blockquote>
+<p>二进制安全：是一种主要用于字符串操作函数的计算机编程术语。只关心二进制化的字符串，不关心具体的字符串格式，严格的按照二进制的数据存取。这保证字符串不会因为某些操作而遭到损坏。</p>
+</blockquote>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">set</span> <span class="string">testkey</span> <span class="string">&quot;testvalue&quot;</span></span><br><span class="line"><span class="string">OK</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">get</span> <span class="string">testkey</span></span><br><span class="line"><span class="string">&quot;testvalue&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/06/21/Redis/%E5%91%BD%E4%BB%A4/Redis-String%E5%91%BD%E4%BB%A4/#more"><code>Redis-String</code>操作命令</a></p>
+<h5 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h5><p><strong>1.SDS</strong></p>
+<p><code>Redis</code>对C语言的字符串做了扩展，定义了字符串类型<code>sds</code>(<code>Simple Dynamic String</code>，简单动态字符串 )</p>
+<blockquote>
+<p>对于不同长度的字符串，<code>Redis</code>定义了不同的<code>sds</code>结构体(5种)，为了<code>len</code>、<code>alloc</code>使用合适的属性类型，最大限度地节省内存。</p>
+</blockquote>
+<p><code>sds</code>结构体中除了字段的数据类型不同，字段含义相差无几</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct __attribute__ ((__packed__)) sdshdr8 &#123;</span><br><span class="line">    uint8_t len;   &#x2F;&#x2F;字符串的长度(实际使用的长度)</span><br><span class="line">    uint8_t alloc;  &#x2F;&#x2F;分配内存的大小，即已申请的字节长度(即sds总长度。alloc-len为sds中的可用(空闲)空间。)</span><br><span class="line">    unsigned char flags; &#x2F;&#x2F;标志位，表示sds的类型（sdshdr8、sdshdr16、sdshdr32、sdshdr64）</span><br><span class="line">    char buf[];  &#x2F;&#x2F;字符数组，sds遵循C语言字符串的规范，保存一个空字符作为buf的结尾，并且不计入len、alloc属性，这样还是可以使用C语言的字符串函数直接操作sds</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>sds可以在常数时间内获取字符串长度，并使用预分配内存机制减少内存拷贝次数。</p>
+</blockquote>
+<p><strong>分配冗余空间</strong>：<code>Redis</code> 每次给 <code>string</code> 分配的空间都要大于字符串实际占用的空间，这样就在一定程度上提升了<code> Redis string</code> 存储的效率，比如当字符串长度变大时，无需再重新申请内存空间。</p>
+<p><strong><code>SDS</code>的扩容</strong>：当<code>len</code>大小将要超过<code>alloc</code>的时候，<code>SDS</code>会进行扩容操作。</p>
+<p>当第一次创建字符串的时候，<code>len</code>和<code>alloc</code>一样长，当使用了<code>append</code>的时候，<code>SDS</code>将会进行扩容，字符串长度小于<code>1M</code>的时候，扩容采用加倍扩容，当长度超过<code>1M</code>，则每次增加<code>1M</code>.</p>
+<p>SDS优势：</p>
+<ul>
+<li>可以常数复杂度获取字符串长度：<code>len</code>属性</li>
+<li>防止缓冲区溢出：扩容操作</li>
+<li>减少修改字符串导致内存重分配的次数：分配冗余空间。</li>
+<li>二进制安全</li>
+<li>遵循C语言字符串的规范，保存一个空字符作为字符串的结尾，这样还是可以使用C语言的字符串函数直接操作<code>SDS</code></li>
+</ul>
+<p><strong>2.Redis内部存储</strong></p>
+<p><code>Redis</code>中的字符串数据类型(<code>type</code>)为<code>OBJ_STRING</code>，编码类型(<code>encoding</code>)可以是<code>int</code>、<code>embstr</code>、<code>row </code>中的一个</p>
+<blockquote>
+<p><code>Redis</code>对数据编码的主要目的是最大限度地节省内存</p>
+</blockquote>
+<ul>
+<li><p><strong><code>int</code>编码</strong>：保存<code>long </code>型的<strong>64位有符号整数</strong>，即对应的编码类型为 <code>OBJ_ENCODING_INT</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt;set test:int1 123</span><br><span class="line">127.0.0.1:6379&gt;set test:int2 123</span><br></pre></td></tr></table></figure>
+
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-Int%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="Int编码内存结构"></p>
+</li>
+</ul>
+<blockquote>
+<p>1).将数值型字符串转换为整型可以大幅降低数据占用的内存空间，如字符串“<code>123456789012</code>”需要占用<code>12</code>字节，在<code>Redis</code>中，会将它转化为<code>long long</code>类型，只占用8字节。</p>
+<p>2).<code>Redis</code> 启动时会预先建立 <code>10000</code> 个分别存储 <code>0~9999</code> 的 <code>redisObject</code>变量作为共享对象，这就意味着如果 <code>set</code>字符串的键值在<code> 0~10000</code> 之间的话，则可以 直接指向共享对象 而不需要再建立新对象，此时键值不占空间</p>
+</blockquote>
+<ul>
+<li><p><strong><code>embstr</code> 编码</strong>：保存长度小于<code>44</code>字节的字符串，即对应的编码类型为<code>OBJ_ENCODING_EMBSTR</code>(<code>embedded string</code>,表示嵌入式的<code>String</code>)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt;set test:embstr abc</span><br></pre></td></tr></table></figure>
+
+<p>在该编码中，从内存结构上来讲 即字符串 <code>sds</code>结构体与其对应的 <code>redisObject</code> 对象分配在 <strong>同一块连续的内存空间</strong>，这就仿佛字符串 <code>sds</code> 嵌入在 <code>redisObject</code> 对象之中一样</p>
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-embstr%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="embstr编码内存结构"></p>
+<p>优点：<code>OBJ_ENCODING_EMBSTR</code>编码是<code>Redis</code>针对短字符串的优化，有如下优点：</p>
+<ul>
+<li>内存申请和释放都只需要调用一次内存操作函数。</li>
+<li><code>redisObject</code>、<code>sds</code>结构保存在一块连续的内存中，减少了内存碎片。</li>
+</ul>
+</li>
+<li><p><strong><code>raw</code> 编码</strong>：保存长度大于<code>44</code>字节的字符串</p>
+<blockquote>
+<p>和embstr编码不同的是，在该编码中，<code>redisObject</code>、<code>sds</code>结构存放在两个不连续的内存块中。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt;set foo abcdefghijklmnopqrstuvwxyzabcdeffasdffsdaadsx</span><br></pre></td></tr></table></figure>
+
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/String-row%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="row编码内存结构"></p>
+</li>
+</ul>
+<hr>
+<h4 id="Hash，散列"><a href="#Hash，散列" class="headerlink" title="Hash，散列"></a>Hash，散列</h4><p><code>Hash</code> (哈希散列)是由字符串类型的 <code>field</code> 和 <code>value</code> 组成的哈希映射表结构（也称散列表），可以把它理解成一个包含了多个键值对的集合。由于 <code>Hash</code> 类型具有上述特点，所以一般被用来存储对象。</p>
+<h5 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">HSET</span> <span class="string">userid:1</span> <span class="string">username</span> <span class="string">zyy</span> <span class="string">password</span> <span class="number">123456</span> <span class="string">testkey</span> <span class="string">testvalue</span></span><br><span class="line"><span class="string">OK</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">HGETALL</span> <span class="string">userid:1</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;username&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;zyy&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;password&quot;</span></span><br><span class="line"><span class="number">4</span><span class="string">)</span> <span class="string">&quot;123456&quot;</span></span><br><span class="line"><span class="number">5</span><span class="string">)</span> <span class="string">&quot;testkey&quot;</span></span><br><span class="line"><span class="number">6</span><span class="string">)</span> <span class="string">&quot;testvalue&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/06/23/Redis/%E5%91%BD%E4%BB%A4/Redis-Hash%E5%91%BD%E4%BB%A4/#more"><code>Redis-Hash</code>操作命令</a></p>
+<blockquote>
+<p>注意：一个 <code>Hash</code> 中最多包含 <code>2^32-1</code> 个键值对。</p>
+</blockquote>
+<h5 id="实现方式-1"><a href="#实现方式-1" class="headerlink" title="实现方式"></a>实现方式</h5><p><code>Redis</code>中的<code>Hash</code>数据类型(<code>type</code>)为<code>OBJ_HASH</code>，编码类型(<code>encoding</code>)可能为<code>ziplist</code>或者<code>ht</code>其中一种，<code>Redis</code> 会根据<strong>数据量</strong>的情况来<strong>自适应</strong>地选择这两种编码方式中 <strong>较优</strong> 的一种，而这一切对用户完全透明。</p>
+<ul>
+<li><p><strong><code>ziplist</code>编码</strong>：即对应的编码类型为 <code>OBJ_ENCODING_ZIPLIST</code></p>
+<p>同时符合以下两个条件时，才使用<code>ziplist</code>作为底层存储结构</p>
+<ul>
+<li>哈希对象保存的所有键值对（键和值）的字符串长度都小于<code> 64</code> 个字节。</li>
+<li>哈希对象保存的键值对数量要小于<code> 512</code> 个。</li>
+</ul>
+<p>压缩列表：</p>
+<p>压缩列表也不是基础数据结构，而是<code> Redis</code> 自己设计的一种数据存储结构。它有点儿类似数组，通过一片连续的内存空间，来存储数据，压缩列表是<code>Redis</code>为了节约内存而开发的</p>
+<blockquote>
+<p><code>ziplist</code> 压缩列表是一种紧凑编码格式，总体思想是<strong>时间换空间</strong>，即以部分读写性能为代价，来换取极高的内存空间利用率，因此只会用于 字段个数少，且字段值也较小 的场景。</p>
+</blockquote>
+<p><code>ziplist</code>结构图参数如下：（ziplist并没有定义明确的结构体，以下代码是根据字段反推的，只是便于理解）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*仅仅是描述使用, 内存中并非如此存储*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ziplist</span>&#123;</span></span><br><span class="line">     <span class="keyword">uint32_t</span> zlbytes; <span class="comment">//是一个无符号整数，表示当前ziplist占用的总字节数；</span></span><br><span class="line">     <span class="keyword">uint32_t</span> zltail; <span class="comment">//指的是压缩列表尾部元素相对于压缩列表起始元素的偏移量(可以确定表尾字节地址)。</span></span><br><span class="line">     <span class="keyword">uint16_t</span> zllen; <span class="comment">//指ziplist中节点(entry)的数量。当zllen比2^16 - 2大时，需要完全遍历所有entry来获取entry的总数目。</span></span><br><span class="line">     <span class="keyword">unsigned</span> <span class="keyword">char</span>* entry[]; <span class="comment">//多个，用来存放ziplist中的具体的数据项，可以是字节数组或整数，长度不定，由保存的内容决定</span></span><br><span class="line">     <span class="keyword">unsigned</span> <span class="keyword">char</span> zlend; <span class="comment">//是一个单字节的特殊值，等于255，起到标识ziplist内存结束点的作用</span></span><br><span class="line">&#125;ziplist;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*仅仅是描述使用, 内存中并非如此存储*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zlentry</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> previous_entry_length; <span class="comment">//记录了前一个节点的长度，单位：字节</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> encoding; <span class="comment">//记录了content中数据的类型</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> len; <span class="comment">//记录了content中数据的长度</span></span><br><span class="line">     <span class="comment">/*元素实际内容*/</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> content[]; <span class="comment">//节点的值</span></span><br><span class="line">&#125;zlentry;</span><br></pre></td></tr></table></figure>
+
+<p>内存结构图示</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">HSET</span> <span class="string">key1</span> <span class="string">field1</span> <span class="string">&quot;value1&quot;</span> <span class="string">field2</span> <span class="string">&quot;value2&quot;</span> <span class="string">field3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">OK</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Hash-zipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="ziplist编码内存结构"></p>
+</li>
+</ul>
+<blockquote>
+<p><code>ziplist</code>来存储<code> Redis</code>的散列类型时，元素的排列方式：<code>field</code>、<code>value</code>都是逻辑连续内存</p>
+</blockquote>
+<ul>
+<li><p><strong>ht编码</strong>：(<code>hashtable</code>)，即对应的编码类型为 <code>OBJ_ENCODING_HT</code></p>
+<p>这种编码方式内部才是真正的哈希表结构，或者称为字典结构，其可以实现<code>O(1)</code>复杂度的读写操作，因此效率很高</p>
+<p>实现：<code>Redis</code>中的ht编码的结构和<code>Java</code>中的<code>HashMap</code>完全相同，实现方式也是通过<strong>数组+链表</strong>来完成的。</p>
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Hash-ht%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="ht编码内存结构"></p>
+</li>
+</ul>
+<p><strong>rehash</strong>：散列表的<code>rehash</code>过程类似于数组的收缩与扩容。目的是提升性能或节省内存。</p>
+<blockquote>
+<p>扩展大小：<code>ht[1]</code>的大小为第一个大于等于<code>ht[0].used*2的2的n次方幂</code>。如:<code>ht[0].used</code>=<code>3</code>则<code>ht[1]</code>的大小为<code>8</code>，<code>ht[0].used=4</code>则<code>ht[1]</code>的大小为8。</p>
+<p>收缩大小:<code> ht[1]</code>的大小为 第一个大于等于<code>ht[0].used的2的n次方幂</code>。</p>
+</blockquote>
+<p><code>rehash</code>是一个时间复杂度为<code>O(n)</code>的操作，为了解决耗时过多问题，<code>Redis</code>采用了两个方式：</p>
+<ul>
+<li><p>渐进式<code>rehash</code></p>
+<p>通过同时保留的旧的<code>hashtable</code>和新的<code>hashtable</code>，使得扩容操作可以逐渐的操作。在rehash进行期间每次对字典执行增删改查操作时，<code>redis</code>都会同时执行<code>rehash</code></p>
+<blockquote>
+<ol>
+<li>因为在进行渐进式 rehash 的过程中，字典会同时使用 <code>ht[0]</code> 和 <code>ht[1]</code> 两个哈希表，所以在渐进式 rehash 进行期间，字典的删除、查找、更新等操作会在两个哈希表上进行。</li>
+<li>在渐进式 <code>rehash</code> 执行期间，新添加到字典的键值对一律会被保存到 <code>ht[1]</code> 里面，而 <code>ht[0]</code> 则不再进行任何添加操作：这一措施保证了 <code>ht[0]</code> 包含的键值对数量会只减不增，并随着 <code>rehash</code> 操作的执行而最终变成空表。</li>
+</ol>
+</blockquote>
+</li>
+<li><p>定时任务进行<code>rehash</code>。<code>rehash</code>操作需要满足以下条件:</p>
+<ol>
+<li>服务器目前没有执行<code>BGSAVE</code>(<code>rdb</code>持久化)命令或者<code>BGREWRITEAOF</code>(<code>AOF</code>文件重写)命令，并且散列表的负载因子大于等于<code>1</code>。</li>
+<li>服务器目前正在执行<code>BGSAVE</code>命令或者<code>BGREWRITEAOF</code>命令，并且负载因子大于等于<code>5</code>。</li>
+<li>当负载因子小于<code>0.1</code>时，程序自动开始执行收缩操作。</li>
+</ol>
+<blockquote>
+<p><code>Redis</code>这么做的目的是基于操作系统创建子进程后写时复制技术，避免不必要的写入操作。</p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<h4 id="List，列表"><a href="#List，列表" class="headerlink" title="List，列表"></a>List，列表</h4><p><code>List</code> 中的元素是字符串类型，其中的元素按照插入顺序进行排列，允许重复插入，最多可插入的元素个数为<code> 2^32 -1</code> 个（大约<code>40</code>亿个），可以添加一个元素到列表的头部（左边）或者尾部（右边），当列表弹出最后一个元素时，该结构会被自动删除。</p>
+<blockquote>
+<p><code>List</code>（列表）相当于<code> Java</code> 语言中的<code> LinkedList</code> 结构，是一个链表而非数组，其插入、删除元素的时间复杂度为 <code>O(1)</code>，但是查询速度欠佳，时间复杂度为 <code>O(n)</code>。在实际使用中可以充当栈和队列的角色</p>
+</blockquote>
+<h5 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#LPUSH 列表添加元素命令</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">LPUSH</span> <span class="string">testlist</span> <span class="string">Java</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">LPUSH</span> <span class="string">testlist</span> <span class="string">Redis</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">LPUSH</span> <span class="string">testlist</span> <span class="string">C</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">3</span></span><br><span class="line"><span class="comment">#LRANGE 查看列表元素</span></span><br><span class="line"><span class="comment">#最开始插入的在最后，最后插入位于第一个位置，和队列相似。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">LRANGE</span> <span class="string">testlist</span> <span class="number">0</span> <span class="number">3</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;Redis&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;Java&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/06/24/Redis/%E5%91%BD%E4%BB%A4/Redis-List%E5%91%BD%E4%BB%A4/#more"><code>Redis-List</code>操作命令</a></p>
+<h5 id="实现方式-2"><a href="#实现方式-2" class="headerlink" title="实现方式"></a>实现方式</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Redis&#96;中的&#96;List&#96;数据类型(&#96;type&#96;)为&#96;OBJ_LIST&#96;，编码类型(&#96;encoding&#96;)为&#96;quicklist</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在<code>Redis3.2</code>版本以前列表类型的内部编码有两种:<code>ziplist</code>和<code>linkedlist</code>，而在<code>Redis3.2</code>版本开始对列表数据结构进行了改造，使用 <code>quicklist</code> 代替了 <code>ziplist</code> 和 <code>linkedlist</code>.</p>
+<p>原因：链表的附加空间相对太高，<code>prev</code> 和 <code>next</code> 指针就要占去 <code>16 </code>个字节 (<code>64bit</code> 系统的指针是 <code>8</code> 个字节)，另外每个节点的内存都是单独分配，会加剧内存的碎片化，影响内存管理效率。因此<code>Redis3.2</code>版本开始对列表数据结构进行了改造，使用 <code>quicklist</code> 代替了 <code>ziplist</code> 和 <code>linkedlist</code>.</p>
+</blockquote>
+<p><strong><code>quicklist</code>编码</strong>：即对应的编码类型为<code>OBJ_ENCODING_QUICKLIST</code></p>
+<p><code>quicklist </code>实际上是<code>zipList</code>(具体可参照<code>Hash</code>的实现方式) 和 <code>linkedList</code> 的混合体，它将 <code>linkedList</code> 按段切分，每一段使用 <code>zipList</code> 来紧凑存储，多个 <code>zipList</code> 之间使用双向指针串接起来。</p>
+<blockquote>
+<p>由于<code>ziplist</code>是数组，因此当需要插入或删除元素的时候，就需要对其重新分配内存，因此<code>ziplist</code>的数据量不能太大(<code>list-max-ziplist-size</code>: 默认<code>8k</code>)。</p>
+</blockquote>
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/List-quickList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="quicklist编码内存结构"></p>
+<blockquote>
+<p>相对于链表，<code>quciklist</code>压缩了内存，进一步的提高了效率</p>
+</blockquote>
+<hr>
+<h4 id="Set，集合"><a href="#Set，集合" class="headerlink" title="Set，集合"></a>Set，集合</h4><p><code>Set</code> 是一个字符串类型元素构成的无序并唯一的集合。在 <code>Redis</code> 中，集合是通过哈希映射表实现的，所以无论是添加元素、删除元素，亦或是查找元素，它们的时间复杂度都为 <code>O(1)</code>。</p>
+<blockquote>
+<p>由于 <code>Set</code> 集合中的成员具有唯一性，所以重复插入不会成功，集合的同样可容纳 <code>2^32 -1</code> 个元素。</p>
+<p>和其他数据类型一样，当集合中最后一个成员被删除时，存储成员所用的数据结构也会被自动删除。</p>
+</blockquote>
+<h5 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">SADD</span> <span class="string">testset</span> <span class="string">HTML</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">SADD</span> <span class="string">testset</span> <span class="string">JS</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">SADD</span> <span class="string">testset</span> <span class="string">HTML</span> <span class="comment">#元素已存在，返回0</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">0</span></span><br><span class="line"><span class="comment">#SMEMBERS命令查看集合中元素，元素会无序排列</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">SMEMBERS</span> <span class="string">testset</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;JS&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;HTML&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/06/27/Redis/%E5%91%BD%E4%BB%A4/Redis-Set%E5%91%BD%E4%BB%A4/#more"><code>Redis-Set</code>操作命令</a></p>
+<h5 id="实现方式-3"><a href="#实现方式-3" class="headerlink" title="实现方式"></a>实现方式</h5><p><code>Redis</code>中的<code>Set</code>数据类型(<code>type</code>)为<code>OBJ_SET</code>，编码类型(<code>encoding</code>)可能为<code>intset</code>或者<code>ht</code>其中一种，<code>Redis</code> 会根据<strong>数据</strong>的情况来<strong>自适应</strong>地选择这两种编码方式中 <strong>较优</strong> 的一种，而这一切对用户完全透明。</p>
+<ul>
+<li><p><strong><code>ht</code>编码</strong>：(<code>hashtable</code>)，即对应的编码类型为 <code>OBJ_ENCODING_HT</code></p>
+<p><code>set</code>使用<code>ht</code>编码时的实现和<code>hash</code>的<code>ht</code>编码的实现完全一样，不同的是字典中所有的<code>value</code>都是<code>NULL</code>，因此特性也和<code>Hash</code>相同，因此不在赘述</p>
+</li>
+<li><p><strong><code>intset</code>编码</strong>：即对应的编码类型为 <code>OBJ_ENCODING_INTSET</code></p>
+<p>同时符合以下两个条件时，才使用<code>intset</code>作为底层存储结构</p>
+<ul>
+<li>集合内保存的所有成员都是整数值</li>
+<li>集合内保存的成员数量不超过 <code>512 </code>个</li>
+</ul>
+<p>整数集合(<code>intset</code>)并不是一个基础的数据结构，而是<code>Redis</code>自己设计的一种存储结构，整数集合的底层实现为数组，这个数组以<strong>有序</strong>、无重复的方式保存集合元素,在有需要时,程序会根据新添加元素的类型，改变这个数组的类型。<code>intset</code>结构图参数如下：</p>
+<blockquote>
+<p>如果元素满足使用inset作为存储结构，那么其实是有序的</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//每个intset结构表示一个整数集合</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">intset</span>&#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span> encoding; <span class="comment">//编码方式，可取INTSET_ENC_INT16、INTSET_ENC_INT32、INTSET_ENC_INT64</span></span><br><span class="line">    <span class="keyword">uint32_t</span> length;   <span class="comment">//集合中包含的元素数量</span></span><br><span class="line">    <span class="keyword">int8_t</span> contents[]; <span class="comment">//保存元素的数组，整数集合的每个元素都是 contents数组的个数组项(item),各个项在数组中按值的大小从小到大有序地排列,并且数组中不包含任何重复项。</span></span><br><span class="line">&#125; intset;</span><br></pre></td></tr></table></figure>
+
+<p>内存结构图示</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">sadd</span> <span class="string">key1</span> <span class="number">-10</span> <span class="number">2</span> <span class="number">-2</span> <span class="number">600</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/Set-intSet%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84t.png" alt="inset编码内存结构"></p>
+<p><code>intset</code>升级：</p>
+<p><code>inset</code>可以保存类型为<code>int16_t</code>、<code>int32_t</code>或者<code>int64_t</code>的整数值，每当我们要将一个新元素添加到整数集合里面,并且新元素的类型比整数集合现有所有元素的类型都要长时，整数集合需要先进行升级,然后才能将新元素添加到整数集合里面。</p>
+<blockquote>
+<p>整数集合只支持升级操作,不支持降级操作。</p>
+</blockquote>
+<p><code>inset</code>升级的优点</p>
+<ul>
+<li><p>为整数集合带来了操作上的灵活性</p>
+<p>可以随意将<code>int16_t</code>、<code>int32_t</code>或者<code>int64_t</code>类型的整数添加到集合中,而不必担心出现类型错误,这种做法非常灵活。</p>
+</li>
+<li><p>节约内存</p>
+<p>确保升级操作只会在有需要的时候进行，这可以尽量节省内存。因为如果我们一直只向整数集合添加<code>int16_t</code>类型的值，那么整数集合的底层实现就会一直是<code>int16_t</code>类型的数组，只有在我们要将<code>int32_t</code>类型或者<code>int64_t</code>类型的值添加到集合时，程序才会对数组进行升级。</p>
+</li>
+</ul>
+<hr>
+<h4 id="ZSet，有序集合"><a href="#ZSet，有序集合" class="headerlink" title="ZSet，有序集合"></a>ZSet，有序集合</h4><p><code>ZSet</code> 是一个字符串类型元素构成的有序集合，集合中的元素不仅具有唯一性，而且每个元素还会关联一 个<code>double</code> 类型的分数，该分数允许重复。<code>Redis</code> 正是通过这个分数来为集合中的成员排序。</p>
+<h5 id="示例-4"><a href="#示例-4" class="headerlink" title="示例"></a>示例</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">0</span> <span class="string">Python</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">1</span> <span class="string">Java</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">2</span> <span class="string">C++</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">3</span> <span class="string">MySQL</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">4</span> <span class="string">Redis</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="comment">#重复元素无法添加成功</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">4</span> <span class="string">Redis</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">0</span></span><br><span class="line"><span class="comment">#重复分值添加成功</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">testzset</span> <span class="number">4</span> <span class="string">GOLANG</span></span><br><span class="line"><span class="string">(integer)</span> <span class="number">1</span></span><br><span class="line"><span class="comment">#查看指定成员的分值</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">ZSCORE</span> <span class="string">testzset</span> <span class="string">Redis</span></span><br><span class="line"><span class="string">&quot;4&quot;</span></span><br><span class="line"><span class="string">查看zset中的所有成员</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">testzset</span> <span class="number">0</span> <span class="number">4</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;Python&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;Java&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;C++&quot;</span></span><br><span class="line"><span class="number">4</span><span class="string">)</span> <span class="string">&quot;MySQL&quot;</span></span><br><span class="line"><span class="number">5</span><span class="string">)</span> <span class="string">&quot;GOLANG&quot;</span></span><br><span class="line"><span class="number">6</span><span class="string">)</span> <span class="string">&quot;Redis&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/06/28/Redis/%E5%91%BD%E4%BB%A4/Redis-ZSet%E5%91%BD%E4%BB%A4/#more"><code>Redis-ZSet</code>操作命令</a></p>
+<h5 id="实现方式-4"><a href="#实现方式-4" class="headerlink" title="实现方式"></a>实现方式</h5><p><code>Redis</code>中的<code>ZSet</code>数据类型(<code>type</code>)为<code>OBJ_ZSET</code>，编码类型(<code>encoding</code>)可能为<code>intset</code>或者<code>ht</code>其中一种，<code>Redis</code> 会根据<strong>数据</strong>的情况来<strong>自适应</strong>地选择这两种编码方式中 <strong>较优</strong> 的一种，而这一切对用户完全透明。</p>
+<ul>
+<li><p><strong>ziplist编码</strong>：即对应的编码类型为 <code>OBJ_ENCODING_ZIPLIST</code></p>
+<p>同时符合以下两个条件时，才使用ziplist(具体可参照Hash的实现方式)作为底层存储结构</p>
+<ul>
+<li>成员的数量小于<code>12</code>8 个</li>
+<li>每 <code>member</code>（成员）的字符串长度都小于<code>64</code>个字节。</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;zadd</span> <span class="string">key1</span> <span class="number">5</span> <span class="string">&quot;value1&quot;</span> <span class="number">8</span> <span class="string">&quot;value2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>内存结构图示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/ZSet-zipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="ziplist编码内存结构"></p>
+</li>
+<li><p><strong><code>skiplist</code>编码</strong>：即对应的编码类型为 <code>OBJ_ENCODING_SKIPLIST</code></p>
+<p>跳跃列表(<code>skiplist</code>)是一种有序的数据结构，它通过在每个节点中维持多个指向其他节点的指针，从而达到快速访问节点的目的</p>
+<blockquote>
+<p>为什么元素数量比较多或者成员是比较长的字符串的时，<code>Redis</code>要使用跳跃表来实现？<br>跳跃表在链表的基础上增加了多级索引以提升查找的效率，但其是一个空间换时间的方案——索引是占内存的。原始链表中存储的有可能是很大的对象，而索引结点只需要存储关键值值和几个指针，并不需要存储对象，因此当节点本身比较大或者元素数量比较多的时候，其优势必然会被放大，而缺点则可以忽略。</p>
+</blockquote>
+<p><code>Redis</code>中<code>skipList</code>数据结构定义</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplist</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">header</span>, *<span class="title">tail</span>;</span> <span class="comment">// 头指针header,指向跳跃表表头和尾指针tail。指向跳跃表表尾巴节点</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> length; <span class="comment">//链表长度length，即链表包含的节点总数。注意，新创建的skiplist包含一个空的头指针，这个头指针不包含在length计数中。</span></span><br><span class="line">    <span class="keyword">int</span> level; <span class="comment">//表示skiplist的总层数，即所有节点层数的最大值。</span></span><br><span class="line">&#125; zskiplist;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> &#123;</span></span><br><span class="line">    robj *obj;     <span class="comment">// 存放节点数据，sds类型</span></span><br><span class="line">    <span class="keyword">double</span> score;  <span class="comment">// 数据对应的分数</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">backward</span>;</span> <span class="comment">//指向链表前一个节点的指针（后退指针）。节点只有1个后退指针，所以只有第1层链表是一个双向链表。</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistLevel</span> &#123;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">forward</span>;</span><span class="comment">// 前进指针，存放指向各层链表后一个节点的指针（后向指针）,每层对应1个后向指针</span></span><br><span class="line">        <span class="keyword">unsigned</span> <span class="keyword">int</span> span;<span class="comment">//跨度，记录了前进指针所指向节点和当前节点的距离(跨度越大、距离越远)</span></span><br><span class="line">    &#125; level[]; <span class="comment">//层，每个层有两个属性：前进指针和跨度。 每次创建一个新跳跃表节点的时候,程序都根据幂次定律(powerlaw,越大的数出现的概率越小)随机生成一个介于1和32之间的值作为level数组的大小,这个大小就是层的“高度”。</span></span><br><span class="line">&#125; zskiplistNode;</span><br></pre></td></tr></table></figure>
+
+<p>内存结构展示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/ZSet-skipList%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="skiplist编码内存结构"></p>
+</li>
+</ul>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="http://c.biancheng.net/redis/data-types.html">Redis数据类型</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/666452a22855">Redis字符串类型内部编码剖析-简书</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1914634">Redis剖析-Redis字符串的设计与实现</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/bccb198d191f">Redis哈希结构内存模型剖析-简书</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hunternet/p/11306690.html">Redis数据结构-压缩列表</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hunternet/p/9989771.html">Redis数据结构-字典</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hunternet/p/12624691.html">Redis数据结构-快速列表</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hunternet/p/11268067.html">Redis数据结构-整数集合</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/hunternet/p/11248192.html">Redis数据结构-跳跃表</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903478196699150">Redis 内部数据结构详解——skiplist</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/28/Redis/Redis-ZSet%E5%91%BD%E4%BB%A4/" rel="prev" title="Redis-ZSet命令">
+      <i class="fa fa-chevron-left"></i> Redis-ZSet命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/01/Redis/Redis-Key%E5%91%BD%E4%BB%A4/" rel="next" title="Redis-Key命令">
+      Redis-Key命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#redisObject"><span class="nav-number">1.</span> <span class="nav-text">redisObject</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String%EF%BC%8C%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">2.</span> <span class="nav-text">String，字符串</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">实现方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hash%EF%BC%8C%E6%95%A3%E5%88%97"><span class="nav-number">3.</span> <span class="nav-text">Hash，散列</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-1"><span class="nav-number">3.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F-1"><span class="nav-number">3.2.</span> <span class="nav-text">实现方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#List%EF%BC%8C%E5%88%97%E8%A1%A8"><span class="nav-number">4.</span> <span class="nav-text">List，列表</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-2"><span class="nav-number">4.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F-2"><span class="nav-number">4.2.</span> <span class="nav-text">实现方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Set%EF%BC%8C%E9%9B%86%E5%90%88"><span class="nav-number">5.</span> <span class="nav-text">Set，集合</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-3"><span class="nav-number">5.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F-3"><span class="nav-number">5.2.</span> <span class="nav-text">实现方式</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ZSet%EF%BC%8C%E6%9C%89%E5%BA%8F%E9%9B%86%E5%90%88"><span class="nav-number">6.</span> <span class="nav-text">ZSet，有序集合</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-4"><span class="nav-number">6.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F-4"><span class="nav-number">6.2.</span> <span class="nav-text">实现方式</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

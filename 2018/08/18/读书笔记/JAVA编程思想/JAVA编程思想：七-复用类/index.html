@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="代码重用机制：  组合：在新的类中产生现有类的对象，由于新的类是由现有类的对象所组成，所以这种方法称为组合 继承：按照现有类的类型来创建新类，无需改变现有类形式采用现有类的形式并在其中添加代码。继承是面向对象的基石之一。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA编程思想：七.复用类">
+<meta property="og:url" content="http://zhangyuying.cn/2018/08/18/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%B8%83-%E5%A4%8D%E7%94%A8%E7%B1%BB/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="代码重用机制：  组合：在新的类中产生现有类的对象，由于新的类是由现有类的对象所组成，所以这种方法称为组合 继承：按照现有类的类型来创建新类，无需改变现有类形式采用现有类的形式并在其中添加代码。继承是面向对象的基石之一。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-18T07:55:23.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.766Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Thinking in Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/08/18/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%B8%83-%E5%A4%8D%E7%94%A8%E7%B1%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA编程思想：七.复用类 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/08/18/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%B8%83-%E5%A4%8D%E7%94%A8%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA编程思想：七.复用类
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-18 15:55:23" itemprop="dateCreated datePublished" datetime="2018-08-18T15:55:23+08:00">2018-08-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>代码重用机制：</p>
+<ul>
+<li>组合：在新的类中产生现有类的对象，由于新的类是由现有类的对象所组成，所以这种方法称为组合</li>
+<li>继承：按照现有类的类型来创建新类，无需改变现有类形式采用现有类的形式并在其中添加代码。继承是面向对象的基石之一。</li>
+</ul>
+<span id="more"></span>
+
+<p>1.组合语法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> </span>&#123;</span><br><span class="line">  A a; <span class="comment">//组合，使用现有类A</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注：</p>
+<ul>
+<li>每一个非基本类型的对象都有一个toString()方法，而且当编译器需要一个String,而你却只有一个对象时，该方法便会被调用。</li>
+<li>编译器并不是简单的为每一个引用都创建默认对象，如果想初始化这些引用，可以在代码中的下列位置进行<ul>
+<li>在定义对象的地方，这意味着他们总是能够在构造器被调用之前被初始化</li>
+<li>在类的构造器中</li>
+<li>就在正要使用这些对象之前，这种方式成为<code>惰性初始化</code> ，在生成对象不值得及不必每次都生成对象的情况下，这种方式可以减少额外负担</li>
+<li>使用实例初始化(new A())</li>
+</ul>
+</li>
+</ul>
+<p>2.继承语法</p>
+<p>当创建一个类时，总是在继承。因为除非已明确声明要从其它类继承，否则就是在隐式地从java标准根类Object进行继承</p>
+<p>继承使用 <strong>extends</strong>关键字</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span> </span>&#123; <span class="comment">//B继承自A</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>**<code>super</code> **表示超类</p>
+<p>在继承过程中，并不一定非得使用基类的方法，也可以在导出类中添加新方法（子类对象可调用自己的方法，也可调用父类对象的所有可用方法）</p>
+<p>继承中初始化的保证：</p>
+<ul>
+<li>在构造器中调用基类构造器来执行初始化，而基类构造器具有执行基类初始化所需要的所有知识和能力</li>
+<li>java会自动在导出类的构造器中插入对基类构造器的调用（默认构造器）</li>
+<li>如果没有默认的基类构造器，或者想调用一个带参数的基类构造器，就必须用关键字<code>super</code> 显示的编写调用基类构造器的语句，并配以适当的参数列表。</li>
+<li>由于以上保证，构建过程是：从基类“向外”扩散的，所以基类在导出类可以访问他之前，就已经完成了初始化</li>
+</ul>
+<p>注：</p>
+<ul>
+<li><code>+=</code> 操作符将几个String对象连接成一个String，此操作符是被java设计者重载用以处理String对象的操作符之一（还有<code>+</code>）</li>
+<li>一个类似包访问权限，其public main(),仍然是可访问的</li>
+</ul>
+<p>3.代理</p>
+<p>是继承和组合的中庸之道：我们将一个成员对象置于所要构造的类中（就像组合），但与此同时我们在新类中暴露了该对象的所有（可选择）成员方法（就像继承）</p>
+<p>【像代理模式】</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//例子场景：A找B帮忙洗衣服，但是实际上是洗衣机在洗衣服，所以B算代理。（比较牵强！）</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WashingMachine</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">washClothes</span><span class="params">(String clothes)</span></span>&#123;</span><br><span class="line">    System.out.println(clothes+<span class="string">&quot;已洗完！&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> </span>&#123;</span><br><span class="line">  WashingMachine washingMachine =<span class="keyword">new</span> WashingMachine();</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">washClothes</span><span class="params">(String clothes)</span></span>&#123;</span><br><span class="line">    washingMachine.washClothes(clothes);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">  B b = <span class="keyword">new</span> B();</span><br><span class="line">  b.washClothes(<span class="string">&quot;A的衣服！&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>4.结合使用组合和继承</p>
+<p>组合和继承可以结合使用，具体使用结合实际</p>
+<p>清理：</p>
+<ul>
+<li>如果想要某个类清理一些东西就要显示编写方法来做这件事，首要任务是：必须将这一清理动作置于finally字句中。（预防异常的出现）</li>
+<li>顺序：执行类所有特定的清理动作，其顺序同生成顺序相反。（通常这就要求基类元素仍旧存活，防止仍然被使用到）</li>
+</ul>
+<p>名称屏蔽：如果java的基类拥有某个已经被对此重载的方法名称，那么在导出类中重新定义该方法名称，并不会屏蔽其在基类中的任何版本。因此：无论是在该层或者它的基类中对方法进行定义，重载机制都可以正常工作</p>
+<p><strong><code>@override</code></strong> 注解可以防止你在不想重载时而意外进行了重载！</p>
+<p>5.在组合与继承之间选择</p>
+<p>组合和继承都允许在新的类中放置子对象，组合是显示的这样做，继承是隐式的这样做</p>
+<p>组合：**<code>has-a</code> (有一个)的关系** 通常用于想在新类中使用现有类的功能而非他的接口这种形式，即：在新类中嵌入某个对象，让其实现所需要的功能，但新类的用户看到的只是为新类所定义的接口，而非所嵌入对象的接口（为达到这个效果，需要在新类中嵌入一个现有类的private对象）</p>
+<p>继承：**<code>is-a</code> (是一个)的关系**  :使用某个现有类，并开发一个他的特殊版本，通常这意味着，你在使用一个通用类，并为了某种特殊需要而将其特殊化</p>
+<p>到底使用组合还是继承也可参照 <code>7.向上转型</code>中提到的判断方式</p>
+<p>6.protected关键字</p>
+<p>访问权限：</p>
+<ul>
+<li>相同包内的其他成员也可以访问</li>
+<li>继承的子类可以访问</li>
+</ul>
+<p>最好将域保持为<code>private</code> (为了保留更改底层实现的权利)，然后通过<code>protected</code> 方法来控制类的继承者的访问权限</p>
+<p>7.向上转型</p>
+<p>集成最重要的方面不是为新的类提供方法，而是表现新类和基类之间的关系： <strong>新类是现有类的一种类型</strong></p>
+<p>将子类引用转化为基类引用的动作，我们称之为 <strong>向上转型</strong></p>
+<p>为什么称为向上转型：由导出类转型成基类，在继承图上是向上移动的，因此一般称为向上转型</p>
+<p>到底使用组合还是继承：一个最清晰的判断就是问一问自己是否需要从新类向基类进行向上转型，如果必须向上转型，则继承是必要的，如果不需要，就要考虑自己是否需要继承</p>
+<p>8.final关键字</p>
+<p>final：无法改变的（没有static的时候，是指在一个对象中恒定不变）</p>
+<p>（1）、final数据</p>
+<ul>
+<li>对于基本类型：final使数据恒定不变<ul>
+<li>我们不能因为某个数据是<code>final</code> 的就认为在编译时可以知道它的值，也可以在运行时随机生成这个数据</li>
+</ul>
+</li>
+<li>对于引用：final使引用恒定不变(一个引用初始化指向一个对象，就无法再把他指向另一个对象，然而，对象自身确实可以修改的！这个情况同样适用与数组（数组也是对象）)</li>
+<li>一个既是<code>static </code>又是<code>final</code> 的域只占据一段不能改变的存储空间<ul>
+<li>既是<code>static </code>又是<code>final</code> 的域，将用大写表示，并用下划线分隔各个单词</li>
+</ul>
+</li>
+</ul>
+<p>空白final：是指被声明为final,但又未给定初值的域，无论什么时候，编译器都确保空白final在使用前必须被初始化（必须在域的定义处或者每个构造器中用表达式对final进行赋值）</p>
+<p>空白final在final上提供了更大的灵活性：一个类中的final域，就可以做到根据对象不同而有所不同，却又保持其恒定不变的特性</p>
+<p>final参数：java允许在参数列表中以声明的方式将参数指明为final</p>
+<ul>
+<li>若参数是引用，这意味着无法在方法中更改参数引用所指向的对象</li>
+<li>若参数是基本类型，你可以读参数，却无法更改参数，这一特性主要用来像匿名内部类传递数据</li>
+</ul>
+<p>（2）final方法</p>
+<p>使用原因：</p>
+<ul>
+<li>把方法锁定，不允许继承类修改他的含义（在继承类行为保持不变，并且不会被覆盖）</li>
+<li>效率（java 5以后差别不大）</li>
+</ul>
+<p>（3）、final类</p>
+<p>当某个类的整体定义为<code>final</code> 时,表明这个类不允许被继承。这时final类中的所有方法都隐式的指定为<code>final</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在设计类时，不想其他类继承时，可以考虑将这个类定义为<code>final</code></p>
+<p>9.初始化及类的加载</p>
+<p>java的加载方式：因为java中都是对象，每个类的编译代码都存在与他自己的独立文件中，该文件只在需要使用程序代码时待会被加载：类的代码在初次使用时才加载（创建类对象或是访问static域或方法。初次使用之处，也是static初始化发生之处）</p>
+<p>继承与初始化：</p>
+<p>在继承中：先加载基类在依次加载子类，这种方式很重要：因为导出类的static的初始化可能会依赖与基类成员能否被正确初始化</p>
+<p>必要的类加载完毕，对象就开始创建了，由于继承的存在此处对象的创建是先基类在子类，对象的具体创建过程可参照第五章对象的创建过程，</p>
+<p>10.总结</p>
+<p>开始一个设计时，应优先选择组合，在必要时才使用继承</p>
+<p>程序开发是一种增量过程</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AThinking-in-Java%E3%80%8B/" rel="tag"># 《Thinking in Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/" rel="prev" title="工厂方法模式">
+      <i class="fa fa-chevron-left"></i> 工厂方法模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/20/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/" rel="next" title="创建型模式">
+      创建型模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

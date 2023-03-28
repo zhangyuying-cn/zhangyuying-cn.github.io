@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="责任链模式(Chain of Responsibility Pattern)定义使多个对象都有机会处理请求，从而避免了请求的发送者和接收者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。 行为型模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="责任链模式">
+<meta property="og:url" content="http://zhangyuying.cn/2018/11/23/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="责任链模式(Chain of Responsibility Pattern)定义使多个对象都有机会处理请求，从而避免了请求的发送者和接收者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。 行为型模式">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E7%B1%BB%E5%9B%BE.png">
+<meta property="article:published_time" content="2018-11-23T03:22:48.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.763Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/11/23/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>责任链模式 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/11/23/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          责任链模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-11-23 11:22:48" itemprop="dateCreated datePublished" datetime="2018-11-23T11:22:48+08:00">2018-11-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="责任链模式-Chain-of-Responsibility-Pattern"><a href="#责任链模式-Chain-of-Responsibility-Pattern" class="headerlink" title="责任链模式(Chain of Responsibility Pattern)"></a>责任链模式(Chain of Responsibility Pattern)</h3><h5 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h5><p>使多个对象都有机会处理请求，从而避免了请求的发送者和接收者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。</p>
+<p>行为型模式</p>
+<span id="more"></span>
+
+<blockquote>
+<p>使多个对象都有机会处理请求，从而避免了请求的发送者和接收者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。</p>
+<p>责任链可能是一条直线、一个环链或者一个树结构的一部分。</p>
+</blockquote>
+<h5 id="责任链模式结构"><a href="#责任链模式结构" class="headerlink" title="责任链模式结构"></a>责任链模式结构</h5><p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.png" alt="责任链模式结构图"></p>
+<p>责任链模式角色：</p>
+<p>​    ◊   Handler：抽象处理者<br>​    handler 定义了处理请求的接口，handler知道，下一个处理者是谁，如果自己无法处理请求，就转给下一个处理者。</p>
+<p>​    ◊   concreteHandler ：具体的处理者<br>​    具体的处理者是处理请求的具体角色。具体处理者接到请求后，可以选择将请求处理掉，或者将请求传给下家</p>
+<p>​    ◊  Client</p>
+<p>​    请求者角色，就是向第一个具体的handler发送请求的角色，并连接好责任链。</p>
+<h5 id="模式分析"><a href="#模式分析" class="headerlink" title="模式分析"></a>模式分析</h5><p>解耦请求的发送者和接受者，并且可动态的改变链中的环节。使得每个角色更专注的处理自己的事物</p>
+<h5 id="模式优缺点"><a href="#模式优缺点" class="headerlink" title="模式优缺点"></a>模式优缺点</h5><p><strong>优点</strong></p>
+<ul>
+<li><p>弱化了发出请求的人和处理请求的人之间的关系（解耦）</p>
+<p>发出请求的人只需要向第一个具体的处理者发送请求，然后就可以不用管了，处理者会在责任链上自己寻找处理的方法。这样就解耦了处理者和请求者之间的关系。如果我们不采取责任链模式，那么请求者就必须要很清楚哪个处理者能处理它的请求，就必须对所有的处理者都有所了解，类似于上帝视角，然而在实际中，要求请求这了解这么多是不实际的</p>
+</li>
+<li><p>可以动态的改变责任链</p>
+<p>责任链还有的好处就是可以动态的改变责任，删除或者添加或者改变顺序。</p>
+</li>
+<li><p>让各个处理者专注于实现自己的职责</p>
+<p>责任链模式同时还做到了处理者之间的解耦，处理者自己专注于自己的处理逻辑就好，不管其他处理者干什么。</p>
+</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>推卸责任也可能导致处理延迟<br>我们可以责任链模式需要在责任链上传播责任，直至找到合适的处理对象。这样提高了程序的灵活性，但同时也出现了处理的延迟，因为有一个寻找的过程。所以需要低延迟的情况下，就不应该使用责任链模式</li>
+<li>不容易观察运行时的特征，有碍于排查错误</li>
+</ul>
+<p><strong>模式适用场景</strong>  </p>
+<ul>
+<li>假如使用if…else…语句来组织一个责任链时感到力不从心，代码看上去很糟糕时，就可以使用责任链模式来进行重构。</li>
+</ul>
+<ul>
+<li>在视窗系统中，经常会使用到责任链模式，尤其是事件的处理，熟悉<code>javascript</code>开发的朋友，可能会知道，浏览器中的事件有冒泡机制，就是事件的是向父控件传播的，如果自己处理不了，就会传播给父控件去处理。</li>
+</ul>
+<h5 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h5><ul>
+<li>责任链模式其实就是一个灵活版的<code>if…else…</code>语句，它就是将这些判定条件的语句放到了各个处理类中，这样做的优点是比较灵活了，但同样也带来了风险，比如设置处理类前后关系时，一定要特别仔细，搞对处理类前后逻辑的条件判断关系，并且注意不要在链中出现循环引用的问题。</li>
+<li>纯责任链模式和不纯的责任链模式：<ul>
+<li>如果一个类要么承担责任处理请求要么将请求踢给下一个皮球，则被称为纯责任链模式。</li>
+<li>如果一个类承担了一部分责任，还将请求踢给下一个皮球，则被称为不纯的责任链模式。（常用一些）</li>
+</ul>
+</li>
+<li><code>Tomcat</code>中的<code>Filter</code>就是使用了责任链模式</li>
+</ul>
+<h4 id="代码示例："><a href="#代码示例：" class="headerlink" title="代码示例："></a>代码示例：</h4><p>示例代码均在：<a target="_blank" rel="noopener" href="https://github.com/zhangyuying-cn/design-pattern">https://github.com/zhangyuying-cn/design-pattern</a></p>
+<p>责任链模式代码示例类图：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E7%B1%BB%E5%9B%BE.png" alt="责任链模式代码示例类图"></p>
+<p>​    </p>
+<p>Handler：抽象处理者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> MessageHandler messageHandler;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(Message message)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">nextSendMessage</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (messageHandler != <span class="keyword">null</span>) &#123;</span><br><span class="line">            messageHandler.sendMessage(message);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;责任链的下一个接受者为空&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setMessageHandler</span><span class="params">(MessageHandler messageHandler)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.messageHandler = messageHandler;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> concreteHandler ：具体的处理者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QQMessageHandler</span> <span class="keyword">extends</span> <span class="title">MessageHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ChainContants.MESSAGE_TYPE_QQ.equals(message.getType())) &#123;</span><br><span class="line">            System.out.println(ChainContants.getFormatResult(message));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(ChainContants.getUnHandlerFormat(ChainContants.MESSAGE_TYPE_QQ, message));</span><br><span class="line">            nextSendMessage(message);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SMSMessageHandler</span> <span class="keyword">extends</span> <span class="title">MessageHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ChainContants.MESSAGE_TYPE_SMS.equals(message.getType())) &#123;</span><br><span class="line">            System.out.println(ChainContants.getFormatResult(message));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(ChainContants.getUnHandlerFormat(ChainContants.MESSAGE_TYPE_SMS,message));</span><br><span class="line">            nextSendMessage(message);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WeChatMessageHandler</span> <span class="keyword">extends</span> <span class="title">MessageHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (ChainContants.MESSAGE_TYPE_WECHAT.equals(message.getType())) &#123;</span><br><span class="line">            System.out.println(ChainContants.getFormatResult(message));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(ChainContants.getUnHandlerFormat(ChainContants.MESSAGE_TYPE_WECHAT, message));</span><br><span class="line">            nextSendMessage(message);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> Client</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainOfResponsibilityApplication</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        MessageHandler messageChain = <span class="keyword">new</span> QQMessageHandler();</span><br><span class="line">        MessageHandler weChatMessageHandler = <span class="keyword">new</span> WeChatMessageHandler();</span><br><span class="line">        MessageHandler smsMessageHandler = <span class="keyword">new</span> SMSMessageHandler();</span><br><span class="line"></span><br><span class="line">        smsMessageHandler.setMessageHandler(messageChain);</span><br><span class="line">        weChatMessageHandler.setMessageHandler(smsMessageHandler);</span><br><span class="line">        messageChain.setMessageHandler(weChatMessageHandler);</span><br><span class="line">        System.out.println(<span class="string">&quot;开始发送短信消息---&quot;</span>);</span><br><span class="line">        Message smsMessage = buildMessage();</span><br><span class="line">        smsMessage.setType(ChainContants.MESSAGE_TYPE_SMS);</span><br><span class="line">        messageChain.sendMessage(smsMessage);</span><br><span class="line">        System.out.println(<span class="string">&quot;开始发送微信消息---&quot;</span>);</span><br><span class="line">        Message weChatMessage = buildMessage();</span><br><span class="line">        weChatMessage.setType(ChainContants.MESSAGE_TYPE_WECHAT);</span><br><span class="line">        messageChain.sendMessage(weChatMessage);</span><br><span class="line">        System.out.println(<span class="string">&quot;开始发送QQ消息---&quot;</span>);</span><br><span class="line">        Message qqMessage = buildMessage();</span><br><span class="line">        qqMessage.setType(ChainContants.MESSAGE_TYPE_QQ);</span><br><span class="line">        messageChain.sendMessage(qqMessage);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Message <span class="title">buildMessage</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Message message = <span class="keyword">new</span> Message();</span><br><span class="line">        message.setContext(<span class="string">&quot;这是消息的内容&quot;</span>);</span><br><span class="line">        message.setReceiver(<span class="string">&quot;接收人&quot;</span>);</span><br><span class="line">        message.setSender(<span class="string">&quot;发送人&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> message;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Message</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String type;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String context;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String sender;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String receiver;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> type;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setType</span><span class="params">(String type)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.type = type;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> context;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContext</span><span class="params">(String context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.context = context;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getSender</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSender</span><span class="params">(String sender)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sender = sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getReceiver</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> receiver;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setReceiver</span><span class="params">(String receiver)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.receiver = receiver;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChainContants</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String MESSAGE_TYPE_QQ = <span class="string">&quot;QQ&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String MESSAGE_TYPE_WECHAT = <span class="string">&quot;微信&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String MESSAGE_TYPE_SMS = <span class="string">&quot;短信&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String resultFormat = <span class="string">&quot;%s 客户端发送 %s消息成功，消息内容：%s&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String unHandlerFormat = <span class="string">&quot;不是%s类型消息，%s客户端不处理!消息类型为：%s&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getFormatResult</span><span class="params">(Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(ChainContants.resultFormat, message.getType(), message.getType(), message.getContext());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getUnHandlerFormat</span><span class="params">(String currentType, Message message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(ChainContants.unHandlerFormat, currentType, currentType, message.getType());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>参考资料</p>
+<p>《大话设计模式》</p>
+<p>《Head First 设计模式》</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/java-my-life/archive/2012/05/28/2516865.html">https://www.cnblogs.com/java-my-life/archive/2012/05/28/2516865.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/198a29556f30">https://www.jianshu.com/p/198a29556f30</a></p>
+<p><a target="_blank" rel="noopener" href="http://wiki.jikexueyuan.com/project/java-design-pattern/chain-responsibility-pattern.html">http://wiki.jikexueyuan.com/project/java-design-pattern/chain-responsibility-pattern.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/26/%E8%AE%B0%E5%BD%95/%E5%8D%9A%E5%AE%A2%E8%AE%B0%E5%BD%95/" rel="prev" title="博客记录">
+      <i class="fa fa-chevron-left"></i> 博客记录
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/11/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E5%85%AD-%E6%95%B0%E7%BB%84/" rel="next" title="JAVA编程思想：十六-数组">
+      JAVA编程思想：十六-数组 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F-Chain-of-Responsibility-Pattern"><span class="nav-number">1.</span> <span class="nav-text">责任链模式(Chain of Responsibility Pattern)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">1.0.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84"><span class="nav-number">1.0.2.</span> <span class="nav-text">责任链模式结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90"><span class="nav-number">1.0.3.</span> <span class="nav-text">模式分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.0.4.</span> <span class="nav-text">模式优缺点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">1.0.5.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">代码示例：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

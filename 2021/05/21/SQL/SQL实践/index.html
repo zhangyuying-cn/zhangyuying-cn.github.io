@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="主要是实际遇到的SQL场景记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL实践">
+<meta property="og:url" content="http://zhangyuying.cn/2021/05/21/SQL/SQL%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="主要是实际遇到的SQL场景记录">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-05-21T07:27:18.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.752Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="SQL">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2021/05/21/SQL/SQL%E5%AE%9E%E8%B7%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>SQL实践 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2021/05/21/SQL/SQL%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SQL实践
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-21 15:27:18" itemprop="dateCreated datePublished" datetime="2021-05-21T15:27:18+08:00">2021-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/SQL/" itemprop="url" rel="index"><span itemprop="name">SQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>主要是实际遇到的SQL场景记录</p>
+<span id="more"></span>
+
+<p>目录:</p>
+<ul>
+<li>一.按时间分段排序</li>
+<li>二.字符串批量对批量的查询</li>
+</ul>
+<h3 id="一-按时间分段排序"><a href="#一-按时间分段排序" class="headerlink" title="一.按时间分段排序"></a>一.按时间分段排序</h3><ol>
+<li><p>需求描述</p>
+<p>存在一个 健身房预定权限表<code>authority_reserve</code>：规定了每个人可以预定健身多长时间，</p>
+<p>获取数据列表，列表排序方式：</p>
+<p> ① 当前日期在授权日期范围内的，按照授权开始日期正序；</p>
+<p> ② 当前日期未到授权日期范围内，按照授权开始日期正序；</p>
+<p> ③ 当前日期已过授权日期范围内的，按照授权开始日期正序。</p>
+</li>
+</ol>
+<p>具体表数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>user_id</th>
+<th>auth_start_time</th>
+<th>auth_end_time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>100</td>
+<td>2021-05-02</td>
+<td>2021-05-10</td>
+</tr>
+<tr>
+<td>2</td>
+<td>101</td>
+<td>2021-05-25</td>
+<td>2021-05-30</td>
+</tr>
+<tr>
+<td>3</td>
+<td>102</td>
+<td>2021-05-20</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>4</td>
+<td>103</td>
+<td>2021-05-05</td>
+<td>2021-05-08</td>
+</tr>
+<tr>
+<td>5</td>
+<td>104</td>
+<td>2021-05-22</td>
+<td>2021-05-23</td>
+</tr>
+<tr>
+<td>6</td>
+<td>105</td>
+<td>2021-05-19</td>
+<td>2021-05-25</td>
+</tr>
+</tbody></table>
+<p>首先注意今天为：2021-05-21</p>
+<ol start="2">
+<li>SQL实现</li>
+</ol>
+<ul>
+<li><p>使用 <code>order by case when</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">select id, user_id, auth_start_time, auth_end_time</span><br><span class="line">from authority_reserve</span><br><span class="line">order by </span><br><span class="line">case </span><br><span class="line">   when (auth_start_time &lt; &#39;2021-05-21&#39; and auth_end_time &gt; &#39;2021-05-21&#39;) then 0</span><br><span class="line">   when auth_start_time &gt; &#39;2021-05-21&#39; then 1</span><br><span class="line">   when auth_end_time &lt; &#39;2021-05-21&#39; then 2 end,</span><br><span class="line">auth_start_time asc;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>order by case when</code> 在这个例子中不是很灵活，其更适用于排序随意数字，比如:</p>
+<p>健身房<code>gym</code>状态字段state，0:未投入使用 1:正常使用中 2:停止使用，按照正常使用–未投入使用–停止使用的顺序排序</p>
+<p>select id, state from gym<br>order by case<br>when state=1 then 0<br>when state=0 then 1<br>when state=2 then 2 end;</p>
+</blockquote>
+</li>
+<li><p>使用 <code>union all</code></p>
+<p>使用 <code>union all</code> 灵活性比较高，比如第一段当前日期在授权日期范围内的，也可以按照授权开始时间倒序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(select id, user_id, auth_start_time, auth_end_time</span><br><span class="line"> from authority_reserve</span><br><span class="line"> where auth_start_time &lt; &#39;2021-05-21&#39; and  auth_end_time &gt; &#39;2021-05-21&#39; order by auth_start_time asc)</span><br><span class="line">union all</span><br><span class="line">(select id, user_id, auth_start_time, auth_end_time</span><br><span class="line"> from authority_reserve</span><br><span class="line"> where auth_start_time &gt; &#39;2021-05-21&#39; order by auth_start_time asc)</span><br><span class="line">union all</span><br><span class="line">(select id, user_id, auth_start_time, auth_end_time</span><br><span class="line"> from authority_reserve</span><br><span class="line"> where auth_end_time &lt; &#39;2021-05-21&#39; order by auth_start_time asc);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ol start="3">
+<li>查询结果</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Id</th>
+<th>user_id</th>
+<th>auth_start_time</th>
+<th>auth_end_time</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>6</td>
+<td>105</td>
+<td>2021-05-19</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>3</td>
+<td>102</td>
+<td>2021-05-20</td>
+<td>2021-05-25</td>
+</tr>
+<tr>
+<td>5</td>
+<td>104</td>
+<td>2021-05-22</td>
+<td>2021-05-23</td>
+</tr>
+<tr>
+<td>2</td>
+<td>101</td>
+<td>2021-05-25</td>
+<td>2021-05-30</td>
+</tr>
+<tr>
+<td>1</td>
+<td>100</td>
+<td>2021-05-02</td>
+<td>2021-05-10</td>
+</tr>
+<tr>
+<td>4</td>
+<td>103</td>
+<td>2021-05-05</td>
+<td>2021-05-08</td>
+</tr>
+</tbody></table>
+<h3 id="二-字符串批量对批量的查询"><a href="#二-字符串批量对批量的查询" class="headerlink" title="二.字符串批量对批量的查询"></a>二.字符串批量对批量的查询</h3><p>注意：当前实践实现方式仅限<code>postgreal</code>数据库</p>
+<ol>
+<li><p>需求描述：健身房<code>gym</code>包括设备：跑步机、高位下拉、俯卧屈腿、倒蹬器 等等</p>
+<p>查询条件传入多个设备，健身房有其中任意一个设备即可被查询出来（正常数据库健身房设备应该使用字典表示，此时为了查看方便直接使用汉字表示）</p>
+<p>具体表数据如下：</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>equipment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>高位下拉,跑步机</td>
+</tr>
+<tr>
+<td>2</td>
+<td>俯卧屈腿,高位下拉</td>
+</tr>
+<tr>
+<td>3</td>
+<td>俯卧屈腿,跑步机</td>
+</tr>
+<tr>
+<td>4</td>
+<td>跑步机,俯卧屈腿</td>
+</tr>
+<tr>
+<td>5</td>
+<td>倒蹬器</td>
+</tr>
+<tr>
+<td>6</td>
+<td>倒蹬器,俯卧屈腿,高位下拉</td>
+</tr>
+</tbody></table>
+<ol start="2">
+<li>SQL实现</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select id, equipment from gym</span><br><span class="line">where substring(equipment from &#39;[高位下拉|倒蹬器]&#39;) !&#x3D; &#39;&#39; order by id </span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>substring(string from pattern)</code> : 从字符串中找出与POSIX正则表达式匹配的子字符串。</p>
+<p>示例 : <code>substring(&#39;Thomas&#39; from &#39;...$&#39;) mas</code></p>
+</blockquote>
+<ol start="3">
+<li>查询结果</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>equipment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>高位下拉,跑步机</td>
+</tr>
+<tr>
+<td>2</td>
+<td>跑步机,俯卧屈腿</td>
+</tr>
+<tr>
+<td>5</td>
+<td>倒蹬器</td>
+</tr>
+<tr>
+<td>6</td>
+<td>倒蹬器,俯卧屈腿,高位下拉</td>
+</tr>
+</tbody></table>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/166200.html">PostgreSQL字符串函数</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SQL/" rel="tag"># SQL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/12/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/Cron%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="prev" title="Cron表达式">
+      <i class="fa fa-chevron-left"></i> Cron表达式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/22/%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%90%86%E8%A7%A3/" rel="next" title="网络模型理解">
+      网络模型理解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80-%E6%8C%89%E6%97%B6%E9%97%B4%E5%88%86%E6%AE%B5%E6%8E%92%E5%BA%8F"><span class="nav-number">1.</span> <span class="nav-text">一.按时间分段排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C-%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%89%B9%E9%87%8F%E5%AF%B9%E6%89%B9%E9%87%8F%E7%9A%84%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.</span> <span class="nav-text">二.字符串批量对批量的查询</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

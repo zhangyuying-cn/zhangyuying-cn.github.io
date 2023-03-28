@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Nginx中进程进行通讯可以通过共享内存或者信号，但是进程间的管理通常只使用信号，命令行中的许多子命令，就是向Master进程中发送信号">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx父子进程通信">
+<meta property="og:url" content="http://zhangyuying.cn/2019/08/23/nginx/nginx%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Nginx中进程进行通讯可以通过共享内存或者信号，但是进程间的管理通常只使用信号，命令行中的许多子命令，就是向Master进程中发送信号">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E7%9A%84reload%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E7%83%AD%E5%8D%87%E7%BA%A7%E6%B5%81%E7%A8%8B.png">
+<meta property="article:published_time" content="2019-08-23T02:01:28.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.756Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Nginx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E7%9A%84reload%E6%B5%81%E7%A8%8B.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/08/23/nginx/nginx%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Nginx父子进程通信 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/08/23/nginx/nginx%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nginx父子进程通信
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-08-23 10:01:28" itemprop="dateCreated datePublished" datetime="2019-08-23T10:01:28+08:00">2019-08-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Nginx/" itemprop="url" rel="index"><span itemprop="name">Nginx</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Nginx中进程进行通讯可以通过共享内存或者信号，但是进程间的管理通常只使用信号，命令行中的许多子命令，就是向Master进程中发送信号</p>
+<span id="more"></span>
+
+<h4 id="Nginx进程和信号介绍"><a href="#Nginx进程和信号介绍" class="headerlink" title="Nginx进程和信号介绍"></a>Nginx进程和信号介绍</h4><p>在Nginx中能够发送和处理信号的有三部分：</p>
+<ul>
+<li><p>Master进程</p>
+<p>会启动Worker进程</p>
+<ul>
+<li>监控Worker进程<ul>
+<li>CHLD：Worker进程非正常关闭的时候会给Master进程发送的信号</li>
+</ul>
+</li>
+<li>管理Worker进程，通过接收信号，包括：<ul>
+<li>TERM，INT：立刻停止Nginx进程</li>
+<li>QUIT：优雅的停止Nginx进程：慢慢的停，不要对用户发出立刻停止连接的报文</li>
+<li>HUP：重载配置文件</li>
+<li>USER1：重新打开日志文件，做日志文件切割</li>
+<li>USER2：只能通过命令行，直接向Master进程发送信号，热部署时使用</li>
+<li>WINCH：只能通过命令行，直接向Master进程发送信号，热部署时使用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Worker进程</p>
+<p>通常不直接对Worker进程发送信号。而是由Master进程来管理Worker，所以正常我们是发送信号给Master进程，再由Master进程向Worker进程发送信号</p>
+<ul>
+<li>TERM，INT：立刻停止Nginx进程</li>
+<li>QUIT：优雅的停止Nginx进程：慢慢的停，不要对用户发出立刻停止链接的报文</li>
+<li>USER1：重新打开日志文件，做日志文件切割</li>
+<li>WINCH：只能通过命令行，直接向Master进程发送信号，热部署时使用</li>
+</ul>
+</li>
+<li><p>Nginx命令行</p>
+<p>当启动Nginx以后，Nginx会把他的pid记录到一个文件(nginx.pid)中，这个文件会记录Master的进程pid，所在在执行命令行的时候，就会在这个文件中找到Master进程的pid，并向其发送信号</p>
+<ul>
+<li>reload：HUP</li>
+<li>reopen：USER1</li>
+<li>stop：TERM</li>
+<li>quit：QUIT</li>
+</ul>
+</li>
+</ul>
+<h4 id="Nginx进程和信号使用"><a href="#Nginx进程和信号使用" class="headerlink" title="Nginx进程和信号使用"></a>Nginx进程和信号使用</h4><p><strong><code>nginx -s reload</code> 流程解析</strong></p>
+<p><code>nginx -s reload</code> 命令是平滑的升级配置文件，步骤如下：</p>
+<ol>
+<li><p>向master进程发送HUP信号(reload命令)</p>
+</li>
+<li><p>master进程校验配置语法是否正确</p>
+</li>
+<li><p>master进程打开新的监听端口</p>
+<p>因为可能在新的配置文件中引入新的端口(例如443)，而子进程会继承父进程所有已经打开的端口(Linux操作系统定义)</p>
+</li>
+<li><p>master进程用新配置启动新的worker子进程</p>
+</li>
+<li><p>master进程向老worker子进程发送QUIT信号</p>
+</li>
+<li><p>老worker进程关闭监听句柄，处理完当前连接后结束进程</p>
+</li>
+</ol>
+<p>不停机载入新配置，图示如下：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E7%9A%84reload%E6%B5%81%E7%A8%8B.png" alt="Nginx的reload流程"></p>
+<p><strong>热升级流程</strong></p>
+<p>不停止Nginx进程对Nginx进行升级</p>
+<ol>
+<li><p>将旧的Nginx文件换成新的Nginx文件</p>
+<p>备份和升级的都是二进制文件(一般为sbin下的nginx)，并不需要更改其他文件</p>
+</li>
+<li><p>向master进程发送USER2信号</p>
+</li>
+<li><p>master进程修改pid文件名，加后缀<code>.oldbin</code></p>
+</li>
+<li><p>master进程用新Nginx文件启动新master进程</p>
+<p>新的master进程是老的master进程的子进程</p>
+</li>
+<li><p>向老master进程发送WINCH信号，关闭老worker进程</p>
+</li>
+<li><p>回滚：向老master发送HUP，向新master发送QUIT</p>
+</li>
+</ol>
+<p>不停机更新nginx二进制文件，图示如下：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E7%83%AD%E5%8D%87%E7%BA%A7%E6%B5%81%E7%A8%8B.png" alt="Nginx热升级流程"></p>
+<h4 id="如何优雅"><a href="#如何优雅" class="headerlink" title="如何优雅"></a>如何优雅</h4><p>优雅的关闭就是对worker进程而言的，因为只有worker才会处理请求，到底如何算是优雅呢？</p>
+<p>优雅的关闭就是指worker进程能够识别出当前的连接没有正在处理请求，这个时候再把连接进行关闭。但是对于webSocket和TCP/IP的请求Nginx是做不到的，不过对于Http请求Nginx是可以做到的，所以优雅的关闭主要是针对Http请求</p>
+<p>优雅关闭worker进程的流程：</p>
+<ol>
+<li><p>设置定时器 <code>worker_shutdown_timeout</code></p>
+</li>
+<li><p>关闭监听句柄</p>
+</li>
+<li><p>关闭空闲连接</p>
+</li>
+<li><p>在循环中等待全部连接关闭</p>
+<p>在此步骤中可能查过1中设置的时间，超过时间worker集成会立即退出，相当于优雅的关闭只进行了一半</p>
+</li>
+<li><p>退出进程</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nginx/" rel="tag"># Nginx</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/19/nginx/nginx%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84/" rel="prev" title="Nginx的进程结构">
+      <i class="fa fa-chevron-left"></i> Nginx的进程结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/29/nginx/nginx%E4%BA%8B%E4%BB%B6/" rel="next" title="Nginx事件">
+      Nginx事件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Nginx%E8%BF%9B%E7%A8%8B%E5%92%8C%E4%BF%A1%E5%8F%B7%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">Nginx进程和信号介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Nginx%E8%BF%9B%E7%A8%8B%E5%92%8C%E4%BF%A1%E5%8F%B7%E4%BD%BF%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">Nginx进程和信号使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BC%98%E9%9B%85"><span class="nav-number">3.</span> <span class="nav-text">如何优雅</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

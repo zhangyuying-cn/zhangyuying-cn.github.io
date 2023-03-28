@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="计算机的运算速度与他的存储和通信子系统的速度差距太大，所以现代计算机会实现多任务处理，Java中实现多任务的方式即为多线程处理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM:12.Java内存模型与线程">
+<meta property="og:url" content="http://zhangyuying.cn/2019/11/11/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-12-Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="计算机的运算速度与他的存储和通信子系统的速度差距太大，所以现代计算机会实现多任务处理，Java中实现多任务的方式即为多线程处理">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E7%BA%BF%E7%A8%8B%E3%80%81%E4%B8%BB%E5%86%85%E5%AD%98%E3%80%81%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98%E7%9A%84%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E5%8A%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E8%BF%9B%E7%A8%8B%E6%B7%B7%E5%90%88%E5%AE%9E%E7%8E%B0.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E5%85%B3%E7%B3%BB.png">
+<meta property="article:published_time" content="2019-11-11T11:32:14.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.769Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《深入理解Java虚拟机》">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E7%BA%BF%E7%A8%8B%E3%80%81%E4%B8%BB%E5%86%85%E5%AD%98%E3%80%81%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98%E7%9A%84%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/11/11/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-12-Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>深入理解JVM:12.Java内存模型与线程 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/11/11/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-12-Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入理解JVM:12.Java内存模型与线程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-11-11 19:32:14" itemprop="dateCreated datePublished" datetime="2019-11-11T19:32:14+08:00">2019-11-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>计算机的运算速度与他的存储和通信子系统的速度差距太大，所以现代计算机会实现多任务处理，Java中实现多任务的方式即为多线程处理</p>
+<span id="more"></span>
+
+<h3 id="物理计算机的并发问题"><a href="#物理计算机的并发问题" class="headerlink" title="物理计算机的并发问题"></a>物理计算机的并发问题</h3><ol>
+<li>存储设备和处理器的运算速度差距好几个数量级，所以加入一层读写速度尽可能接近运算速度的高速缓存（Cache）作为内存与处理器之前的缓冲，因此产生了缓存一致性问题，每个处理器有自己的高速缓存，又共享同一内存，保证数据一致性的问题的协议有MSI、MOSI、Synapse等。</li>
+<li>内存模型：即在特定的操作协议下，对特定的内存或高速缓存进行读写访问的过程抽象，不同架构的物理机可以拥有不一样的内存模型</li>
+<li>为了处理器的运算速度充分利用，处理器会对输入的代码进行乱序执行（<code>Out-Of-Order Execution</code>）优化，处理对会在计算之后将乱序执行的结合重组，保证该结果和顺序执行的结果是一致的</li>
+<li>Java虚拟机中的内存模型和指令重排序(<code>Instruction Reorder</code>)优化可以和物理计算机的进行类比</li>
+</ol>
+<h3 id="Java内存模型"><a href="#Java内存模型" class="headerlink" title="Java内存模型"></a>Java内存模型</h3><p>Java内存模型（<code>Java Memory Model ,JMM</code>）来屏蔽掉各种硬件和操作系统的内存访问差异，已实现让Java程序在各种平台下都能达成一致的内存访问效果</p>
+<h4 id="1-主内存与工作内存"><a href="#1-主内存与工作内存" class="headerlink" title="1.主内存与工作内存"></a>1.主内存与工作内存</h4><p>Java内存模型的主要目标是定义程序中各个变量的访问规则，即在虚拟机中将变量存储到内存和从内存中取出变量这样的底层细节（此处的变量包括了实例字段、静态字段、和构成数组对象的元素，但不包括线程私有的局部变量与方法参数）</p>
+<p>Java内存模型规定了</p>
+<ul>
+<li><p>所有的变量都存储在主内存(<code>Main Memory</code>)中 （类比物理机，名称一样，这里指的是虚拟机内存的一部分）</p>
+</li>
+<li><p>每个线程还有自己的工作内存 （<code>Work Memory</code>，可类比处理器的高速缓存）</p>
+</li>
+<li><p>线程的工作内存中保存了该线程用到的变量的主内存副本拷贝，线程对变量的所有操作(读取、赋值等)都必须在工作内存中进行，而不能直接读写主内存中的变量，不同的线程之间也无法直接访问对方工作内存中的变量，线程间变量值的传递均需要通过主内存来完成</p>
+</li>
+<li><p>线程、主内存、工作内存三者交互的关系如下：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E7%BA%BF%E7%A8%8B%E3%80%81%E4%B8%BB%E5%86%85%E5%AD%98%E3%80%81%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98%E7%9A%84%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB.png" alt="线程、主内存、工作内存三者的交互关系"></p>
+</li>
+</ul>
+<h4 id="2-内存间交互操作"><a href="#2-内存间交互操作" class="headerlink" title="2.内存间交互操作"></a>2.内存间交互操作</h4><p>关于主内存和工作内存之间具体的交互协议，即一个变量如何从主内存拷贝到工作内存、如何从工作内存同步回主内存之类的实现细节，Java内存模型中定义了8中操作来完成</p>
+<p>这8个操作是虚拟机保证原子的、不可再分的（double、long类型有例外）</p>
+<ul>
+<li><code>lock</code>（锁定）：作用于主内存的变量，它把一个变量标识为一条线程独占的状态。</li>
+<li><code>unlock</code>（解锁）：作用于主内存的变量，它把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定。</li>
+<li><code>read</code>（读取）：作用于主内存的变量，它把一个变量的值从主内存传输到线程的工作内存中，以便随后的<code>load</code>动作使用。</li>
+<li><code>load</code>（载入）：作用于工作内存的变量，它把read操作从主内存中得到的变量值放入工作内存的变量副本中。</li>
+<li><code>use</code>（使用）：作用于工作内存的变量，它把工作内存中一个变量的值传递给执行引擎，每当虚拟机遇到一个需要使用到变量的值的字节码指令时将会执行这个操作。</li>
+<li><code>assign</code>（赋值）：作用于工作内存的变量，它把一个从执行引擎接收到的值赋给工作内存的变量，每当虚拟机遇到一个给变量赋值的字节码指令时执行这个操作。</li>
+<li><code>store</code>（存储）：作用于工作内存的变量，它把工作内存中一个变量的值传送到主内存中，以便随后的write操作使用。</li>
+<li><code>write</code>（写入）：作用于主内存的变量，它把store操作从工作内存中得到的变量的值放入主内存的变量中。</li>
+</ul>
+<p>Java内存模型还规定了在执行上述8中基本操作时必须满足如下规则</p>
+<ul>
+<li>不允许<code>read</code>和<code>load</code>、<code>store</code>和<code>write</code>操作之一单独出现，即不允许一个变量从主内存读取了但工作内存不接受，或者从工作内存发起回写了但主内存不接受的情况出现。</li>
+<li>不允许一个线程丢弃它的最近的<code>assign</code>操作，即变量在工作内存中改变了之后必须把该变化同步回主内存。</li>
+<li>不允许一个线程无原因地（没有发生过任何<code>assign</code>操作）把数据从线程的工作内存同步回主内存中。</li>
+<li>一个新的变量只能在主内存中“诞生”，不允许在工作内存中直接使用一个未被初始化（<code>load</code>或<code>assign</code>）的变量，换句话说，就是对一个变量实施<code>use、store</code>操作之前，必须先执行过了<code>assign</code>和<code>load</code>操作。</li>
+<li>一个变量在同一个时刻只允许一条线程对其进行<code>lock</code>操作，但<code>lock</code>操作可以被同一条线程重复执行多次，多次执行<code>lock</code>后，只有执行相同次数的<code>unlock</code>操作，变量才会被解锁。</li>
+<li>如果对一个变量执行<code>lock</code>操作，那将会清空工作内存中此变量的值，在执行引擎使用这个变量前，需要重新执行<code>load</code>或<code>assign</code>操作初始化变量的值。</li>
+<li>如果一个变量事先没有被<code>lock</code>操作锁定，那就不允许对它执行<code>unlock</code>操作，也不允许去<code>unlock</code>一个被其他线程锁定住的变量。</li>
+<li>对一个变量执行<code>unlock</code>操作之前，必须先把此变量同步回主内存中（执行<code>store</code>、<code>write</code>操作）。</li>
+</ul>
+<p>先行发生原则：是和这些定义等效的判断原则，用来确定一个访问在并发环境下是否线程安全</p>
+<h4 id="3-对于volatile型变量的特殊规则"><a href="#3-对于volatile型变量的特殊规则" class="headerlink" title="3.对于volatile型变量的特殊规则"></a>3.对于volatile型变量的特殊规则</h4><ol>
+<li><p>保证变量对所有线程的可见性：一个线程修改了这个变量的值，其他的线程是立即得知的</p>
+<p>不符合以下场景时，仍然要通过加锁来保证原子性</p>
+<ul>
+<li>运算结果并不依赖变量的当前值，或者能够确保只有单一的线程修改变量的值</li>
+<li>变量不需要和其他的状态变量共同参与不变约束</li>
+</ul>
+</li>
+<li><p>可以禁止指令重排优化</p>
+<ul>
+<li>内存屏障是被插入两个 CPU 指令之间的一种指令，用来禁止处理器指令发生重排序（像屏障一样），从而保障有序性的。</li>
+</ul>
+</li>
+</ol>
+<h4 id="4-对于long和double型变量的特殊规则"><a href="#4-对于long和double型变量的特殊规则" class="headerlink" title="4.对于long和double型变量的特殊规则"></a>4.对于long和double型变量的特殊规则</h4><p>Java内存模型要求<code>lock、unlock、read、load、assign、use、store、write</code>这8个操作都具有原子性，但是对于64位的数据类型（long和double），在模型中特别定义了一条相对宽松的规定：允许虚拟机将没有被volatile修饰的64位数据的读写操作划分为两次32位的操作来进行，即允许虚拟机实现选择可以不保证64位数据类型的load、store、read和write这4个操作的原子性，这点就是所谓的long和double的非原子性协定（<code>Nonatomic Treatment ofdouble and long Variables</code>）。</p>
+<p>但是一般商用虚拟机，几乎都是将long和double的读写操作作为原子操作对待的，所以一般不需要特殊对待，无需再过在意这个规则</p>
+<h4 id="5-原子性、可见性与有序性"><a href="#5-原子性、可见性与有序性" class="headerlink" title="5.原子性、可见性与有序性"></a>5.原子性、可见性与有序性</h4><p>Java内存模型是围绕着在并发过程中如何处理原子性、可见性、有序性这三个特征来建立的</p>
+<ul>
+<li><p>原子性（<code>Atomicity</code>）：由Java内存模型来直接保证原子性变量的操作包括<code>read、load、assign、use、store</code>和<code>write</code>，可大致认为基本数据类型的访问读写是具备原子性的（long和double例外）</p>
+</li>
+<li><p>可见性（<code>Visibility</code>）：一个线程修改了共享变量的值，其他线程能够立即得知这个修改，Java中实现可见性：</p>
+<ul>
+<li><code>volatile</code>：保证了新值能立即同步到主内存，以及每次使用前立即从主内存刷新</li>
+<li><code>synchronized</code>：“对一个变量执行<code>unlock</code>操作之前，必须先把此变量同步回主内存中(执行<code>store、write</code>操作)”这个规则保证了可见性</li>
+<li><code>final</code>：被<code>final</code>修饰的字段在构造器中一旦初始化完成，其他线程就能看见<code>final</code>字段的值</li>
+</ul>
+</li>
+<li><p>有序性（<code>Ordering</code>）：如果在本线程内观察，所有的操作都是有序的，如果在一个线程中观察另一个线程，所有的操作都是无序的，前半句是指“线程内表现为串行的语义”，后半句是指“指令重排序”现象和“工作内存与主内存同步延迟”现象</p>
+<p>Java中提供了<code>volatile</code>和<code>synchronized</code>两个关键字来保证线程操作的有序性</p>
+<ul>
+<li><code>volatile</code>：本身包含了禁止指令重新排序的语义</li>
+<li><code>synchronized</code>：保证同时只有一个线程操作，从而保证了有序性</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-先行发生原则：happens-before"><a href="#6-先行发生原则：happens-before" class="headerlink" title="6.先行发生原则：happens-before"></a>6.先行发生原则：happens-before</h4><p>判断数据是否存在竞争、线程是否安全的主要依据</p>
+<p>下面是Java内存模型下一些“天然的”先行发生关系，这些先行发生关系无须任何同步器协助就已经存在，可以在编码中直接使用，如果两个操作之间的关系不在此列，并且无法从下列规则推导出来的话，他们就没有顺序性保障，虚拟机可以对它们随意的进行重排序</p>
+<ul>
+<li>程序次序规则（<code>Program Order Rule</code>）：在一个线程内，按照程序代码顺序，书写在前面的操作先行发生于书写在后面的操作。准确地说，应该是控制流顺序而不是程序代码顺序，因为要考虑分支、循环等结构。</li>
+<li>管程锁定规则（<code>Monitor Lock Rule</code>）：一个<code>unlock</code>操作先行发生于后面对同一个锁的<code>lock</code>操作。这里必须强调的是同一个锁，而“后面”是指时间上的先后顺序。</li>
+<li><code>volatile</code>变量规则（<code>Volatile Variable Rule</code>）：对一个<code>volatile</code>变量的写操作先行发生于后面对这个变量的读操作，这里的“后面”同样是指时间上的先后顺序。</li>
+<li>线程启动规则（<code>Thread Start Rule</code>）：Thread对象的<code>start()</code>方法先行发生于此线程的每一个动作。</li>
+<li>线程终止规则（<code>Thread Termination Rule</code>）：线程中的所有操作都先行发生于对此线程的终止检测，我们可以通过<code>Thread.join()</code>方法结束、<code>Thread.isAlive()</code>的返回值等手段检测到线程已经终止执行。</li>
+<li>线程中断规则（<code>Thread Interruption Rule</code>）：对线程<code>interrupt()</code>方法的调用先行发生于被中断线程的代码检测到中断事件的发生，可以通过<code>Thread.interrupted()</code>方法检测到是否有中断发生。</li>
+<li>对象终结规则（<code>Finalizer Rule</code>）：一个对象的初始化完成（构造函数执行结束）先行发生于它的<code>finalize()</code>方法的开始。</li>
+<li>传递性（<code>Transitivity</code>）：如果操作A先行发生于操作B，操作B先行发生于操作C，那就可以得出操作A先行发生于操作C的结论。</li>
+</ul>
+<h3 id="Java与线程"><a href="#Java与线程" class="headerlink" title="Java与线程"></a>Java与线程</h3><p>Java中的并发大多为多线程</p>
+<h4 id="1-线程的实现"><a href="#1-线程的实现" class="headerlink" title="1.线程的实现"></a>1.线程的实现</h4><p>线程是比进程更轻量级的调度执行单位，线程的引入，可以把一个进程的资源分配和执行调度分开，各个线程既可以共享进程资源（内存地址、文件I/O等），又可以独立调度（线程是CPU调度的基本单位）</p>
+<p>Java语言提供了在不同硬件和操作系统平台下对线程操作的统一的处理，每个<code>start()</code>且还未结束的java.lang.Thread类的实例就代表了一个线程</p>
+<p>实现线程主要有3种方式：使用内核线程实现，使用用户线程实现和使用用户线程加轻量级进程混合实现</p>
+<ul>
+<li><p>使用内核线程实现</p>
+<ul>
+<li>内核线程(<code>Kernel-Level Thread,KLT</code>)就是直接由操作系统内核(<code>Kernel</code>)支持的线程，这种线程由内核来完成线程切换，内核通过操纵调度器（<code>Scheduler</code>）对线程进行调度，并负责将线程的任务映射到各个处理器上</li>
+<li>每个内核线程可以视为内核的一个分身，这样操作系统就有能力同事处理多件事情，支持多线程的内核就叫做多线程内核(<code>Multi-Threads Kernel</code>)</li>
+<li>程序一般不会直接去使用内核线程，而是去使用内核线程的一种高级接口—轻量级进程(<code>Light Weight Process,LWP</code>),轻量级进程就是我们通常意义上所讲的线程</li>
+<li>由于每个轻量级进程都由一个内核线程支持，因此只有先支持内核线程，才能有轻量级进程，这种轻量级进程与内核线程之前1:1的关系称为一对一的线程模型</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0.jpg"></p>
+<p>优点：</p>
+<p>由于内核线程的支持，每个轻量级进程都成为一个独立的调度单元，即使有一个轻量级进程在系统调用中阻塞了，也不会影响这个进程继续工作</p>
+<p>缺点：</p>
+<p>由于是基于内核线程实现的，所以各种线程操作，如创建、析构及同步，都需要进行系统调用，而系统调用的代价相对较高，需要在用户态(<code>User Mode</code>)和内核态(<code>Kernel Mode</code>)中来回切换</p>
+<p>每个轻量级进程都需要有一个内核线程的支持，因此轻量级进程要消耗一定的内核资源(如内核线程的栈空间)，因此一个系统支持轻量级进程的数量是有限的</p>
+</li>
+<li><p>使用用户线程实现</p>
+<ul>
+<li>广义上，一个线程只要不是内核线程，就可以认为是用户线程（<code>User Thread,UT</code>），狭义上，用户线程指的是完全建立在用户空间的线程库上，系统内核不能感知线程存在的实现。</li>
+<li>用户线程的建立、同步、销毁和调度完全在用户态中完成，不需要内核的帮助，如果程序得当，这种线程不需要切换到内核态，因此操作是非常快速且低消耗的，也可以支持规模更大的线程数量</li>
+<li>这种进程与用户线程之间1:N的关系称为一对多的线程模型</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0.jpg"></p>
+<p>优点：</p>
+<p>不需要系统内核支援，快速缺低消耗</p>
+<p>缺点：</p>
+<p>没有系统内核支援，所有线程操作都是用户自己处理，线程创建、切换、调度、“阻塞如何处理”、“多处理器系统中如何将线程映射到其他处理器上”都是需要考虑的，因而使用用户线程实现的程序一般都比较复杂</p>
+</li>
+<li><p>使用用户线程加轻量级进程混合实现</p>
+<ul>
+<li>将内核线程与用户线程一起使用的实现方式，即存在用户线程，也存在轻量级进程</li>
+<li>用户线程与轻量级进程的数量比是不定的，即为N:M的关系，称为多对多的线程模型</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E4%BD%BF%E7%94%A8%E7%94%A8%E6%88%B7%E7%BA%BF%E7%A8%8B%E5%8A%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E8%BF%9B%E7%A8%8B%E6%B7%B7%E5%90%88%E5%AE%9E%E7%8E%B0.jpg"></p>
+<p>优点：</p>
+<p>用户线程还是完全建立在用户空间中，因此用户线程的创建、切换、析构等操作依然廉价，并且可以支持大规模的用户线程并发，</p>
+<p>而操作系统提供支持的轻量级进程则作为用户线程和内核线程之间的桥梁，这样可以使用内核提供的线程调度功能及处理器映射，并且用户线程的系统调用要通过轻量级线程来完成，大大降低了整个进程被完全阻塞的风险</p>
+</li>
+<li><p>Java线程的实现</p>
+<p>Java线程模型1.2之后为基于操作系统原生线程模型来实现，不同的平台是不一致的</p>
+<p>线程模型只对线程的并发规模和操作成本产生影响，对Java程序的编码和运行过程来说，这些差异都是透明的</p>
+</li>
+</ul>
+<h4 id="2-Java线程调度"><a href="#2-Java线程调度" class="headerlink" title="2.Java线程调度"></a>2.Java线程调度</h4><p>线程调度是指系统为线程分配处理器使用权的过程，主要调度方式有两种，分别是：</p>
+<ul>
+<li><p>协同式线程调度（<code>Cooperative Threads-Scheduling</code>）</p>
+<p>线程的执行时间由线程本身来控制，线程把自己的工作执行完了之后，要主动通知系统切换到另外一个线程上</p>
+<ul>
+<li>优点：实现简单，由于线程操作对自己是控制的，所以没什么线程同步的问题</li>
+<li>缺点：线程的执行时间不可控制，甚至如果一个线程编写的有问题，一直不告知系统进行线程切换，那么程序就会一直阻塞在那里，可能导致整个系统崩溃</li>
+</ul>
+</li>
+<li><p>抢占式线程调度（<code>Preemptive Threads-Scheduling</code>）</p>
+<p>每个线程将由系统来分配执行时间，线程的切换不由线程本身来决定</p>
+<p>（Java中，<code>Thread.yield()</code>可以让出执行时间，但是要获取执行时间的话，线程本身是没有什么办法的）</p>
+<ul>
+<li>优点：线程的执行时间是系统可控的，也不会有一个线程导致整个进程阻塞的问题，一个进程出现问题，可以“杀掉”，而不至于导致系统崩溃</li>
+</ul>
+</li>
+</ul>
+<p>Java使用的线程调度方式就是抢占式来实现多进程的，可以通过设置线程优先级“建议”系统多给某些线程分配一点时间，不过不是太靠谱</p>
+<h4 id="3-状态转换"><a href="#3-状态转换" class="headerlink" title="3.状态转换"></a>3.状态转换</h4><p>Java语言定义5中线程状态，在任意一个时间点，一个线程只能有且只有其中的一种状态</p>
+<ul>
+<li>新建（<code>new</code>）：创建后尚未启动的线程处于这种状态</li>
+<li>运行（<code>Runable</code>）：<code>Runable</code>包括了操作系统线程状态的<code>Running</code>和<code>Ready</code>，也就是处于此状态的线程有可能正在执行，也有可能正在等待着CPU为他分配执行时间</li>
+<li>无限期等待（<code>Waiting</code>）：处于这种状态的线程不会被分配CPU执行时间，他们要等待被其他线程显示地唤醒看，以下方法会让线程陷入无限期的等待状态：<ul>
+<li>没有设置TimeOut参数的<code>Object.wait()</code>方法</li>
+<li>没有设置TimeOut参数的<code>Thread.join()</code>方法</li>
+<li><code>LockSupport.park()</code>方法</li>
+</ul>
+</li>
+<li>限期等待（<code>Timed Waiting</code>）：处于这种状态的线程也不会被分配CPU执行时间，不过无须等待被其他线程显式的唤醒，在一定时间之后他们会由系统自动唤醒，以下方法会让线程进入限期等待状态：<ul>
+<li><code>Thread.sleep()</code>方法</li>
+<li>设置了TimeOut参数的<code>Object.wait()</code>方法</li>
+<li>设置了TimeOut参数的<code>Thread.join()</code>方法</li>
+<li><code>LockSupport.parkNanos()</code>方法</li>
+<li><code>LockSupport.parkUntil()</code>方法</li>
+</ul>
+</li>
+<li>阻塞（<code>Blokced</code>）：线程被阻塞了，“阻塞状态”与“等待状态”的区别是：”阻塞状态”在等待着获取到一个排他锁，这个事件将在另一个线程放弃这个锁的时候发生，而“等待状态”则是在等待一段时间，或者唤醒动作的发生，在程序等待进入同步区域的时候，线程将进入这种状态</li>
+<li>结束（Terminated）：已终止线程的线程状态，线程已经结束执行</li>
+</ul>
+<p>上述5种状态在遇到特定事件发生的时候将会互相转换，转换关系如图：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E5%85%B3%E7%B3%BB.png"></p>
+<p>​</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B/" rel="tag"># 《深入理解Java虚拟机》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/06/Java/java8%E6%96%B0%E7%89%B9%E6%80%A7/Java8-Streams-API/" rel="prev" title="Java8 Streams API">
+      <i class="fa fa-chevron-left"></i> Java8 Streams API
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/22/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-13-%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E4%B8%8E%E9%94%81%E4%BC%98%E5%8C%96/" rel="next" title="深入理解JVM-13-线程安全与锁优化">
+      深入理解JVM-13-线程安全与锁优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%9A%84%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">物理计算机的并发问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">Java内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%BB%E5%86%85%E5%AD%98%E4%B8%8E%E5%B7%A5%E4%BD%9C%E5%86%85%E5%AD%98"><span class="nav-number">2.1.</span> <span class="nav-text">1.主内存与工作内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%86%85%E5%AD%98%E9%97%B4%E4%BA%A4%E4%BA%92%E6%93%8D%E4%BD%9C"><span class="nav-number">2.2.</span> <span class="nav-text">2.内存间交互操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%AF%B9%E4%BA%8Evolatile%E5%9E%8B%E5%8F%98%E9%87%8F%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A7%84%E5%88%99"><span class="nav-number">2.3.</span> <span class="nav-text">3.对于volatile型变量的特殊规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%AF%B9%E4%BA%8Elong%E5%92%8Cdouble%E5%9E%8B%E5%8F%98%E9%87%8F%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A7%84%E5%88%99"><span class="nav-number">2.4.</span> <span class="nav-text">4.对于long和double型变量的特殊规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%8E%9F%E5%AD%90%E6%80%A7%E3%80%81%E5%8F%AF%E8%A7%81%E6%80%A7%E4%B8%8E%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="nav-number">2.5.</span> <span class="nav-text">5.原子性、可见性与有序性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%85%88%E8%A1%8C%E5%8F%91%E7%94%9F%E5%8E%9F%E5%88%99%EF%BC%9Ahappens-before"><span class="nav-number">2.6.</span> <span class="nav-text">6.先行发生原则：happens-before</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java%E4%B8%8E%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">Java与线程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.1.</span> <span class="nav-text">1.线程的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Java%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6"><span class="nav-number">3.2.</span> <span class="nav-text">2.Java线程调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2"><span class="nav-number">3.3.</span> <span class="nav-text">3.状态转换</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

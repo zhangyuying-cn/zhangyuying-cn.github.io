@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="正则中的元字符">
+<meta property="og:type" content="article">
+<meta property="og:title" content="正则元字符">
+<meta property="og:url" content="http://zhangyuying.cn/2018/10/23/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E5%85%83%E5%AD%97%E7%AC%A6/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="正则中的元字符">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-10-23T05:05:44.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.758Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="正则表达式">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/10/23/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E5%85%83%E5%AD%97%E7%AC%A6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>正则元字符 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/10/23/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E5%85%83%E5%AD%97%E7%AC%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          正则元字符
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-23 13:05:44" itemprop="dateCreated datePublished" datetime="2018-10-23T13:05:44+08:00">2018-10-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="正则中的元字符"><a href="#正则中的元字符" class="headerlink" title="正则中的元字符"></a>正则中的元字符</h4><span id="more"></span>
+
+<p>非打印字符</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">\cx 	匹配由x指明的控制字符。例如:\cM 匹配一个Control-M或回车符。x的值必须为A-Z 或a-z之一。否则，将c视为一个原义的 &#39;c&#39;字符。</span><br><span class="line">\f  	匹配一个换页符。等价于 \x0c 和 \cL。                 </span><br><span class="line">\n  	匹配一个换行符。等价于 \x0a 和 \cJ。                 </span><br><span class="line">\r  	匹配一个回车符。等价于 \x0d 和 \cM。                 </span><br><span class="line">\s  	匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。注意 Unicode 正则表达式会匹配全角空格符。</span><br><span class="line">\S  	匹配任何非空白字符。等价于  \f\n\r\t\v。              </span><br><span class="line">\t  	匹配一个制表符。等价于 \x09 和 \cI。                 </span><br><span class="line">\v  	匹配一个垂直制表符。等价于 \x0b 和 \cK。</span><br></pre></td></tr></table></figure>
+
+<p>特殊字符</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$   	匹配输入字符串的结尾位置                            </span><br><span class="line">( ) 	标记一个子表达式的开始和结束位置。子表达式可以获取供以后使用          </span><br><span class="line">*   	匹配前面的子表达式零次或多次                          </span><br><span class="line">+   	匹配前面的子表达式一次或多次                          </span><br><span class="line">.   	匹配除换行符 \n 之外的任何单字符                      </span><br><span class="line">[   	标记一个中括号表达式的开始                           </span><br><span class="line">?   	匹配前面的子表达式零次或一次，或指明一个非贪婪限定符              </span><br><span class="line">^   	匹配输入字符串的开始位置，除非在方括号表达式中使用，此时它表示不接受该字符集合 </span><br><span class="line">&#123;   	标记限定符表达式的开始                             </span><br><span class="line">|       指明两项之间的一个选择</span><br><span class="line">\   	将下一个字符标记为或特殊字符、或原义字符、或向后引用、或八进制转义符。例如：&#39;n&#39; 匹配字符 &#39;n&#39;。&#39;\n&#39; 匹配换行符。序列 &#39;\\&#39;匹配 &quot;\&quot;（要匹配特殊字符，都要使用\进行转义）</span><br></pre></td></tr></table></figure>
+
+<p>限定符</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">*    	匹配前面的子表达式零次或多次。例如，zo* 能匹配 &quot;z&quot; 以及 &quot;zoo&quot;。* 等价于&#123;0,&#125;。</span><br><span class="line">+    	匹配前面的子表达式一次或多次。例如，&#39;zo+&#39; 能匹配 &quot;zo&quot; 以及 &quot;zoo&quot;，但不能匹配 &quot;z&quot;。+ 等价于 &#123;1,&#125;。</span><br><span class="line">?    	匹配前面的子表达式零次或一次。例如，&quot;do(es)?&quot; 可以匹配 &quot;do&quot; 、 &quot;does&quot; 中的 &quot;does&quot; 、 &quot;doxy&quot; 中的 &quot;do&quot; 。? 等价于 &#123;0,1&#125;。</span><br><span class="line">&#123;n&#125;  	n 是一个非负整数。匹配确定的 n 次。例如，&#39;o&#123;2&#125;&#39; 不能匹配 &quot;Bob&quot; 中的 &#39;o&#39;，但是能匹配 &quot;food&quot; 中的两个 o。</span><br><span class="line">&#123;n,&#125; 	n 是一个非负整数。至少匹配n 次。例如，&#39;o&#123;2,&#125;&#39; 不能匹配 &quot;Bob&quot; 中的 &#39;o&#39;，但能匹配 &quot;foooood&quot; 中的所有 o。&#39;o&#123;1,&#125;&#39; 等价	于&#39;o+&#39;。&#39;o&#123;0,&#125;&#39; 则等价于 &#39;o*&#39;。</span><br><span class="line">&#123;n,m&#125;	m 和 n 均为非负整数，其中n &lt;&#x3D; m。最少匹配 n 次且最多匹配 m 次。例如，&quot;o&#123;1,3&#125;&quot; 将匹配 &quot;fooooood&quot; 中的前三个 o。&#39;o&#123;0,1&#125;&#39; 等价于 &#39;o?&#39;。请注意在逗号和两个数之间不能有空格。</span><br></pre></td></tr></table></figure>
+
+<p>定位符</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">^   	匹配输入字符串开始的位置。如果设置了 RegExp 对象的 Multiline 属性，^ 还会与 \n 或 \r 之后的位置匹配。</span><br><span class="line">$   	匹配输入字符串结尾的位置。如果设置了 RegExp 对象的 Multiline 属性，$ 还会与 \n 或 \r 之前的位置匹配。</span><br><span class="line">\b  	匹配一个单词边界，即字与空格间的位置。                     </span><br><span class="line">\B  	非单词边界匹配。</span><br></pre></td></tr></table></figure>
+
+<p>其他常用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">x|y      匹配 x 或 y。例如，&#39;z|food&#39; 能匹配 &quot;z&quot; 或 &quot;food&quot;。&#39;(z|f)ood&#39; 则匹配 &quot;zood&quot; 或 &quot;food&quot;</span><br><span class="line">[xyz]    字符集合。匹配所包含的任意一个字符。例如， &#39;[abc]&#39; 可以匹配 &quot;plain&quot; 中的 &#39;a&#39;</span><br><span class="line">[^xyz]   负值字符集合。匹配未包含的任意字符。例如， &#39;abc&#39; 可以匹配 &quot;plain&quot; 中的&#39;p&#39;、&#39;l&#39;、&#39;i&#39;、&#39;n&#39;</span><br><span class="line">[a-z]    字符范围。匹配指定范围内的任意字符。例如，&#39;[a-z]&#39; 可以匹配 &#39;a&#39; 到 &#39;z&#39; 范围内的任意小写字母字符</span><br><span class="line">[^a-z]   负值字符范围。匹配任何不在指定范围内的任意字符。例如：&#39;a-z&#39;可以匹配任何不在&#39;a&#39;到&#39;z&#39;范围内的任意字符</span><br><span class="line">\d       匹配一个数字字符。等价于 [0-9]                     </span><br><span class="line">\D       匹配一个非数字字符。等价于 0-9                                 </span><br><span class="line">\w       匹配字母、数字、下划线。等价于&#39;[A-Za-z0-9_]&#39;         </span><br><span class="line">\W       匹配非字母、数字、下划线。等价于 &#39;A-Za-z0-9_&#39;</span><br></pre></td></tr></table></figure>
+
+<p>断言相关</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">(pattern)   	</span><br><span class="line">匹配 pattern 并获取这一匹配。所获取的匹配可以从产生的 Matches 集合得到，在VBScript 中使用 SubMatches 集合，在	JScript 中则使用 0…属性。要匹配圆括号字符，请使用 &#39;(&#39; 或 &#39;)&#39;。</span><br><span class="line">(?:pattern) 	 </span><br><span class="line">匹配 pattern 但不获取匹配结果，也就是说这是一个非获取匹配，不进行存储供以后使用。这在使用 &quot;或&quot; 字符 (\|) 来组合一个模式的各个部分是很有用。例如， &#39;industr(?:y\|ies) 就是一个比 &#39;industry\|industries&#39; 更简略的表达式。</span><br><span class="line">(?&#x3D;pattern) 	</span><br><span class="line">正向肯定预查（look ahead positive assert），在任何匹配pattern的字符串开始处匹配查找字符串。这是一个非获取匹配，也就是说，该匹配不需要获取供以后使用。例如，&quot;Windows(?&#x3D;95\|98\|NT\|2000)&quot;能匹配&quot;Windows2000&quot;中的&quot;Windows&quot;，但不能匹配&quot;Windows3.1&quot;中的&quot;Windows&quot;。预查不消耗字符，也就是说，在一个匹配发生后，在最后一次匹配之后立即开始下一次匹配的搜索，而不是从包含预查的字符之后开始。</span><br><span class="line">(?!pattern) 	</span><br><span class="line">正向否定预查(negative assert)，在任何不匹配pattern的字符串开始处匹配查找字符串。这是一个非获取匹配，也就是说，该匹配不需要获取供以后使用。例如&quot;Windows(?!95|98|NT|2000)&quot;能匹配&quot;Windows3.1&quot;中的&quot;Windows&quot;，但不能匹配&quot;Windows2000&quot;中的&quot;Windows&quot;。预查不消耗字符，也就是说，在一个匹配发生后，在最后一次匹配之后立即开始下一次匹配的搜索，而不是从包含预查的字符之后开始。</span><br><span class="line">(?&lt;&#x3D;pattern)	</span><br><span class="line">反向(look behind)肯定预查，与正向肯定预查类似，只是方向相反。例如，&quot;(?&lt;&#x3D;95|98|NT|2000)Windows&quot;能匹配&quot;2000Windows&quot;中的&quot;Windows&quot;，但不能匹配&quot;3.1Windows&quot;中的&quot;Windows&quot;</span><br><span class="line">(?&lt;!pattern)	</span><br><span class="line">反向否定预查，与正向否定预查类似，只是方向相反。例如&quot;(?&lt;!95|98|NT|2000)Windows&quot;能匹配&quot;3.1Windows&quot;中的&quot;Windows&quot;，但不能匹配&quot;2000Windows&quot;中的&quot;Windows&quot;</span><br></pre></td></tr></table></figure>
+
+<p>进制相关</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">\xn        匹配 n，其中 n 为十六进制转义值。十六进制转义值必须为确定的两个数字长。例如，&#39;\x41&#39; 匹配 &quot;A&quot;。&#39;\x041&#39; 则等价于&#39;\x04&#39; &amp; &quot;1&quot;。正则表达式中可以使用 ASCII 编码。</span><br><span class="line">\num       匹配 num，其中 num 是一个正整数。对所获取的匹配的引用。例如，&#39;(.)\1&#39; 匹配两个连续的相同字符。</span><br><span class="line">\n         标识一个八进制转义值或一个向后引用。如果 \n 之前至少 n 个获取的子表达式，则 n 为向后引用。否则，如果 n 为八进制数字(0-7)，则 n 为一个八进制转义值。</span><br><span class="line">\nm        标识一个八进制转义值或一个向后引用。如果 \nm 之前至少有 nm 个获得子表达式，则 nm 为向后引用。如果 \nm 之前至少有 n 个获取，则 n 为一个后跟文字 m 的向后引用。如果前面的条件都不满足，若 n 和 m 均为八进制数字 (0-7)，则 \nm 将匹配八进制转义值 nm。</span><br><span class="line">\nml       如果 n 为八进制数字 (0-3)，且 m 和 l 均为八进制数字 (0-7)，则匹配八进制转义值 nml。</span><br><span class="line">\un        匹配 n，其中 n 是一个用四个十六进制数字表示的 Unicode 字符。例如， \u00A9 匹配版权符号 (?)</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="运算符的优先级："><a href="#运算符的优先级：" class="headerlink" title="运算符的优先级："></a>运算符的优先级：</h4><p>（从最高到最低）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">\							转义符</span><br><span class="line">(), (?:), (?=), []			圆括号和方括号</span><br><span class="line">*, +, ?, &#123;n&#125;, &#123;n,&#125;, &#123;n,m&#125;	限定符</span><br><span class="line">^, $, \任何元字符、任何字符	定位点和序列（即：位置和顺序）</span><br><span class="line">|							替换，<span class="string">&quot;或&quot;</span>操作.字符具有高于替换运算符的优先级，使得<span class="string">&quot;m|food&quot;</span>匹配<span class="string">&quot;m&quot;</span>或<span class="string">&quot;food&quot;</span>。若要匹配<span class="string">&quot;mood&quot;</span>或<span class="string">&quot;food&quot;</span>，							  请使用括号创建子表达式，从而产生<span class="string">&quot;(m|f)ood&quot;</span>。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="http://www.runoob.com/regexp/regexp-metachar.html">http://www.runoob.com/regexp/regexp-metachar.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F">https://zh.wikipedia.org/wiki/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="tag"># 正则表达式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/23/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="prev" title="正则表达式">
+      <i class="fa fa-chevron-left"></i> 正则表达式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/26/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E8%BF%9B%E9%98%B6/" rel="next" title="正则的进阶">
+      正则的进阶 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E4%B8%AD%E7%9A%84%E5%85%83%E5%AD%97%E7%AC%A6"><span class="nav-number">1.</span> <span class="nav-text">正则中的元字符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E7%AE%97%E7%AC%A6%E7%9A%84%E4%BC%98%E5%85%88%E7%BA%A7%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">运算符的优先级：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

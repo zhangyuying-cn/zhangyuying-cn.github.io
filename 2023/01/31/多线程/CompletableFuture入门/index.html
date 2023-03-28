@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="CompletableFuture 作为是实现类同时实现了 Future 和 CompletionStage 接口。所以CompletableFuture 除了提供了更为好用和强大的 Future 特性之外，还提供了函数式编程的能力。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CompletableFuture入门">
+<meta property="og:url" content="http://zhangyuying.cn/2023/01/31/%E5%A4%9A%E7%BA%BF%E7%A8%8B/CompletableFuture%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="CompletableFuture 作为是实现类同时实现了 Future 和 CompletionStage 接口。所以CompletableFuture 除了提供了更为好用和强大的 Future 特性之外，还提供了函数式编程的能力。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-01-31T07:54:12.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.756Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="CompletableFuture">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2023/01/31/%E5%A4%9A%E7%BA%BF%E7%A8%8B/CompletableFuture%E5%85%A5%E9%97%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>CompletableFuture入门 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2023/01/31/%E5%A4%9A%E7%BA%BF%E7%A8%8B/CompletableFuture%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CompletableFuture入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-01-31 15:54:12" itemprop="dateCreated datePublished" datetime="2023-01-31T15:54:12+08:00">2023-01-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">多线程</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>CompletableFuture</code> 作为是实现类同时实现了 <code>Future</code> 和 <code>CompletionStage</code> 接口。所以<code>CompletableFuture</code> 除了提供了更为好用和强大的 <code>Future</code> 特性之外，还提供了函数式编程的能力。</p>
+<span id="more"></span>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFuture</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Future</span>&lt;<span class="title">T</span>&gt;, <span class="title">CompletionStage</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="接口介绍"><a href="#接口介绍" class="headerlink" title="接口介绍"></a>接口介绍</h3><h4 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Future</span>&lt;<span class="title">V</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">// 尝试取消执行任务。</span></span><br><span class="line">  <span class="function"><span class="keyword">boolean</span> <span class="title">cancel</span><span class="params">(<span class="keyword">boolean</span> mayInterruptIfRunning)</span></span>;</span><br><span class="line">  <span class="comment">// 判断任务是否被取消。</span></span><br><span class="line">  <span class="function"><span class="keyword">boolean</span> <span class="title">isCancelled</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="comment">// 判断任务是否已经被执行完成。</span></span><br><span class="line">  <span class="function"><span class="keyword">boolean</span> <span class="title">isDone</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="comment">// 等待任务执行完成并获取运算结果</span></span><br><span class="line">  <span class="function">V <span class="title">get</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException, ExecutionException</span>;</span><br><span class="line">  <span class="comment">// 等待任务执行完成并获取运算结果,只是多了一个超时时间。</span></span><br><span class="line">  <span class="function">V <span class="title">get</span><span class="params">(<span class="keyword">long</span> timeout, TimeUnit unit)</span>  <span class="keyword">throws</span> InterruptedException, ExecutionException, TimeoutException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="CompletionStage"><a href="#CompletionStage" class="headerlink" title="CompletionStage"></a>CompletionStage<T></h4><p><code>CompletionStage&lt;T&gt;</code> 接口中的方法比较多，<code>CompletableFuture</code> 的函数式能力就是这个接口赋予的。其方法参数中大量使用了 Java8 引入的函数式编程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CompletionStage</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApply</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApplyAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenApplyAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn, Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenAccept</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenAcceptAsync</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenAcceptAsync</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action, Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenRun</span><span class="params">(Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenRunAsync</span><span class="params">(Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">thenRunAsync</span><span class="params">(Runnable action, Executor executor)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombine</span><span class="params">(CompletionStage&lt;? extends U&gt; other, BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombineAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other,BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U,V&gt; <span class="function">CompletionStage&lt;V&gt; <span class="title">thenCombineAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other,BiFunction&lt;? <span class="keyword">super</span> T,? <span class="keyword">super</span> U,? extends V&gt; fn,Executor executor)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBoth</span><span class="params">(CompletionStage&lt;? extends U&gt; other,BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBothAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other,BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBothAsync</span><span class="params">(CompletionStage&lt;? extends U&gt; other,BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> U&gt; action,Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterBoth</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterBothAsync</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterBothAsync</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action,Executor executor)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEither</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Function&lt;? <span class="keyword">super</span> T, U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Function&lt;? <span class="keyword">super</span> T, U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">applyToEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Function&lt;? <span class="keyword">super</span> T, U&gt; fn,Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">acceptEither</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">acceptEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">acceptEitherAsync</span><span class="params">(CompletionStage&lt;? extends T&gt; other,Consumer&lt;? <span class="keyword">super</span> T&gt; action,Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterEither</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterEitherAsync</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;Void&gt; <span class="title">runAfterEitherAsync</span><span class="params">(CompletionStage&lt;?&gt; other,Runnable action,Executor executor)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenCompose</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenComposeAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">thenComposeAsync</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends CompletionStage&lt;U&gt;&gt; fn,Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;T&gt; <span class="title">exceptionally</span><span class="params">(Function&lt;Throwable, ? extends T&gt; fn)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;T&gt; <span class="title">whenComplete</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;T&gt; <span class="title">whenCompleteAsync</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletionStage&lt;T&gt; <span class="title">whenCompleteAsync</span><span class="params">(BiConsumer&lt;? <span class="keyword">super</span> T, ? <span class="keyword">super</span> Throwable&gt; action,Executor executor)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handle</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handleAsync</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn)</span></span>;</span><br><span class="line">  <span class="keyword">public</span> &lt;U&gt; <span class="function">CompletionStage&lt;U&gt; <span class="title">handleAsync</span><span class="params">(BiFunction&lt;? <span class="keyword">super</span> T, Throwable, ? extends U&gt; fn,Executor executor)</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> CompletableFuture&lt;T&gt; <span class="title">toCompletableFuture</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h4><h4 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h4><p> 可以使用<code>new</code>或者静态工厂方法创建 <code>CompletableFuture</code> 对象</p>
+<ol>
+<li><p>通过 new 关键字。</p>
+<p>通过 new 关键字创建 <code>CompletableFuture</code> 对象的使用方式可以看作是将 <code>CompletableFuture</code> 当做 <code>Future</code> 来使用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;String&gt; resultFuture = <span class="keyword">new</span> CompletableFuture&lt;&gt;();</span><br><span class="line">String resultStr = completableFuture.get();</span><br></pre></td></tr></table></figure>
+
+<p><code>completedFuture()</code> 方法底层调用的是带参数的 <code>new</code> 方法，只不过，这个方法不对外暴露。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;U&gt; <span class="function">CompletableFuture&lt;U&gt; <span class="title">completedFuture</span><span class="params">(U value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CompletableFuture&lt;U&gt;((value == <span class="keyword">null</span>) ? NIL : value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>静态工厂方法</p>
+<p>基于 <code>CompletableFuture</code> 自带的静态工厂方法：<code>runAsync()</code> 、<code>supplyAsync()</code> 可以创建<code>CompletableFuture</code> 对象。</p>
+<ul>
+<li><code>runAsync()</code> 方法接受的参数是 <code>Runnable</code> ，这是一个函数式接口，不允许返回值。需要异步操作且不关心返回结果的时候可以使用 <code>runAsync()</code> 方法。</li>
+<li><code>supplyAsync()</code> 方法接受的参数是 <code>Supplier&lt;U&gt;</code> ，也是一个函数式接口，<code>U</code> 是返回结果值的类型。需要异步操作且关心返回结果的时候,可以使用 <code>supplyAsync()</code> 方法。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;Void&gt; future = CompletableFuture.runAsync(() -&gt; System.out.println(<span class="string">&quot;hello!&quot;</span>));</span><br><span class="line">future.get();<span class="comment">// 输出 &quot;hello!&quot;</span></span><br><span class="line">CompletableFuture&lt;String&gt; future2 = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;hello!&quot;</span>);</span><br><span class="line">assertEquals(<span class="string">&quot;hello!&quot;</span>, future2.get());</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h4 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h4><p>方法分类</p>
+<ul>
+<li>处理异步结算的结果<ul>
+<li><code>thenApply()</code>：能访问异步计算结果，且可从回调函数中获取结果</li>
+<li><code>thenAccept()</code>：能访问异步计算的结果，不能从回调函数获取结果</li>
+<li><code>thenRun()</code>：不能访问异步计算的结果，且不能从回调函数获取结果</li>
+<li><code>whenComplete()</code>:接收 2 个输入对象然后进行结果处理</li>
+</ul>
+</li>
+<li>异常处理<ul>
+<li><code>handle()</code>：处理异常</li>
+<li><code>exceptionally()</code>：处理异常</li>
+<li><code>completeExceptionally()</code>:设置结果为异常</li>
+</ul>
+</li>
+<li>组合 <code>CompletableFuture</code><ul>
+<li><code>thenCompose()</code> ：按顺序链接两个 <code>CompletableFuture</code> 对象。链接两个<code>CompletableFuture</code> 对象，是将前一个任务的返回结果作为下一个任务的参数，它们之间存在着先后顺序。</li>
+<li><code>thenCombine()</code>：链接两个<code>CompletableFuture</code> 对象，会在两个任务都执行完成后，把两个任务的结果合并。两个任务是并行执行的，它们之间并没有先后依赖顺序。</li>
+</ul>
+</li>
+<li>并行运行多个 <code>CompletableFuture</code><ul>
+<li><code>allOf()</code>：并行运行多个 <code>CompletableFuture</code> 。等到所有的 <code>CompletableFuture</code> 都运行完成之后再返回</li>
+<li><code>anyOf()</code> ：并行运行多个 <code>CompletableFuture</code> 。不会等待所有的 <code>CompletableFuture</code> 都运行完成之后再返回，只要有一个执行完成即可！</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// thenApply</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.completedFuture(<span class="string">&quot;hello!&quot;</span>)</span><br><span class="line">        .thenApply(s -&gt; s + <span class="string">&quot;world!&quot;</span>).thenApply(s -&gt; s + <span class="string">&quot;nice!&quot;</span>);</span><br><span class="line"><span class="comment">// thenAccept</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.completedFuture(<span class="string">&quot;hello!&quot;</span>)</span><br><span class="line">        .thenApply(s -&gt; s + <span class="string">&quot;world!&quot;</span>).thenAccept(System.out::println);<span class="comment">//hello!world!</span></span><br><span class="line"><span class="comment">// thenRun</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.completedFuture(<span class="string">&quot;hello!&quot;</span>)</span><br><span class="line">        .thenApply(s -&gt; s + <span class="string">&quot;world!&quot;</span>).thenRun(() -&gt; System.out.println(<span class="string">&quot;hello!&quot;</span>));<span class="comment">//hello!</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// handle</span></span><br><span class="line">CompletableFuture&lt;String&gt; future =  CompletableFuture.supplyAsync(() -&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Computation error!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> s + <span class="string">&quot;word!&quot;</span>;</span><br><span class="line">&#125;).handle((res, ex) -&gt; &#123;</span><br><span class="line">    <span class="comment">// res 代表返回的结果，ex 的类型为 Throwable ，代表抛出的异常</span></span><br><span class="line">    <span class="keyword">return</span> res != <span class="keyword">null</span> ? res : <span class="string">&quot;error!&quot;</span>;</span><br><span class="line">&#125;);</span><br><span class="line">assertEquals(<span class="string">&quot;error!&quot;</span>, future.get());</span><br><span class="line"><span class="comment">// exceptionally</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Computation error!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;hello!&quot;</span>;</span><br><span class="line">&#125;).exceptionally(ex -&gt; &#123;</span><br><span class="line">    System.out.println(ex.toString());<span class="comment">// CompletionException</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;error!&quot;</span>;</span><br><span class="line">&#125;);</span><br><span class="line">assertEquals(<span class="string">&quot;error!&quot;</span>, future.get());</span><br><span class="line"><span class="comment">// completeExceptionally</span></span><br><span class="line">CompletableFuture&lt;String&gt; completableFuture = <span class="keyword">new</span> CompletableFuture&lt;&gt;();</span><br><span class="line">completableFuture.completeExceptionally(</span><br><span class="line">  <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Calculation failed!&quot;</span>));</span><br><span class="line">completableFuture.get(); <span class="comment">// ExecutionException</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thenCompose</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;hello!&quot;</span>)</span><br><span class="line">        .thenCompose(s -&gt; CompletableFuture.supplyAsync(() -&gt; s + <span class="string">&quot;world!&quot;</span>));</span><br><span class="line">assertEquals(<span class="string">&quot;hello!world!&quot;</span>, future.get());</span><br><span class="line"><span class="comment">// thenCombine</span></span><br><span class="line">CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;hello!&quot;</span>)</span><br><span class="line">        .thenCombine(CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;world!&quot;</span>), (s1, s2) -&gt; s1 + s2)</span><br><span class="line">        .thenCompose(s -&gt; CompletableFuture.supplyAsync(() -&gt; s + <span class="string">&quot;nice!&quot;</span>));</span><br><span class="line">assertEquals(<span class="string">&quot;hello!world!nice!&quot;</span>, completableFuture.get());</span><br><span class="line"></span><br><span class="line"><span class="comment">// allOf</span></span><br><span class="line">CompletableFuture&lt;String&gt; task1 = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;hello!&quot;</span>);</span><br><span class="line">CompletableFuture&lt;String&gt; task6 = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;Word!&quot;</span>);</span><br><span class="line">CompletableFuture&lt;Void&gt; future=CompletableFuture.allOf(task1,.....,task6);</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  headerFuture.join();</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line">System.out.println(<span class="string">&quot;all done. &quot;</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://javaguide.cn/java/concurrent/completablefuture-intro.html#%E5%B9%B6%E8%A1%8C%E8%BF%90%E8%A1%8C%E5%A4%9A%E4%B8%AA-completablefuture">CompletableFuture入门</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CompletableFuture/" rel="tag"># CompletableFuture</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/01/10/Java/Java%E6%B5%AE%E7%82%B9%E6%95%B0%E8%BF%90%E7%AE%97%E4%B9%8BBigDecimal/" rel="prev" title="Java浮点数运算之BigDecimal">
+      <i class="fa fa-chevron-left"></i> Java浮点数运算之BigDecimal
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/03/07/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/Java%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B/" rel="next" title="Java中的线程">
+      Java中的线程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E5%8F%A3%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">接口介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Future"><span class="nav-number">1.1.</span> <span class="nav-text">Future</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CompletionStage"><span class="nav-number">1.2.</span> <span class="nav-text">CompletionStage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="nav-number">1.3.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA"><span class="nav-number">1.4.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number">1.5.</span> <span class="nav-text">常用方法</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

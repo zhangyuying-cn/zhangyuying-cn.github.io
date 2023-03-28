@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在Redis中高可用主要包含两个方面：  数据尽量不丢失。通过数据持久化实现 保证服务尽可能可用。通过部署方式实现，本文主要是这部分  Redis 支持多种部署模式：单机模式和实现高可用的三种部署模式：主从模式、哨兵模式、Cluster模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis高可用之部署方式">
+<meta property="og:url" content="http://zhangyuying.cn/2022/07/13/Redis/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E4%B9%8B%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="在Redis中高可用主要包含两个方面：  数据尽量不丢失。通过数据持久化实现 保证服务尽可能可用。通过部署方式实现，本文主要是这部分  Redis 支持多种部署模式：单机模式和实现高可用的三种部署模式：主从模式、哨兵模式、Cluster模式">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E-%E5%85%A8%E9%87%8F%E5%A4%8D%E5%88%B6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E-%E9%83%A8%E5%88%86%E5%A4%8D%E5%88%B6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/RedisCluster.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/RedisCluster%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87.png">
+<meta property="article:published_time" content="2022-07-13T08:45:41.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.752Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E%E6%A8%A1%E5%BC%8F.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2022/07/13/Redis/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E4%B9%8B%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Redis高可用之部署方式 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2022/07/13/Redis/Redis%E9%AB%98%E5%8F%AF%E7%94%A8%E4%B9%8B%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis高可用之部署方式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-07-13 16:45:41" itemprop="dateCreated datePublished" datetime="2022-07-13T16:45:41+08:00">2022-07-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在Redis中高可用主要包含两个方面：</p>
+<ol>
+<li>数据尽量不丢失。通过<a target="_blank" rel="noopener" href="https://zhangyuying.top/2022/07/12/Redis/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96/#more">数据持久化</a>实现</li>
+<li>保证服务尽可能可用。通过部署方式实现，本文主要是这部分</li>
+</ol>
+<p>Redis 支持多种部署模式：单机模式和实现高可用的三种部署模式：主从模式、哨兵模式、<code>Cluster</code>模式</p>
+<span id="more"></span>
+
+<h3 id="单机模式"><a href="#单机模式" class="headerlink" title="单机模式"></a>单机模式</h3><p>单机模式就是只部署一台Redis服务</p>
+<p>优点：部署方便，可用于本地开发，或对数据要求不高的，开发环境等</p>
+<p>缺点：</p>
+<ul>
+<li>不能保证数据的可靠性</li>
+<li>性能瓶颈</li>
+</ul>
+<h3 id="主从模式"><a href="#主从模式" class="headerlink" title="主从模式"></a>主从模式</h3><p>主从复制，是指将一台Redis服务器的数据，冗余一份复制到其他的Redis服务器。前者称为主节点（<code>Master</code>），后者称为从节点（<code>Slave</code>）</p>
+<ul>
+<li>默认情况下，每台Redis服务器都是主节点；</li>
+<li>一个主节点可以有多个从节点（或没有从节点），但一个从节点只能有一个主节点。</li>
+<li>数据的复制是单向的，只能由主节点到从节点。</li>
+<li><code>Master</code>，负责读写操作，<code>Slave</code>，只负责读操作。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E%E6%A8%A1%E5%BC%8F.png" alt="主从模式"></p>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 只需要在从节点配置主节点的ip和端口号。</span></span><br><span class="line"><span class="string">slaveof</span> <span class="string">&lt;masterip&gt;</span> <span class="string">&lt;masterport&gt;</span></span><br><span class="line"><span class="comment"># 例如</span></span><br><span class="line"><span class="comment"># slaveof 192.168.1.1 6379</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数据复制"><a href="#数据复制" class="headerlink" title="数据复制"></a>数据复制</h4><p>主从模式采用了读写分离，所有数据的写操作只会在<code>Master</code> 库上进行，Master 库有了最新的数据后，会同步给<code> Slave</code> 库，这样，主从库的数据就是一致的。同步包括全量复制，增量复制、部分复制(<code>&gt;redis2.8</code>)。</p>
+<ul>
+<li><p>全量复制</p>
+<p>一般当<code> Slave</code> 第一次启动连接 <code>Master</code>，认为是第一次连接，就采用全量复制</p>
+<ol>
+<li><p><code>Slave</code>像<code>Master</code>发送<code>psync</code>命令，请求同步</p>
+</li>
+<li><p><code>Master</code>执行<code>bgsave</code>生成<code>RDB</code>文件，缓存<code>RDB</code>生成时间后的写命令在缓存中</p>
+</li>
+<li><p><code>Master</code>向<code>Slave</code>发送<code>RDB</code>文件，<code>Slave</code>将<code>RDB</code>文件储存在硬盘后，将其加载到内存中</p>
+</li>
+<li><p><code>Master</code>将内存中缓存的写命令同步给<code>Slave</code>，<code>Slave</code>执行这些命令</p>
+<blockquote>
+<p>如果<code>Mater</code>同时收到多个<code>slave</code>发来的同步请求，则<code>Master</code>会在后台启动一个进程以保存数据文件，然后将其发送给所有的<code>slave</code>端机器，确保所有的<code>slave</code>端机器都正常。</p>
+</blockquote>
+</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E-%E5%85%A8%E9%87%8F%E5%A4%8D%E5%88%B6.png" alt="全量复制"></p>
+</li>
+<li><p>增量复制</p>
+<p>Redis 增量复制是指 <code>Slave</code> 初始化后开始正常工作时，<code>Master</code> 服务器发生的写操作同步到 <code>Slave</code> 服务器的过程。</p>
+<p>增量复制的过程主要是<code>Master</code>每执行一个写命令就会先写入缓存然后向<code>Slave</code>发送相同的写命令，<code>Slave</code>接收并执行收到的写命令。</p>
+</li>
+<li><p>部分复制</p>
+<p>一般当<code> Slave</code> 连接丢失再次连接 <code>Master</code>时，如果满足部分复制条件则进行部分复制，否则进行全量复制</p>
+<p>最终是否可以进行部分复制是取决于</p>
+</li>
+</ul>
+<ol>
+<li><p>从节点的运行<code>ID</code>是否和主节点一致</p>
+</li>
+<li><p>复制偏移量在复制积压缓存区范围中</p>
+<p>进行部分复制的流程如下</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E4%B8%BB%E4%BB%8E-%E9%83%A8%E5%88%86%E5%A4%8D%E5%88%B6.png" alt="部分复制"></p>
+</li>
+</ol>
+<blockquote>
+<p>以上的复制方式中有几个概念需要理解</p>
+<ul>
+<li><p>复制偏移量(<code>offset</code>)</p>
+<p>主从节点都维护着一个复制偏移量（<code>offset</code>），主节点表示接收客户端的字节数，从节点表示接收主节点的字节数，比如从节点接收主节点传来的<code> N</code> 个字节数据时，从节点的 <code>offset</code> 会增加 <code>N</code>。</p>
+<p>偏移量是用来衡量主从节点数据是否一致的唯一标准，如果主从节点的 <code>offset</code> 相等，表明数据一致，否则表明数据不一致。在不一致的情况下，可以根据两个节点的 <code>offset</code> 找出从节点的缺少的那部分数据。比如，主节点的 <code>offset</code> 是 500，从节点的 <code>offset</code> 是 400，那么主节点在进行数据传输时只需要将 <code>401 ~ 500</code> 传递给从节点即可。</p>
+<p>从节点通过心跳每秒都会将自身的偏移量告知主节点，所以主节点会保存从节点的偏移量。同时，主节点处理完命令后，会将命令的字节长度累加到自身的偏移量中</p>
+</li>
+<li><p>运行 <code>ID</code>（<code>runid</code>）</p>
+<p>每个 Redis 节点在启动时都会生成一个运行 <code>ID</code>，即 <code>runid</code>，该 <code>ID</code> 用于唯一标识 Redis 节点，它是一个由 40 位随机的十六进制的字符组成的字符串，通过 <code>info server</code> 命令可以查看节点的 <code>runid</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; info server</span><br><span class="line">...</span><br><span class="line">run_id:XXX</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>主从节点在初次建立连接进行全量复制时（从节点发送 <code>psync ? -1</code>），主节点会将自己的 <code>runid</code> 告知给从节点，从节点将其保存起来。当主从节点断开重连时，从节点会将这个 <code>runid</code> 发送给主节点，主节点会根据从节点发送的 <code>runid</code> 来判断选择何种复制：</p>
+<ul>
+<li>如果从节点发送的 <code>runid</code> 与当前主节点的<code> runid</code> 一致时，主节点则尝试进行部分复制，当然能不能进行部分复制还要看偏移量是否在复制积压缓冲区</li>
+<li>如果从节点发送的 <code>runid </code>与当前主节点的 <code>runid </code>不一致时，则进行全量复制</li>
+</ul>
+</li>
+<li><p>复制积压缓冲区</p>
+<p>复制积压缓冲区是一个由主节点维护的缓存队列，它具有如下几个特点：</p>
+<ul>
+<li>由主节点维护</li>
+<li>固定大小，默认为 <code>1MB</code>，配置参数为：<code>repl-backlog-size</code></li>
+<li>是一个先进先出的队列</li>
+</ul>
+<p>在命令传播时，主节点除了将写命令传递给从节点，也会将写命令写入到复制积压缓冲区中，当做一个备份，用于在部分复制流程中。由于它是先进先出的队列，且大小固定，所以他只能保存主节点最近执行的写命令，当主从节点的<code>offset</code> 相差较大时，超出了复制积压缓冲区的范围，则无法进行部分复制，只能进行全量复制了，</p>
+<p>为了能够减少网络中断引起的全量复制，需要认真评估复制积压缓冲区的大小，适当调整，比如网络中断时间是 <code>60s</code>,主节点每秒接收的写命令为 <code>100KB</code>，则复制积压缓冲区的平均大小应该为 <code>6MB</code>，所以我们可以将其大小设置为 <code>6MB</code>，甚至是 <code>10MB</code>，来保证绝大多数中断情况下都可以使用部分复制。</p>
+</li>
+</ul>
+</blockquote>
+<h4 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h4><ul>
+<li>优点<ul>
+<li>数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式。</li>
+<li>故障恢复：当主节点出现问题时，可以由从节点提供服务，实现故障恢复；实际上是一种服务的冗余。</li>
+<li>负载均衡：在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务（即写Redis数据时应用连接主节点，读Redis数据时应用连接从节点），分担服务器负载；尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大提高Redis服务器的并发量。</li>
+</ul>
+</li>
+</ul>
+<p><strong>高可用基石</strong>：除了上述作用以外，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是Redis高可用的基础。</p>
+<ul>
+<li>缺点<ul>
+<li>一旦主节点宕机，从节点晋升成主节点时，需要修改应用方的主节点地址，还需要所有从节点配置新的主节点然后去复制新的主节点，整个过程需要<strong>人工干预</strong>。</li>
+<li>只有主节点可以写数据，写能力受到单机的限制。</li>
+<li>每个服务器都保存全部数据，存储能力受到单机的限制。</li>
+</ul>
+</li>
+</ul>
+<h3 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h3><p>主从切换技术的方法是：当服务器宕机后，需要手动操作将一台从机切换为主机，这需要人工干预，不仅费时费力而且还会造成一段时间内服务不可用。为了解决主从复制的缺点，就有了哨兵机制。</p>
+<p>哨兵模式：由一个或多个 <code>Sentinel</code> 实例组成的<code>Sentinel</code>系统，可以监视所有的 <code>Master</code> 节点和 <code>Slave</code> 节点。哨兵模式引入了主节点的自动故障转移，当哨兵监测到 <code>Master</code> 节点宕机，会自动将 <code>Slave</code> 节点切换成 <code>Master</code> 节点，然后通过发布订阅模式通知其他的 <code>Slave</code> 节点，修改配置文件，让它们切换<code>Master</code>节点；</p>
+<ul>
+<li><p><code>Sentinel</code> 是一种特殊的 Redis 实例，它不存储数据，只对集群进行监控</p>
+<p><code>Sentinel</code>通过发送命令，等待 <code>Master</code> 服务器和 <code>Slave</code> 服务器返回监控其运行状态</p>
+</li>
+<li><p>一个哨兵进程对 <code>Redis </code>节点进行监控，就可能会出现问题(单点问题)，因此，最好使用多个哨兵来进行监控</p>
+</li>
+<li><p>各个哨兵之间也会互相进行监控</p>
+</li>
+</ul>
+<p>哨兵模式由两个部分组成，哨兵节点和数据节点</p>
+<ul>
+<li>哨兵节点：哨兵系统由一个或多个哨兵节点组成，哨兵节点是特殊的Redis节点，不存储数据。</li>
+<li>数据节点：主节点和从节点都是数据节点。</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F.png" alt="img"></p>
+<h4 id="配置-1"><a href="#配置-1" class="headerlink" title="配置"></a>配置</h4><p>哨兵机器配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭保护模式</span></span><br><span class="line"><span class="string">protected-mode</span> <span class="literal">no</span>   </span><br><span class="line"><span class="comment"># 指定sentine1为后台启动</span></span><br><span class="line"><span class="string">daemonize</span> <span class="literal">yes</span>      </span><br><span class="line"><span class="comment"># 修改指定该哨兵节点监控192.168.0.1：6379这个主节点，该主节点的名称是mymaster，最后的2的含义与主节点的故障判定有关：至少需要2个哨兵节点同意，才能判定主节点故障并进行故障转移</span></span><br><span class="line"><span class="string">sentinel</span> <span class="string">monitor</span> <span class="string">mymaster</span> <span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span> <span class="number">6379 </span><span class="number">2</span></span><br><span class="line"><span class="comment"># 定服务器down掉的时间周期，默认30000毫秒（30秒）</span></span><br><span class="line"><span class="string">sentinel</span> <span class="string">down-after-milliseconds</span> <span class="string">mymaster</span> <span class="number">3000</span></span><br><span class="line"><span class="comment"># 一个sentine1对同一个master两次failover之间的间隔时间（180秒）</span></span><br><span class="line"><span class="string">sentinel</span> <span class="string">failover-timeout</span> <span class="string">mymaster</span> <span class="number">180000</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="发现和监控"><a href="#发现和监控" class="headerlink" title="发现和监控"></a>发现和监控</h4><p>哨兵主要有三个定时的发现和监控任务</p>
+<ol>
+<li><p>主从运行情况检测</p>
+<p>每个哨兵节点<strong>每隔10 秒</strong>会向 <code>Master</code> 节点和 <code>Slave </code>节点发送<code>info</code> 命令获取最拓扑结构图，哨兵配置时只要配置对 <code>Master</code> 节点的监控即可，通过向 <code>Master</code> 节点发送 <code>info</code>，获取 <code>Slave</code> 节点的信息，并当有新的 <code>Slave</code> 节点加入时可以马上感知到</p>
+</li>
+<li><p>检测信息同步</p>
+<p>每个哨兵节点<strong>每隔 2 秒</strong>会向 Redis 数据节点的指定频道上发送该哨兵节点对于 <code>Master</code> 节点的判断以及当前哨兵节点的信息，同时每个哨兵节点也会订阅该频道，来了解其它哨兵节点的信息及对 <code>Master</code> 节点的判断，其实就是通过消息 <code>publish</code> 和 <code>subscribe</code> 来完成的；</p>
+</li>
+<li><p>主从节点存活检测</p>
+<p>每个哨兵<strong>每隔 1 秒</strong>会向 <code>Master</code> 节点、<code>Slave</code> 节点及其余哨兵节点发送一次 <code>ping</code> 命令做一次心跳检测，这个也是哨兵用来判断节点是否正常的重要依据</p>
+</li>
+</ol>
+<h4 id="自动故障转移"><a href="#自动故障转移" class="headerlink" title="自动故障转移"></a>自动故障转移</h4><ul>
+<li><p><code>Master</code>切换</p>
+<ol>
+<li><p><code>Master</code>的下线：<code>Master</code>的下线分为主观下线和客观下线</p>
+<ul>
+<li><p>主观下线</p>
+<p>一个哨兵节点在主节点存活监测时，如果心跳检测返回时间超过<code>down-after-milliseconds</code>时，则当前哨兵节点则认为该节点下线，这就是主观下线</p>
+<p>此时不能代表这个<code>Master</code>真的下线(可能网络波动，或者该哨兵与服务连接异常)</p>
+</li>
+<li><p>客观下线</p>
+<p>当主观下线的节点是<code> Master</code> 节点时，此时该哨兵 节点会通过指令寻求其它哨兵节点对 <code>Master</code> 节点的判断，当超过 <code>quorum</code>（可配置）个数的哨兵节点都认为<code>Master</code>下线，则认为该 <code>Master</code> 节点确实有问题，这样就是客观下线</p>
+<blockquote>
+<p>当一个主服务器被 <code>Sentinel</code>标记为客观下线时，<code>Sentinel</code> 向 下线主服务器 的所有 从服务器 发送 <code>INFO</code> 命令的频率，会从<code>10</code>秒一次改为 每秒一次。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>当没有足够数量的 <code>Sentinel</code> 同意 主服务器 下线时， 主服务器 的 <strong>客观下线状态</strong> 就会被移除。当 <strong>主服务器</strong> 重新向 <code>Sentinel</code>的<code>PING</code>命令返回有效回复时，主服务器 的 <strong>主观下线状态</strong> 就会被移除。</p>
+</blockquote>
+</li>
+<li><p>自动故障转移</p>
+<ul>
+<li><p>哨兵领导者选择</p>
+<p>如果哨兵客观下线<code> Master</code>,那么接下来就是进行故障转移和通知，这个工作只要一个哨兵完成即可，所以哨兵节点会根据<code>Raft</code>算法（选举算法）选举一个哨兵领导者。</p>
+<p>（1）每个做主观下线的 <code>Sentinel </code>节点向其他 <code>Sentinel</code> 节点发送命令，要求将它设置为领导者</p>
+<p>（2）收到命令的 <code>Sentinel</code> 节点如果没有同意通过其他 <code>Sentinel</code> 节点发送的命令，那么将同意该请求，否则拒绝</p>
+<p>（3）如果该 <code>Sentinel</code> 节点发现自己的票数已经超过 <code>Sentinel</code> 集合半数且超过 <code>quorum</code>，则将成为领导者</p>
+<p>（4）如果此过程有多个 <code>Sentinel</code> 节点成为了领导者，那么将等待一段时间重新选举</p>
+</li>
+<li><p>确定新的 <code>Master</code> 节点</p>
+<p><code>Sentinel</code> 状态数据结构中保存了主服务的所有从服务信息，领头 <code>Sentinel</code> 从从服务列表中挑选出新的主服务</p>
+<p>（1）过滤掉主观下线的节点</p>
+<p>（2）选择配置文件中节点优先级配置(<code>replica-priority</code>，默认值为100) 最高的节点，如果有则返回没有则继续选择</p>
+<p>（3）选择出复制偏移量最大的节点，因为复制偏移量越大则数据复制的越完整，如果有则返回没有则继续选择</p>
+<p>（4）选择 <code>run_id</code> 最小的节点</p>
+</li>
+<li><p>更新主从状态</p>
+<p>（1）通过<code>slaveof</code>命令 让其他节点成为新的<code>Master</code>的<code>Slave</code>节点</p>
+<p>（2）将已下线的<code>Master</code>节点也设置成新的<code>Master</code>节点的<code>Slave</code>节点，当其恢复正常时，从新的<code>Master</code>节点复制数据，变成新的 <code>Master</code> 节点的 <code>Slave</code> 节点</p>
+<p>（3）通知客户端主节点已经更换。</p>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p><code>Sentinel</code>或<code>Slave</code>切换</p>
+<p>客观下线是主节点才有的概念，从节点和哨兵节点发生故障，被哨兵主观下线后，直接下线，不会再有后续的客观下线和故障转移操作</p>
+</li>
+</ul>
+<h4 id="脑裂"><a href="#脑裂" class="headerlink" title="脑裂"></a>脑裂</h4><p>脑裂：某个 <code>Master</code> 所在机器突然脱离了正常的网络，跟其他 <code>Slave</code> 机器不能连接，但是实际上 <code>Master</code> 还运行着。此时哨兵可能就会认为 <code>Master</code> 宕机了，然后开启选举，将其他 <code>Slave</code> 切换成了 <code>Master</code>。这个时候，集群里就会有<strong>两个 <code>Master</code></strong> ，也就是所谓的脑裂。</p>
+<p><strong>数据丢失</strong></p>
+<p>脑裂时虽然某个 <code>Slave</code> 被切换成了 <code>Master</code>，但是可能 <code>client</code> 还没来得及切换到新的 <code>Master</code>，还继续向旧 <code>Master</code> 写数据。但是旧 <code>Master</code> 再次恢复的时候，会被作为一个 <code>Slave</code> 挂到新的 <code>Master</code> 上去，自己的数据会清空，重新从新的 <code>Master</code> 复制数据。而新的 <code>Master</code> 并没有后来 <code>client</code> 写入的数据，因此，这部分数据也就丢失了。</p>
+<p><strong>解决方案</strong></p>
+<p>Redis 提供了两个配置项来限制 <code>Master</code> 库的请求处理</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># master 至少有 1 个Slave连接。</span></span><br><span class="line"><span class="string">min-replicas-to-write</span> <span class="number">1</span></span><br><span class="line"><span class="comment"># 数据复制和同步的延迟不能超过 10 秒。</span></span><br><span class="line"><span class="string">min-replicas-max-lag</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<p>按照配置要求至少有 1 个 <code>Slave</code> 数据复制和同步的延迟不能超过 <code>10</code> 秒，如果超过 1 个 <code>Slave</code>，数据复制和同步的延迟都超过了 10 秒钟，那么这个时候，<code>Master</code> 就不会再接收任何请求了。</p>
+<p>通过这个配置，就算 <code>Master</code> 库是假故障，那它在假故障期间也无法响应哨兵心跳，也不能和 <code>Slave</code> 库进行同步，自然也就无法和 <code>Slave</code> 库进行 <code>ACK</code> 确认。原 <code>Master</code> 库就会被限制接收客户端请求，客户端也就不能在原 <code>Master</code> 库中写入新数据了。</p>
+<p>不过这个配置做不到让数据一点也不丢失，而是让数据尽可能的少丢失。</p>
+<h4 id="优缺点-1"><a href="#优缺点-1" class="headerlink" title="优缺点"></a>优缺点</h4><ul>
+<li>优点<ul>
+<li>哨兵模式是基于主从模式的，所有主从的优点，哨兵模式都具有。</li>
+<li>实现主从自动切换，系统更健壮，可用性更高。</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>具有主从模式的缺点，每台机器上的数据是一样的，写能力和存储能力收到单机的限制</li>
+<li>还要多维护一套哨兵模式，实现起来也变的更加复杂增加维护成本。</li>
+<li>Redis 较难支持在线扩容，在集群容量达到上限时在线扩容会变得很复杂。</li>
+</ul>
+</li>
+</ul>
+<h3 id="Cluster模式"><a href="#Cluster模式" class="headerlink" title="Cluster模式"></a>Cluster模式</h3><p>Redis Cluster 是Redis3.0开始引入的高可用分布式存储方案，通过分片(<code>sharding</code>)来进行数据管理</p>
+<ul>
+<li><p>Redis Cluster 模式采用了无中心节点的方式来实现，其中包含多个<code>Maser</code>节点，以及每个<code>Master</code>节点对应的若干<code>Slave</code>节点</p>
+</li>
+<li><p>每个 <code>Master</code> 节点都会与其它 <code>Master</code> 节点保持连接。节点间通过 <code>gossip</code> 协议交换彼此的信息</p>
+<p>每个节点会保存一份数据分布表，节点会将自己的 <code>slot</code> 信息发送给其他节点，节点间不停的传递数据分布表</p>
+</li>
+<li><p>数据分片的方式为将 Redis 集群分为 16384 个哈希槽。这些哈希槽分别存储于每个 <code>Master </code>节点中</p>
+</li>
+<li><p>客户端连接集群时，直接与 Redis 集群的每个 <code>Master</code> 节点连接，根据 <code>hash</code> 算法取模将 <code>key</code> 存储在不同的哈希槽上，假设集群存在3个<code>Master</code></p>
+<ul>
+<li><code>Master1</code> 负责 0~5460 号哈希槽</li>
+<li><code>Master2</code> 负责 5461~10922 号哈希槽</li>
+<li><code>Master3</code> 负责 10923~16383 号哈希槽</li>
+</ul>
+</li>
+<li><p>一般一组集群至少要 6 个节点才能保证完整的高可用（3主3从）</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/RedisCluster.png" alt="Redis Cluster"></p>
+<h4 id="数据分片"><a href="#数据分片" class="headerlink" title="数据分片"></a>数据分片</h4><p><code>Cluster</code>模式将数据分散到多个节点</p>
+<ul>
+<li>一方面突破了Redis单机内存大小的限制，存储容量大大增加</li>
+<li>另一方面每个主节点都可以对外提供读服务和写服务，大大提高了集群的响应能力</li>
+</ul>
+<blockquote>
+<p>Redis单机内存大小受限问题，在介绍持久化和主从复制时都有提及；例如，如果单机内存太大，<code>bgsave</code>和<code>bgrewriteaof</code>的<code>fork</code>操作可能导致主进程阻塞，主从环境下主机切换时可能导致从节点长时间无法提供服务，全量复制阶段主节点的复制缓冲区可能溢出。</p>
+</blockquote>
+<p>Redis Cluster 方案采用哈希槽（<code>Hash Slot</code>，接下来我会直接称之为 <code>Slot</code>），来处理数据和实例之间的映射关系。</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/RedisCluster%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87.png" alt="数据分片"></p>
+<ol>
+<li><p>数据存储位置</p>
+<p>每个数据的<code>Key</code>都属于这 16384 个槽的其中一个，<code>Key</code> 与哈希槽映射过程可以分为两大步骤：<br>1、根据键值对的 <code>Key</code>，使用 <code>CRC16</code> 算法，计算出一个 <code>16 bit</code> 的值；<br>2、将 <code>16 bit</code> 的值对 16384 执行取模，得到 0 ～ 16383 的数表示 <code>Key</code> 对应的哈希槽。</p>
+</li>
+<li><p>哈希槽与Redis集群的映射</p>
+<p>Redis 会自动将 16384 个 哈希槽平均分布在集群实例上，比如 <code>N</code> 个节点，每个节点上的哈希槽数 = <code>16384 / N </code>个。假设集群存在3个<code>Master</code></p>
+<ul>
+<li><code>Master1</code> 负责 0~5460 号哈希槽</li>
+<li><code>Master2</code> 负责 5461~10922 号哈希槽</li>
+<li><code>Master3</code> 负责 10923~16383 号哈希槽</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>Redis的哈希槽为什么是16384个：</p>
+<ol>
+<li>消息大小考虑：尽管<code>crc16</code>能得到65535个值，但Redis选择16384个<code>slot</code>，是因为16384的消息只占用了<code>2k</code>，而65535则需要<code>8k</code>。</li>
+<li>集群规模设计考虑：集群设计最多支持1000个分片，16384是相对比较好的选择，需要保证在最大集群规模下，<code>slot</code>均匀分布场景下，每个分片平均分到的<code>slot</code>不至于太小。</li>
+</ol>
+<p>其中需要注意2个问题：</p>
+<ol>
+<li>为什么要传全量的<code>slot</code>状态？<br>因为分布式场景，基于状态的设计更合理，状态的传播具有幂等性</li>
+<li>为什么不考虑压缩？<br>集群规模较小的场景下，每个分片负责大量的<code>slot</code>，很难压缩。</li>
+</ol>
+</blockquote>
+<h4 id="节点通信"><a href="#节点通信" class="headerlink" title="节点通信"></a>节点通信</h4><p>RedisCluster中每个节点都需要知道其他节点的所有状态信息，包括：</p>
+<ul>
+<li>当前集群状态</li>
+<li>集群中各节点负责的哈希槽</li>
+<li>集群中各节点的<code>master-slave</code>状态</li>
+<li>集群中各节点的存活状态等</li>
+</ul>
+<p><strong><code>gossip</code>协议</strong>：Redis集群中，节点之间通过建立TCP连接，使用<code>gossip</code>协议来传播集群的信息。<code>gossip</code>协议 也叫 <code>Epidemic Protocol</code>（流行病协议），别名很多比如：“流言算法”、“疫情传播算法”等。它的特点是，在节点数量有限的网络中，每个节点都会“随机”（不是真正随机，而是根据规则选择通信节点）与部分节点通信，经过一番杂乱无章的通信后，每个节点的状态在一定时间内会达成一致，</p>
+<p><code>gossip</code>协议有4种常用的消息类型：<code>PING</code>、<code>PONG</code>、<code>MEET</code>、<code>FAIL</code>。</p>
+<ul>
+<li><code>MEET</code>：当需要向集群中加入新节点时，需要集群中的某个节点发送<code>MEET</code>消息到新节点，通知新节点加入集群。新节点收到<code>MEET</code>消息后，会回复<code>PONG</code>命令给发送者。</li>
+<li><code>PING</code>：集群内每个节点每秒会向其他节点发送<code>PING</code>消息，用来检测其他节点是否正常工作，并交换彼此的状态信息。<code>PING</code>消息中会包括自身节点的状态数据和其他部分节点的状态数据。</li>
+<li><code>PONG</code>：当接收到<code>PING</code>消息和<code>MEET</code>消息时，会向发送方回复<code>PONG</code>消息，<code>PONG</code>消息中包括自身节点的状态数据。节点也可以通过广播的方式发送自身的<code>PONG</code>消息来通知整个集群对自身状态的更新。</li>
+<li><code>FAIL</code>：当一个节点判定另一个节点下线时，会向集群内广播一个<code>FAIL</code>消息，其他节点接收到<code>FAIL</code>消息之后，把对应节点更新为下线状态。</li>
+</ul>
+<p><strong>Redis 告知客户端重定向访问新实例</strong></p>
+<p><strong><code>MOVED</code> 错误</strong></p>
+<p>负载均衡，数据已经迁移到其他实例上：当客户端将一个键值对操作请求发送给某个实例，而这个键所在的槽并非由自己负责的时候，该实例会返回一个 <code>MOVED</code> 错误指引转向正在负责该槽的节点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MOVED [哈希槽] [节点IP:端口]  &#x2F;&#x2F; 例如 MOVED 3999 127.0.0.1:6379</span><br></pre></td></tr></table></figure>
+
+<p>同时，客户端还会更新本地缓存，将该 <code>slot</code> 与 Redis 实例对应关系更新正确。</p>
+<p><strong>ASK 错误</strong></p>
+<p>如果某个 <code>slot</code> 的数据比较多，部分迁移到新实例，还有一部分没有迁移：如果请求的 <code>key</code> 在当前节点找到就直接执行命令，否则时候就需要 <code>ASK</code> 错误响应了，槽部分迁移未完成的情况下，如果需要访问的 <code>key</code> 所在 <code>Slot</code> 正在从从 实例 1 迁移到 实例 2，实例 1 会返回客户端一条 <code>ASK</code> 报错信息：客户端请求的 <code>key</code> 所在的哈希槽正在迁移到实例 2 上，你先给实例 2 发送一个 <code>ASKING</code> 命令，接着发送操作命令。</p>
+<h4 id="故障处理"><a href="#故障处理" class="headerlink" title="故障处理"></a>故障处理</h4><p>集群支持主节点的自动故障转移（与哨兵类似）；当任一节点发生故障时，集群仍然可以对外提供服务</p>
+<p><strong>故障检测</strong></p>
+<p>主动下线：当约定时间内某节点无法与集群中的另一个节点顺利完成 <code>ping</code> 消息通信时，则将这个节点标记为主观下线，同时将这个信息向整个集群广播。</p>
+<p>客观下线：如果一个节点收到某个节点失联的数量达到了集群的大多数时，那么将该节点标记为客观下线状态，并向集群广播下线节点的 <code>fail</code> 消息。然后立即对该故障节点进行主从切换。</p>
+<p><strong>故障转移</strong></p>
+<p>跟哨兵类似，两者都是基于 <code>Raft</code> 算法来实现的</p>
+<ol>
+<li>从下线的 <code>Master</code> 节点下的 <code>Slave</code> 节点列表选择一个节点成为新主节点。</li>
+<li>新主节点会撤销所有对已下线主节点的 <code>slot</code> 指派，并将这些 <code>slots</code> 指派给自己。</li>
+<li>新的主节点向集群广播一条 <code>PONG</code> 消息，这条 <code>PONG</code> 消息可以让集群中的其他节点立即知道这个节点已经由从节点变成了主节点，并且这个主节点已经接管了原本由已下线节点负责处理的槽。</li>
+<li>新的主节点开始接收处理槽有关的命令请求，故障转移完成。</li>
+</ol>
+<p>等到原来的 <code>Master</code> 节点恢复后，会自动成为新 <code>Master</code> 节点的 <code>Slave</code> 节点。<strong>如果 <code>Master</code> 节点没有 <code>Slave</code> 节点，那么当它发生故障时，集群就将处于不可用状态。</strong></p>
+<h4 id="扩容处理"><a href="#扩容处理" class="headerlink" title="扩容处理"></a>扩容处理</h4><p>RedisCluster支持动态扩充，数据迁移由Redis内部自动完成。</p>
+<blockquote>
+<p>Redis集群的重新分片由Redis内部的管理软件<code>redis-trib</code>负责执行。Redis提供了进行重新分片的所有命令，<code>redis-trib</code>通过向节点发送命令来进行重新分片。</p>
+</blockquote>
+<p>RedisCluster也支持做缩容，当集群中要删除节点时，只需要将节点中的所有哈希槽移动到其它节点，然后再移除空白（不包含任何哈希槽）的节点。</p>
+<hr>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://xie.infoq.cn/article/485668cd01ce4417324207540">8K 字详细解析实现 Redis 的高可用 (主从、哨兵、集群)</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhonglongbo/p/13128955.html">一文读懂Redis的四种模式，单机、主从、哨兵、集群</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/gengbo/p/16364853.html">Redis 高可用</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/fb23d50a385c">Redis集群模式高可用原理</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/95ac24da4441">redis主从之全量复制及增量复制</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/chenssy/article/details/118280134">主从复制（二）：全量复制和部分复制</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/redis/redis/issues/2576">Redis的哈希槽为什么选择为16384个</a></p>
+<p><a target="_blank" rel="noopener" href="https://new.qq.com/omn/20220415/20220415A05N9800.html">Redis高可用架构—Redis集群（Redis Cluster）详细介绍</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/12/Redis/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96/" rel="prev" title="Redis的持久化">
+      <i class="fa fa-chevron-left"></i> Redis的持久化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/08/18/Redis/Redis%E7%9A%84%E4%BA%8B%E5%8A%A1/" rel="next" title="Redis的事务">
+      Redis的事务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E6%9C%BA%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">单机模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E6%A8%A1%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">主从模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%A4%8D%E5%88%B6"><span class="nav-number">2.2.</span> <span class="nav-text">数据复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">优缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">哨兵模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-1"><span class="nav-number">3.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E5%92%8C%E7%9B%91%E6%8E%A7"><span class="nav-number">3.2.</span> <span class="nav-text">发现和监控</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB"><span class="nav-number">3.3.</span> <span class="nav-text">自动故障转移</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%91%E8%A3%82"><span class="nav-number">3.4.</span> <span class="nav-text">脑裂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9-1"><span class="nav-number">3.5.</span> <span class="nav-text">优缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cluster%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">Cluster模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87"><span class="nav-number">4.1.</span> <span class="nav-text">数据分片</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E9%80%9A%E4%BF%A1"><span class="nav-number">4.2.</span> <span class="nav-text">节点通信</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86"><span class="nav-number">4.3.</span> <span class="nav-text">故障处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E5%A4%84%E7%90%86"><span class="nav-number">4.4.</span> <span class="nav-text">扩容处理</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="字符集查看 在平时开发Java的时候，我们会遇到很多编码设置，其中包括：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA中的乱码问题">
+<meta property="og:url" content="http://zhangyuying.cn/2019/05/14/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%AD%97%E7%AC%A6%E9%9B%86%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98/JAVA%E4%B8%AD%E7%9A%84%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="字符集查看 在平时开发Java的时候，我们会遇到很多编码设置，其中包括：">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-05-14T08:18:00.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.772Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="字符集与编码">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/05/14/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%AD%97%E7%AC%A6%E9%9B%86%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98/JAVA%E4%B8%AD%E7%9A%84%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA中的乱码问题 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/05/14/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%AD%97%E7%AC%A6%E9%9B%86%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98/JAVA%E4%B8%AD%E7%9A%84%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA中的乱码问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-05-14 16:18:00" itemprop="dateCreated datePublished" datetime="2019-05-14T16:18:00+08:00">2019-05-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a href="http://zhangyuying.cn/2019/05/14/%E6%8A%80%E6%9C%AF/%E5%AD%97%E7%AC%A6%E9%9B%86/">字符集查看</a></p>
+<p>在平时开发Java的时候，我们会遇到很多编码设置，其中包括：</p>
+<span id="more"></span>
+
+<ul>
+<li><p>Java文件的编码：Java文件的编码表示编写代码的时候，<code>.java</code>文件本身的编码，这个编码的影响在于将你的写的代码源文件复制一份，使用其他编辑器打开，若两个编辑器的默认编码方式不一样，则打开源文件就会变成乱码。一般英文的影响不大，因为大多数编码都兼容<code>ASCII</code>编码，但是中文要是编码不正确，则会乱码。</p>
+<p>IDEA的设置在：Setting-&gt;Editor-&gt;File Encodings中设置</p>
+</li>
+<li><p>JVM编码：JVM编码表示JVM在读取<code>String</code>类型的默认编码，可以使用<code>Charset.defaultCharset().name()</code> 获取。可以在JVM启动参数中使用<code>-Dfile.encoding=UTF-8</code>进行设置。</p>
+</li>
+</ul>
+<p>一般需要区分的就是这两种编码。</p>
+<h3 id="1-文件乱码"><a href="#1-文件乱码" class="headerlink" title="1.文件乱码"></a>1.文件乱码</h3><p>一般会出现字符乱码都在于需要与其他程序进行IO的时候。先看看使用字节流进行读取文件的时候：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">  <span class="comment">//&quot;G:\\test.txt&quot; 这个文件是新建的文本文件，输入文字后保存</span></span><br><span class="line">     String path=<span class="string">&quot;G:\\test.txt&quot;</span>;</span><br><span class="line">     <span class="keyword">try</span>(BufferedInputStream inputStream=<span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> FileInputStream(path))) &#123;</span><br><span class="line">         <span class="keyword">for</span> (<span class="keyword">byte</span> bytes[] = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>]; inputStream.read(bytes) != -<span class="number">1</span>; ) &#123;</span><br><span class="line">             String context = <span class="keyword">new</span> String(bytes);</span><br><span class="line">             System.out.println(context);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;<span class="keyword">catch</span> (IOException e)&#123;</span><br><span class="line">         e.printStackTrace();</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时输出是乱码</p>
+<p>首先这里是JVM运行时的编码，因此和JVM的编码设置相关，查看JVM现在的编码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(Charset.defaultCharset().name());</span><br></pre></td></tr></table></figure>
+
+<p>而新建的<code>.txt文件</code>,点击另存为，可以发现默认的编码为<code>ANSI</code>,在简体中文的Windows系统中默认是<code>GBK</code>的编码</p>
+<p>这便是乱码的原因，解决方案有两种</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span>设置JVM启动项：-Dfile.encoding=GB2312</span><br><span class="line">  	——tomcat 的日志文件乱码，也可以修改这个配置解决，只不过是修改为-Dfile.encoding=UTF-<span class="number">8</span>(和idea保证一致)，一个原理</span><br><span class="line"><span class="number">2.</span>在编码<span class="keyword">byte</span>数组的时候，指定GB2312编码:String context = <span class="keyword">new</span> String(bytes,<span class="string">&quot;GB2312&quot;</span>);</span><br><span class="line"></span><br><span class="line">这里推荐第二种，毕竟UTF8更加通用</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-网页乱码"><a href="#2-网页乱码" class="headerlink" title="2.网页乱码"></a>2.网页乱码</h3><p>一般来说，浏览器浏览的网页的数据其实是从服务器发送过来的，而发送的数据是通过字节流传输，这个过程就涉及到解码-&gt;编码的过程。</p>
+<p>在HTTP协议中，编码的协议通过<code>Header</code>中的<code>charset</code>中设置。</p>
+<blockquote>
+<p>为什么放header，因为HTTP请求会先解析header，而且header一般不会有ASCII无法解析的字符，一般都是英文</p>
+</blockquote>
+<p>网页乱码其实很好解决，如果发现在Servlet中，返回中文给浏览器的时候浏览器返回的是???</p>
+<p>点击F12，抓包网络后，找到<code>Response Body</code> 中的<code>charset</code>选项，可以发现<code>charset=ISO-8859-1</code></p>
+<p>也就说默认的Tomcat使用的编码是<code>ISO-8859-1</code>，这是西欧的语言编码，它是不兼容中文的。如果你在<code>Servlet</code>返回的结果中添加一点法语：<code>Ä ä</code>或者德语什么的，你会发现会正常显示。</p>
+<p><code>charset</code>的意思便是Tomcat是以什么样的方式编码字节，而浏览器便会以这样的编码方式解码字节。</p>
+<p>我们可以将<code>charset</code>修改为兼容中文的即可，比如<code>UTf-8</code>,<code>GB2312</code>等,建议使用<code>UTF-8</code>，在Servlet中，设置编码的方式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.setCharacterEncoding(&quot;UTF-8&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>也可以如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">resp.setContentType(&quot;text&#x2F;html;charset&#x3D;UTF-8&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>建议第一种方式(在IDE中一般带有拼写检查)。</p>
+<h3 id="3-IDEA设置编码"><a href="#3-IDEA设置编码" class="headerlink" title="3.IDEA设置编码"></a>3.IDEA设置编码</h3><p>平时编写代码都是使用的IEDA，所以在此说明一下IDEA的编码设置，IDEA默认编码暂时没有找到查找方式，但是我们可以将其指定为<code>UTF-8</code>,找到IDEA的安装路径，在<code>bin</code>目录中可以发现一个名为<code>idea.exe.vmoptions</code>和<code>idea64.exe.vmoptions</code>选项，分别打开，添加<code>-Dfile.encoding=UTF-8</code>后，重启IDEA.</p>
+<p>完成上面两步后，再次启动Tomcat服务，你会发现日志已经正常。</p>
+<blockquote>
+<p>注：如果依然发现乱码，则可能是IDEA缓存了当前项目的编码设置，你可以在当前项目的.idea文件夹中找到encoding.xml文件，删除所有不是UTF-8的编码设置，重启IDEA即可。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B8%8E%E7%BC%96%E7%A0%81/" rel="tag"># 字符集与编码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/14/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/%E5%AD%97%E7%AC%A6%E9%9B%86%E7%BC%96%E7%A0%81%E9%97%AE%E9%A2%98/%E5%AD%97%E7%AC%A6%E9%9B%86/" rel="prev" title="字符集">
+      <i class="fa fa-chevron-left"></i> 字符集
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/14/%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF/RESTful/" rel="next" title="RESTful">
+      RESTful <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%96%87%E4%BB%B6%E4%B9%B1%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">1.文件乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BD%91%E9%A1%B5%E4%B9%B1%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">2.网页乱码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-IDEA%E8%AE%BE%E7%BD%AE%E7%BC%96%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">3.IDEA设置编码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1.用构造器确保初始化： 构造器：java中通过构造器，类设计者可确保每个对象都会得到初始化：在创建对象时，如果其类具有构造器，java就会在用户有能力操作对象之前自动调用相应的构造器，从而保证了初始化的进行。（即用构造器确保初始化）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA编程思想：五.初始化与清理">
+<meta property="og:url" content="http://zhangyuying.cn/2018/08/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%BA%94-%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E6%B8%85%E7%90%86/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="1.用构造器确保初始化： 构造器：java中通过构造器，类设计者可确保每个对象都会得到初始化：在创建对象时，如果其类具有构造器，java就会在用户有能力操作对象之前自动调用相应的构造器，从而保证了初始化的进行。（即用构造器确保初始化）">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-05T07:51:38.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.766Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Thinking in Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/08/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%BA%94-%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E6%B8%85%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA编程思想：五.初始化与清理 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/08/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E4%BA%94-%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E6%B8%85%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA编程思想：五.初始化与清理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-05 15:51:38" itemprop="dateCreated datePublished" datetime="2018-08-05T15:51:38+08:00">2018-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>1.用构造器确保初始化：</p>
+<p>构造器：java中通过构造器，类设计者可确保每个对象都会得到初始化：在创建对象时，如果其类具有构造器，java就会在用户有能力操作对象之前自动调用相应的构造器，从而保证了初始化的进行。（即用构造器确保初始化）</p>
+<span id="more"></span>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">例如：在创建对象时：</span><br><span class="line"><span class="keyword">new</span> Dog(); </span><br><span class="line">将会为对象分配存储空间（对象在堆上），并调用相应的构造器，这就确保了在你能操作对象之前，该对象已经被恰当的初始化了</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>构造器采用与类相同的名称（1.所起名称可能和类中其他成员方法冲突 2.调用构造器是编译器的责任，需要让编译器知道调用哪个方法）<ul>
+<li>由于构造器的名称必须和类名完全相同，所以<code>每个方法首字母小写</code> 的编码风格并不适用于构造器 </li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>不接受任何参数的构造器叫做 <code>默认构造器</code> === <code>无参构造器</code></p>
+<ul>
+<li>构造器可带有形式参数，以便指定如何创建对象（有了构造器形式参数，就可以在初始化对象时，提供实际参数）</li>
+</ul>
+</li>
+<li><p>概念上 <code>初始化</code> 和<code>创建</code> 是彼此独立的，在java中<code>初始化</code> 和<code>创建</code> 是捆绑在一起的，两者不能分离</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">例如：</span><br><span class="line">Dog dog=<span class="keyword">new</span> Dog()  创建并初始化（构造器保证的初始化，调用的无参构造器）</span><br><span class="line">或</span><br><span class="line">Dog dog=<span class="keyword">new</span> Dog(<span class="string">&quot;tom&quot;</span>)）  创建并初始化（构造器保证的初始化，调用的有参构造器）</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>构造器是一种特殊类型的方法，他没有返回值</p>
+<ul>
+<li><p>与返回值为空（void）明显不同，对于空返回值，尽管方法本身不会自动返回什么，但是可以选择让他返回别的东西</p>
+</li>
+<li><p>构造器则不会返回任何东西，别无选择（new 表达式确实返回了对新建对象的引用，单构造器本身并没有任何返回值）</p>
+<p>​</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>2.方法重载</p>
+<p>每个方法要有唯一的名称（同一个类中）</p>
+<ul>
+<li><p>为了让方法名相同而形式参数不同的构造器同时存在（构造器名称必须和类名相同），必须用到方法重载（即构造器是强制重载方法名的一个原因）</p>
+<ul>
+<li>尽管方法重载是构造器所必须的，他也可应用于其他方法</li>
+</ul>
+</li>
+<li><p>每个重载方法都必须有一个独一无二的参数列表（数量或是类型不同）</p>
+</li>
+<li><p>对于基本类型的重载：</p>
+<ul>
+<li>如果传入的数据类型（实际参数类型）小于方法中声明的形式参数类型，实际数据类型就会被提升</li>
+<li>char类型略有不同，如果无法找到恰好接受char类型参数的方法，就会把char类型直接提升至int型</li>
+<li>如果实际参数大于重载方法声明的形式参数：通过类型转化类执行窄化转化</li>
+</ul>
+</li>
+<li><p>不可以返回值区分重载方法</p>
+<ul>
+<li><p>方法的构造要素为：方法名和参数列表(<strong>不包括返回值</strong>)，因此重载只能由返回值来重载，无法通过返回值来重载方法</p>
+</li>
+<li><p>有时的调用不关心方法的返回值，想要方法的其他效果（常被称为<code>为了副作用而调用</code>）</p>
+<p>​</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>3.默认构造器</p>
+<p>如果类中没有构造器，编译器会自动创建一个默认构造器，但是如果已经定义了一个构造器（无论是否有参数），编译器就不会帮你自动创建默认构造器了</p>
+<p>4.this关键字</p>
+<p>编译器会暗自（幕后操作）把<code>所操作对象的引用</code> 作为第一个参数传递给所调用的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">即可理解为：</span><br><span class="line">方法：peel(<span class="keyword">int</span> i)</span><br><span class="line">a.peel（<span class="number">1</span>）  ————&gt; a.peel（a，<span class="number">1</span>） </span><br></pre></td></tr></table></figure>
+
+<p>现在希望在方法内部中获得当前对象的引用，有专门的关键字：this</p>
+<p>this关键字只能在方法内部使用，表示对<code>调用方法的那个对象</code> 的引用,只有需要明确指出当前对象的引用时，才需要使用this关键字</p>
+<ul>
+<li>一个类中有多个构造器，想在一个构造器中调用另一个构造器（避免重复代码），可使用this关键字<ul>
+<li>可以用this调用一个构造器，却不能调用两个，而且必须将构造器调用置于最起始处，否则编译报错</li>
+<li>除了构造器之外，编译器禁止在其他任何地方调用构造器</li>
+</ul>
+</li>
+<li>一个方法中参数名称和该类中的成员名称相同，可使用this.name，代表类的成员名称，将两者区分</li>
+</ul>
+<p><strong>static方法就是没有this的方法</strong></p>
+<p>5.清理：终结处理和垃圾回收</p>
+<ul>
+<li>对象可能不被垃圾回收</li>
+<li>垃圾回收不等于析构</li>
+<li>垃圾回收只与内存有关：垃圾回收是为了回收程序不在使用的内存</li>
+</ul>
+<p>垃圾回收器：</p>
+<ul>
+<li>找到垃圾<ul>
+<li>引用计数法(有循环引用问题)</li>
+<li>追溯引用法</li>
+</ul>
+</li>
+<li>处理垃圾<ul>
+<li>停止-复制法</li>
+<li>标记-清扫法</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>一般更多的是将他们结合起来，大对象标记，小对象复制</p>
+</blockquote>
+<p>6.成员初始化</p>
+<p>对于方法中的局部变量，没有初始化便使用的话，编译器会报错</p>
+<p>类的数据成员（字段）是基本类型时，每个基本类型数据成员保证都会有一个初始值（char为0，会显示为空白）</p>
+<p>在类中定义一个引用时，如果不将其初始化，此引用会获得一个特殊值：null</p>
+<p>指定初始化===为类中某个变量初始化</p>
+<ul>
+<li><p>1.可以在定义类成员变量的地方为其赋值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">Dog</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> age = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">double</span> weight = <span class="number">25</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>2.通过某个方法来提供初值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">Dog</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> age = f();</span><br><span class="line">  f()&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>这个方法也可以带有参数，但这些参数必须也是已经初始化了的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">Dog</span><span class="params">()</span></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> age = f();       <span class="comment">//(1)语句1</span></span><br><span class="line">  <span class="keyword">int</span> weight= f2(age)  <span class="comment">//(2)语句2</span></span><br><span class="line">  </span><br><span class="line">  f()&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  f2(<span class="keyword">int</span> i)&#123;</span><br><span class="line">    <span class="keyword">return</span> i * <span class="number">10</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果将上述程序<code>语句1</code>和<code>语句2</code> 互换位置，便会报错，因为初始化的顺序导致  f2()中使用的参数为被初始化</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>构造器初始化</p>
+<p>可以使用构造器进行初始化：<strong>无法阻止自动初始化的进行，自动初始化将在构造器被调用之前发生</strong>（自动初始化引用的对象在不被使用的时候或被丢弃，并作为垃圾回收）</p>
+<p>初始化的顺序：</p>
+<ul>
+<li>在类的内部，变量定义的先后顺序决定了初始化的顺序，即使变量定义散布在方法定义之间，他们仍然会在任何方法（包括构造器）被调用之前得到初始化</li>
+</ul>
+<p>静态初始化：</p>
+<ul>
+<li><p>无论创建多少个对象，<strong>静态数据都只占用一份存储区域</strong> </p>
+</li>
+<li><p>static关键字不能应用于局部变量，因此只能作用于域，如果一个域是静态的基本类型域，且也没有对她进行初始化，那么他会获得基本类型的标准初值，如果是对象引用，默认初始值是null</p>
+</li>
+<li><p>静态初始化只有在必要时刻才会进行：只有在第一个对象被创建，或者第一次访问静态数据的时候，他们才会被初始化，此后，静态对象不会被再次初始化</p>
+</li>
+<li><p>初始化的顺序是先静态对象，而后是非静态对象</p>
+</li>
+<li><p>*对象的创建过程**：假设有个<code>Dog</code>类</p>
+</li>
+</ul>
+<ul>
+<li>1.第一次访问<code>Dog</code>的静态方法（构造函数可看成静态方法）或者静态对象的时候，Java 解释器会先查找<code>Dog</code>类的路径，以定位Dog.class文件</li>
+<li>2.JVM会载入<code>Dog.class</code>，并按定义顺序初始化所有<code>静态</code>变量</li>
+<li>3.当使用<code>new Dog()</code>创建对象的时候，首先在堆上分配足够的存储空间</li>
+<li>4.将分配的存储空间清零并将对象所有的成员自动初始化（将所有成员内存设为二进制零值而一举生成的）</li>
+<li>5.执行所有出现在字段定义的时候的初始化操作</li>
+<li>6.执行构造函数</li>
+</ul>
+<p>显示的静态初始化===多个静态初始化动作===静态块</p>
+<ul>
+<li>静态块内的数据与其他静态初始化动作一样</li>
+</ul>
+<p>非静态示例初始化：</p>
+<ul>
+<li><p>实例初始化：用来初始化每一个对象的非静态变量</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">示例初始化：</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Mug</span>()</span>&#123;</span><br><span class="line">  Mug(<span class="keyword">int</span> i)&#123;</span><br><span class="line">    print(<span class="string">&quot;Mug&quot;</span> + i);</span><br><span class="line">  &#125;</span><br><span class="line">  f(<span class="keyword">int</span> i)&#123;</span><br><span class="line">    print(<span class="string">&quot;Mug f &quot;</span> + i);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">Mugs</span><span class="params">()</span></span>&#123;</span><br><span class="line">  Mug mug1;</span><br><span class="line">  Mug mug2;</span><br><span class="line">  <span class="comment">//实例初始化语句</span></span><br><span class="line">  &#123;</span><br><span class="line">    mug1=<span class="keyword">new</span> Mug(<span class="number">1</span>);</span><br><span class="line">    mug2=<span class="keyword">new</span> Mug(<span class="number">2</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  Mugs()&#123;</span><br><span class="line">    print(<span class="string">&quot;Mugs&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>实例初始化的语法对于支持 匿名内部类 的初始化是必须的</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>* 实例初始化字句是在构造器之前执行的</code></pre>
+<p>8.数组初始化</p>
+<p>数组只是相同类型的、用同一个标识符名称封装到一起的一个对象序列活基本类型序列</p>
+<p>数组是通过方括号下标操作符[]来定义和使用的</p>
+<ul>
+<li><p>数组的定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[] a  <span class="comment">//推荐</span></span><br><span class="line">或</span><br><span class="line"><span class="keyword">int</span> a[]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>上述语句只是拥有数据的一个引用（已经为该引用分配了足够的存储空间），但是没有给数据对象本身分配任何空间</p>
+</li>
+<li><p>为了给数组对象创建相应的存储空间，必须写初始化表达式</p>
+<ul>
+<li><p>特殊初始化：在创建数组的地方出现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[] a = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>在java中可以将一个数组赋值给另一个数组：<strong>其实真正做的只是复制了一个引用</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[] a1;</span><br><span class="line">a1 = a;</span><br><span class="line">现在我修改 a1[<span class="number">0</span>] = <span class="number">5</span> 那么 a[<span class="number">0</span>] = <span class="number">5</span> (a[<span class="number">0</span>]也是等于<span class="number">5</span>因为复制的是引用)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>不能确定数组中有多少个元素的初始化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Random rand=<span class="keyword">new</span> Random(<span class="number">47</span>)</span><br><span class="line"><span class="keyword">int</span>[] a = <span class="keyword">new</span> <span class="keyword">int</span>[rand.nextInt(<span class="number">20</span>)] <span class="comment">//基本类型，定义的同时自动初始化，内部20个0</span></span><br><span class="line">Integer[] a2 =<span class="keyword">new</span> Integer[rand.nextInt(<span class="number">20</span>)]  <span class="comment">//非基本类型的数组自动初始化，内部20个null</span></span><br></pre></td></tr></table></figure>
+
+<p>因为是随机数，数据的创建是在运行时创建的</p>
+</li>
+<li><p>也可以用花括号括起来的列表来初始化<code>对象</code>数组</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//只用用于数组被定义的地方</span></span><br><span class="line">Integer[] a = &#123;</span><br><span class="line">  <span class="keyword">new</span> Integer(<span class="number">1</span>),</span><br><span class="line">  <span class="keyword">new</span> Integer(<span class="number">2</span>),</span><br><span class="line">  <span class="number">3</span> <span class="comment">//自动装箱</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//可以任何地方使用 ：例如：提供参数使用：f(new String[]&#123;&quot;one&quot;,&quot;two&quot;&#125;)</span></span><br><span class="line">Ingteger b = <span class="keyword">new</span> Integer[] &#123;</span><br><span class="line">  <span class="keyword">new</span> Integer(<span class="number">1</span>),</span><br><span class="line">  <span class="keyword">new</span> Integer(<span class="number">2</span>),</span><br><span class="line">  <span class="number">3</span> <span class="comment">//自动装箱</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>所有数组都有一个固有成员：length :可以通过他获取数组有多少元素，但是不能修改。</p>
+<ul>
+<li>java 数据从0元素开始，所能使用的最大下标是 length-1</li>
+</ul>
+</li>
+<li><p>可变参数列表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">printArray(Object... args)&#123;</span><br><span class="line">  <span class="comment">//content</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当传入指定参数时，编译器会将参数填充为数组（所以直接传递数组也是可以的）</li>
+<li>将0个参数传递给可变参数列表是可行的</li>
+</ul>
+</li>
+</ul>
+<p>9.枚举类型</p>
+<p><strong>enum关键字</strong> javaSE5添加</p>
+<p>在创建enum时，编辑器会自动添加一些有用的特性:</p>
+<ul>
+<li>toString()</li>
+<li>ordinal():标识某个特定enum常量的声明顺序</li>
+<li>static values() :按照enum常量的声明顺序，产生由这些常量值构成的数组</li>
+</ul>
+<p><strong>enum和switch是绝佳组合</strong></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AThinking-in-Java%E3%80%8B/" rel="tag"># 《Thinking in Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%9B%9B-%E6%8E%A7%E5%88%B6%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/" rel="prev" title="JAVA编程思想：四.控制执行流程">
+      <i class="fa fa-chevron-left"></i> JAVA编程思想：四.控制执行流程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/06/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E9%87%8D%E6%9E%84,%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1/%E9%87%8D%E6%9E%84-%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%85%AB-%E9%87%8D%E6%96%B0%E7%BB%84%E7%BB%87%E6%95%B0%E6%8D%AE/" rel="next" title="重构-改善既有代码的设计：八.重新组织数据">
+      重构-改善既有代码的设计：八.重新组织数据 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

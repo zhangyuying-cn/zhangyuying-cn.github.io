@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Nginx是一个事件驱动的框架(Event Driven Architecture，EDA)。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx事件">
+<meta property="og:url" content="http://zhangyuying.cn/2019/08/29/nginx/nginx%E4%BA%8B%E4%BB%B6/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Nginx是一个事件驱动的框架(Event Driven Architecture，EDA)。">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E6%8A%A5%E6%96%87.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E5%BE%AA%E7%8E%AF%E5%A4%84%E7%90%86%E4%BA%8B%E4%BB%B6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%B6%88%E8%B4%B9%E5%99%A8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E8%AF%B7%E6%B1%82%E5%88%87%E6%8D%A2.png">
+<meta property="article:published_time" content="2019-08-29T11:33:39.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.755Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Nginx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/08/29/nginx/nginx%E4%BA%8B%E4%BB%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Nginx事件 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/08/29/nginx/nginx%E4%BA%8B%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nginx事件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-08-29 19:33:39" itemprop="dateCreated datePublished" datetime="2019-08-29T19:33:39+08:00">2019-08-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Nginx/" itemprop="url" rel="index"><span itemprop="name">Nginx</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Nginx是一个事件驱动的框架(<code>Event Driven Architecture</code>，EDA)。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>什么是事件驱动框架呢？</p>
+<p>一个事件驱动框架（EDA）定义了设计和实现一个应用系统的方法学，在这个系统里事件可传输于松散耦合的组件和服务之间。一个典型的事件驱动系统由事件消费者和事件产生者组成。</p>
+<ul>
+<li>事件消费者向事件管理器订阅事件，</li>
+</ul>
+<ul>
+<li>事件产生者向事件管理器发布事件。</li>
+</ul>
+<p>当事件管理器从事件产生者那接收到一个事件时，事件管理把这个事件转送给相应的事件消费者。</p>
+</blockquote>
+<p>而Nginx中所谓事件，主要指的是网络事件，即事件可以理解为一次网络传输</p>
+<p>Nginx的每一个连接会自然对应两个网络事件</p>
+<ul>
+<li>一个读事件：nginx读取到一个报文，即为一个读事件</li>
+<li>一个写事件：nginx需要向浏览器发送一个响应时，需要把消息写到操作系统中，要求操作系统发到网络中，这样就是一个写事件</li>
+</ul>
+<blockquote>
+<p>事件：在网络传输中，客户端和服务器通过三次握手连接后即可发送报文，产生事件</p>
+<p>可以理解为网络中的一次传输(参照网络传输简介)，一次网络传输对于nginx来说就是一次事件，包括客户端到服务器的(Nginx的读事件)，也包括服务器到客户端的(Nginx的写事件)</p>
+</blockquote>
+<h4 id="网络传输简介："><a href="#网络传输简介：" class="headerlink" title="网络传输简介："></a>网络传输简介：</h4><p>网络五层模型：应用层—传输层—网络层—链路层—物理层</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93.png" alt="网络传输"></p>
+<p>上述网络传输中的报文是什么格式呢？</p>
+<p>报文是网络中交换与传输的数据单元，即站点一次性要发送的数据块，报文包含了将要发送的完整的数据信息，其长短很不一致，长度不限且可变，报文在传输过程中会不断地封装成包、帧等来传输，封装的方式就是添加一些控制信息组成的首部，那些就是报文头。</p>
+<p>报文：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E6%8A%A5%E6%96%87.png" alt="报文"></p>
+<h4 id="Nginx对事件的处理"><a href="#Nginx对事件的处理" class="headerlink" title="Nginx对事件的处理"></a>Nginx对事件的处理</h4><blockquote>
+<p>个人理解Nginx中的事件处理大致流程为：</p>
+<ol>
+<li>从OS中遍历活跃连接链表获取连接(epoll)(连接即网络传输，即获取报文) </li>
+<li>分析连接产生的事件后，放到红黑树中(epoll)</li>
+<li>拿到事件进行循环，找到每个事件对应的消费者进行处理[对事件的处理是请求切换不是进程切换]  </li>
+</ol>
+</blockquote>
+<p>Nginx是基于事件驱动的框架，在Nginx中是对事件队列进行循环处理的：在操作系统内核中取出事件队列，之后进行循环处理，如下图所示</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E5%BE%AA%E7%8E%AF%E5%A4%84%E7%90%86%E4%BA%8B%E4%BB%B6.png" alt="Nginx循环处理事件"></p>
+<p>在上述事件循环处理中，有一个问题：Nginx如何快速的从操作系统中获取到等待处理的事件队列呢(即事件队列是如何生产的)？</p>
+<p>Nginx为了解决这个问题，采用的是<code>epoll</code> 这个网络事件收集器的模型，<code>epoll</code>只维护活跃的连接，所以Nginx遍历的是活跃连接的链表，以此减少对不活跃连接处理的消耗，且建立连接之后，Nginx产生和删除事件使用的是红黑树，保证了增加和删除的复杂度均为<code>O(log n)</code></p>
+<blockquote>
+<p>epoll是Linux内核为处理大批量文件描述符而作了改进的poll，是Linux下多路复用IO接口select/poll的增强版本，</p>
+<blockquote>
+<p>poll是Linux中的字符设备驱动中的一个函数。Linux 2.5.44版本后，poll被epoll取代，poll的作用是把当前的文件指针挂到等待队列。</p>
+</blockquote>
+<p>它能显著提高程序在大量并发连接中只有少量活跃的情况下的系统CPU利用率。</p>
+<p>最重要的就是获取事件的时候，它无须遍历整个被侦听的描述符集，只要遍历那些被内核IO事件异步唤醒而加入Ready队列的描述符集合就行了。</p>
+<p>epoll除了提供select/poll那种IO事件的水平触发（Level Triggered）外，还提供了边缘触发（Edge Triggered），这就使得用户空间程序有可能缓存IO状态，减少epoll_wait/epoll_pwait的调用，提高应用程序效率。</p>
+</blockquote>
+<p>Nginx（或其他异步事件处理框架）对于每个事件的处理：都会存在一个事件收集分发器(EDA中的事件管理器)，来对事件进行分发处理</p>
+<p>事件收集分发器：定义每类事件处理的消费者，网络将事件生产到Nginx中，而Nginx中的事件收集分发器建立事件对应的消费者，如下图</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%B6%88%E8%B4%B9%E5%99%A8.png" alt="Nginx事件收集分发"></p>
+<p>事件驱动框架带来的增益：</p>
+<p>请求切换场景：基于事件驱动的服务器，无需为每一个请求创建额外的对应线程，减少线程切换的消耗</p>
+<ul>
+<li>传统的服务(比如apache、tomcat)对请求的处理为：一个进程一个请求，依赖OS的进程调度实现，当一个进程在处理请求的时候遇到阻碍，会在内核态切换成其它进程处理其他请求，此时就会产生很大的消耗</li>
+<li>而Nginx是：一个进程同时处理多个请求，当进程上的一个请求遇到阻碍，则直接在用户态切换请求(不在切换进程)，继续处理，不会产生进程切换的消耗</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Nginx/Nginx%E8%AF%B7%E6%B1%82%E5%88%87%E6%8D%A2.png" alt="Nginx请求切换"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nginx/" rel="tag"># Nginx</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/23/nginx/nginx%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1/" rel="prev" title="Nginx父子进程通信">
+      <i class="fa fa-chevron-left"></i> Nginx父子进程通信
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/09/02/nginx/Nginx%E7%9A%84%E6%A8%A1%E5%9D%97/" rel="next" title="Nginx的模块">
+      Nginx的模块 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E7%AE%80%E4%BB%8B%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">网络传输简介：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Nginx%E5%AF%B9%E4%BA%8B%E4%BB%B6%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">Nginx对事件的处理</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Redis-ZSet操作命令  命令参数说明  分数(score) score 值可以是整数值或双精度浮点数，score 可为正也可以为负。  索引（index）：  0表示第一个，1表示第二个，以此往后推 -1表示列表的最后一个，-2表示倒数第二个，以此往前推   是否带分数返回(WITHSCORES) 可选的 WITHSCORES 参数决定结果集是单单返回有序集的成员，还是将有序集成员及其 s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-ZSet命令">
+<meta property="og:url" content="http://zhangyuying.cn/2022/06/28/Redis/Redis-ZSet%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Redis-ZSet操作命令  命令参数说明  分数(score) score 值可以是整数值或双精度浮点数，score 可为正也可以为负。  索引（index）：  0表示第一个，1表示第二个，以此往后推 -1表示列表的最后一个，-2表示倒数第二个，以此往前推   是否带分数返回(WITHSCORES) 可选的 WITHSCORES 参数决定结果集是单单返回有序集的成员，还是将有序集成员及其 s">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-06-28T08:01:48.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.750Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2022/06/28/Redis/Redis-ZSet%E5%91%BD%E4%BB%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Redis-ZSet命令 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2022/06/28/Redis/Redis-ZSet%E5%91%BD%E4%BB%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis-ZSet命令
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-28 16:01:48" itemprop="dateCreated datePublished" datetime="2022-06-28T16:01:48+08:00">2022-06-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>Redis-ZSet操作命令</strong></p>
+<blockquote>
+<p>命令参数说明</p>
+<ol>
+<li><p>分数(<code>score</code>)</p>
+<p><code>score</code> 值可以是整数值或双精度浮点数，<code>score</code> 可为正也可以为负。</p>
+</li>
+<li><p>索引（<code>index</code>）：</p>
+<ul>
+<li><code>0</code>表示第一个，<code>1</code>表示第二个，以此往后推</li>
+<li><code>-1</code>表示列表的最后一个，<code>-2</code>表示倒数第二个，以此往前推</li>
+</ul>
+</li>
+<li><p>是否带分数返回(<code>WITHSCORES</code>)</p>
+<p>可选的 <code>WITHSCORES</code> 参数决定结果集是单单返回有序集的成员，还是将有序集成员及其 <code>score</code> 值一起返回</p>
+</li>
+</ol>
+</blockquote>
+<h4 id="设置和获取操作"><a href="#设置和获取操作" class="headerlink" title="设置和获取操作"></a>设置和获取操作</h4><h5 id="zadd、zrange、zrevrange"><a href="#zadd、zrange、zrevrange" class="headerlink" title="zadd、zrange、zrevrange"></a>zadd、zrange、zrevrange</h5><blockquote>
+<p>= 2.4: 支持一次增加或更新多个成员。<br>= 3.0.2: 增加 XX, NX, CH 和 INCR 选项。<br>=6.2: 增加 GT 和 LT 选项。</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zadd key  [nx|xx] [gt|lt] [ch] [incr] score1 member1 [score2 member2...] :用于将一个或多个成员添加到有序集合中，或者更新已存在成员的 score值</span></span><br><span class="line"><span class="comment"># 参数说明 :</span></span><br><span class="line"><span class="comment"># (1)NX: 不更新存在的成员。只添加新成员。 XX: 仅更新存在的成员，不添加新成员。</span></span><br><span class="line"><span class="comment"># (2)GT: 更新新的分值比当前分值大的成员，不存在则新增。 LT: 更新新的分值比当前分值小的成员，不存在则新增。</span></span><br><span class="line"><span class="comment"># (3)CH: 返回变更成员的数量。变更的成员是指 新增成员 和 score值更新的成员，命令指明的和之前score值相同的成员不计在内。 注意: 在通常情况下，ZADD返回值只计算新添加成员的数量。</span></span><br><span class="line"><span class="comment"># (4)INCR: ZADD 使用该参数与 ZINCRBY 功能一样。一次只能操作一个score-element对。</span></span><br><span class="line"><span class="comment"># 注意: GT, LT 和 NX 三者互斥不能同时使用</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value1&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="comment"># zrange key start stop [WITHSCORES] :返回有序集合中指定索引区间内的成员,分数由低到高(由小到大)，具有相同分数值的成员按字典序(lexicographical order)来排列</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">withscores</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br><span class="line"><span class="comment"># zrevrange key start stop [WITHSCORES]	:返回有序集中指定索引区间内的成员，分数从高到低。具有相同score值的成员按字典序的反序排列,除了顺序，和zrang命令相同</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zincby"><a href="#zincby" class="headerlink" title="zincby"></a>zincby</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zincrby key increment member :为key的成员member的score值加上增量increment。key不存在或者member不存在则直接增加，increment可以为负数</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">withscores</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zincrby</span> <span class="string">key1</span> <span class="number">5</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">7</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">withscores</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;7&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zrangebylex、zrangebuscore、zrevrangebylex、zrevrangebyscore"><a href="#zrangebylex、zrangebuscore、zrevrangebylex、zrevrangebyscore" class="headerlink" title="zrangebylex、zrangebuscore、zrevrangebylex、zrevrangebyscore"></a>zrangebylex、zrangebuscore、zrevrangebylex、zrevrangebyscore</h5><blockquote>
+<p>zrevrangebylex除了返回参数的顺序不同，和zrangebylex相同</p>
+<p>zrevrangebyscore除了返回参数的顺序不同，和zrangebuscore相同</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zrangebylex key min max [LIMIT offset count] :返回有序集中指定字典区间内的成员。</span></span><br><span class="line"><span class="comment"># min和max:</span></span><br><span class="line"><span class="comment"># （1）min和max可以是-和+，传入-和+就可以获取所有成员。</span></span><br><span class="line"><span class="comment"># （2）min和max为字母是必须以(或者[开头。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;a&quot;</span> <span class="number">2</span> <span class="string">&quot;b&quot;</span> <span class="number">3</span> <span class="string">&quot;c&quot;</span> <span class="number">4</span> <span class="string">&quot;d&quot;</span> </span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebylex</span> <span class="string">key1</span> <span class="string">(a</span> <span class="string">(c</span></span><br><span class="line"><span class="string">&quot;b&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebylex</span> <span class="string">key1</span> <span class="bullet">-</span> [<span class="string">c</span></span><br><span class="line"><span class="string">&quot;a&quot;</span></span><br><span class="line"><span class="string">&quot;b&quot;</span></span><br><span class="line"><span class="string">&quot;c&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebylex</span> <span class="string">key1</span> <span class="bullet">-</span> <span class="string">+</span></span><br><span class="line"><span class="string">&quot;a&quot;</span></span><br><span class="line"><span class="string">&quot;b&quot;</span></span><br><span class="line"><span class="string">&quot;c&quot;</span></span><br><span class="line"><span class="string">&quot;d&quot;</span></span><br><span class="line"><span class="comment"># zreveangebylex key max min [LIMIT offset count] :除了相反的顺序外，和zrangebylex命令相同</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebylex</span> <span class="string">key1</span> <span class="string">(c</span> <span class="string">(a</span></span><br><span class="line"><span class="string">&quot;b&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebylex</span> <span class="string">key1</span> <span class="string">+</span> [<span class="string">c</span></span><br><span class="line"><span class="string">&quot;d&quot;</span></span><br><span class="line"><span class="string">&quot;c&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebylex</span> <span class="string">key1</span> <span class="string">+</span> <span class="bullet">-</span></span><br><span class="line"><span class="string">&quot;d&quot;</span></span><br><span class="line"><span class="string">&quot;c&quot;</span></span><br><span class="line"><span class="string">&quot;b&quot;</span></span><br><span class="line"><span class="string">&quot;a&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># zrangebyscore key min max [WITHSCORES] [LIMIT offset count] :返回有序集合中指定分数区间内的成员。成员按score(包含等于min和max)值递增(从小到大)排列。</span></span><br><span class="line"><span class="comment"># min和max:</span></span><br><span class="line"><span class="comment"># （1）min和 max可以是-inf和+inf，传入-inf和+inf就可以获取所有成员</span></span><br><span class="line"><span class="comment"># （2）默认情况下，区间的取值使用闭区间 (小于等于或大于等于)，可以通过给参数前增加(符号来使用可选的开区间 (小于或大于)。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span> <span class="number">4</span> <span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebyscore</span> <span class="string">key2</span> <span class="string">(1</span> <span class="number">3</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebyscore</span> <span class="string">key2</span> <span class="string">-inf</span> <span class="string">+inf</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrangebyscore</span> <span class="string">key2</span> <span class="string">-inf</span> <span class="string">+inf</span> <span class="string">WITHSCORES</span> <span class="string">LIMIT</span> <span class="number">2</span> <span class="number">2</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;4&quot;</span></span><br><span class="line"><span class="comment"># zrevrangebyscore key max min [WITHSCORES]	除了相反的顺序外，和zrangebuscore命令相同。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span> <span class="number">4</span> <span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebyscore</span> <span class="string">key2</span> <span class="number">3</span> <span class="string">(1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebyscore</span> <span class="string">key2</span> <span class="string">+inf</span> <span class="string">-inf</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrangebyscore</span> <span class="string">key2</span> <span class="string">+inf</span> <span class="string">-inf</span> <span class="string">WITHSCORES</span> <span class="string">LIMIT</span> <span class="number">2</span> <span class="number">2</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;2&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">4</span><span class="string">)</span> <span class="string">&quot;1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zscore"><a href="#zscore" class="headerlink" title="zscore"></a>zscore</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zscore key member :返回key中成员member的分数值,如果key不存在或者member不存在，返回nil</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zscore</span> <span class="string">key1</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zscore</span> <span class="string">key1</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">(nil)</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zrank、zrevrank"><a href="#zrank、zrevrank" class="headerlink" title="zrank、zrevrank"></a>zrank、zrevrank</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zrank key member :返回有序集合中指定成员的排名。其中有序集成员按score值从低到高排序,最低为0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">10</span> <span class="string">&quot;value1&quot;</span> <span class="number">20</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrank</span> <span class="string">key1</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="comment"># zrevrank key member	:返回有序集合中指定成员的排名，其中有序集成员按分数值从高到低排序，最低为0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrevrank</span> <span class="string">key1</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zscan"><a href="#zscan" class="headerlink" title="zscan"></a>zscan</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zscan key cursor [MATCH pattern] [COUNT count] :迭代有序集合中的元素（包括元素成员和元素分值）</span></span><br><span class="line"><span class="comment"># 参数说明：cursor:游标，pattern:正则，count：数量</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value11&quot;</span> <span class="number">2</span> <span class="string">&quot;value12&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zscan</span> <span class="string">key1</span> <span class="number">0</span> <span class="string">match</span> <span class="string">&quot;value1*&quot;</span> <span class="string">count</span> <span class="number">1</span></span><br><span class="line"><span class="string">&quot;0&quot;</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zscan</span> <span class="string">key1</span> <span class="number">0</span> <span class="string">match</span> <span class="string">&quot;value1*&quot;</span> <span class="string">count</span> <span class="number">5</span></span><br><span class="line"><span class="string">&quot;0&quot;</span></span><br><span class="line"><span class="number">1</span><span class="string">)</span> <span class="string">&quot;value11&quot;</span></span><br><span class="line"><span class="number">2</span><span class="string">)</span> <span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="number">3</span><span class="string">)</span> <span class="string">&quot;value12&quot;</span></span><br><span class="line"><span class="number">4</span><span class="string">)</span> <span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="判断操作"><a href="#判断操作" class="headerlink" title="判断操作"></a>判断操作</h4><h5 id="zcard"><a href="#zcard" class="headerlink" title="zcard"></a>zcard</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zcard key	获取有序集合中成员的数量</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zcard</span> <span class="string">key1</span> </span><br><span class="line"><span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zcount、zlexcount"><a href="#zcount、zlexcount" class="headerlink" title="zcount、zlexcount"></a>zcount、zlexcount</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zcount key min max :返回有序集key中，score值在min和max 之间(默认包括score值等于min或max)的成员的数量。参数min和max的详细使用方法，和zrangebyscore相同.</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zcount</span> <span class="string">key1</span> <span class="string">(1</span> <span class="number">3</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zcount</span> <span class="string">key1</span> <span class="string">-inf</span> <span class="string">+inf</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="comment"># zlexcount key min max :当有序集中的所有成员都有相同的score,zlexcount命令返回有序集中值在min和max之间的成员个数。</span></span><br><span class="line"><span class="comment"># 参数min和max的详细使用方法，和zrangebylex相同。时间复杂度: O(log(N))。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">0</span> <span class="string">&quot;a&quot;</span> <span class="number">0</span> <span class="string">&quot;b&quot;</span> <span class="number">0</span> <span class="string">&quot;c&quot;</span> <span class="number">0</span> <span class="string">&quot;d&quot;</span> <span class="number">0</span> <span class="string">&quot;e&quot;</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zlexcount</span> <span class="string">key2</span> [<span class="string">b</span> [<span class="string">f</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zlexcount</span> <span class="string">key2</span> <span class="bullet">-</span> <span class="string">+</span></span><br><span class="line"><span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="集合操作"><a href="#集合操作" class="headerlink" title="集合操作"></a>集合操作</h4><h5 id="zinterstore、zinter"><a href="#zinterstore、zinter" class="headerlink" title="zinterstore、zinter"></a>zinterstore、zinter</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zintserstore destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX] :计算numkeys个有序集合的交集，并且把结果放到destination中,在给定要计算的key和其它参数之前，必须先给定key个数(numberkeys)。默认情况下，结果集中元素的分数是各有序集合中该元素分数之和。如果destination存在，会被覆盖，返回destination中元素个数。</span></span><br><span class="line"><span class="comment"># WEIGHTS:可以为每个给定的有序集指定一个乘法因子，意思就是，每个给定有序集的所有成员的score值在传递给聚合函数之前都要先乘以该因子。如果WEIGHTS没有给定，默认是1</span></span><br><span class="line"><span class="comment"># AGGREGATE:可以指定并集的结果集的聚合方式。默认使用的参数SUM，可以将所有集合中某个成员的score值之和作为结果集中该成员的score值。如果使用参数MIN或者MAX，结果集就是所有集合中该元素最小或最大score。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">1</span> <span class="string">&quot;value3&quot;</span> <span class="number">3</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key3</span> <span class="number">4</span> <span class="string">&quot;value4&quot;</span> <span class="number">5</span> <span class="string">&quot;value5&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;4&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zinterstore</span> <span class="string">key3</span> <span class="number">2</span> <span class="string">key1</span> <span class="string">key2</span>  </span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br><span class="line"><span class="comment"># zinter numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX] [WITHSCORES] :命令类似于 ZINTERSTORE,不同的是他不存储结果集，而是把结果集返回给客户端。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zinter</span> <span class="number">2</span> <span class="string">key1</span> <span class="string">key2</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zunionstore、zunion"><a href="#zunionstore、zunion" class="headerlink" title="zunionstore、zunion"></a>zunionstore、zunion</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zunionstore destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]:计算给定的numkeys个有序集合的并集，并且把结果放到destination中,在给定要计算的key和其它参数之前，必须先给定key个数(numkeys)。默认情况下，结果集中元素的分数是各有序集合中该元素分数之和。如果destination存在，会被覆盖，返回destination中元素个数。</span></span><br><span class="line"><span class="comment"># WEIGHTS:可以为每个给定的有序集指定一个乘法因子，意思就是，每个给定有序集的所有成员的score值在传递给聚合函数之前都要先乘以该因子。如果WEIGHTS没有给定，默认是1</span></span><br><span class="line"><span class="comment"># AGGREGATE:可以指定并集的结果集的聚合方式。默认使用的参数SUM，可以将所有集合中某个成员的score值之和作为结果集中该成员的score值。如果使用参数MIN或者MAX，结果集就是所有集合中该元素最小或最大score。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">1</span> <span class="string">&quot;value3&quot;</span> <span class="number">3</span> <span class="string">&quot;value2&quot;</span> <span class="number">3</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key3</span> <span class="number">4</span> <span class="string">&quot;value4&quot;</span> <span class="number">5</span> <span class="string">&quot;value5&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;4&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zunionstore</span> <span class="string">key3</span> <span class="number">2</span> <span class="string">key1</span> <span class="string">key2</span>  </span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br><span class="line"><span class="comment"># zunion numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX] [WITHSCORES]:命令类似于zunionstore,不同的是他不存储结果集，而是把结果集返回给客户端。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zunion</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h4><h5 id="zrem"><a href="#zrem" class="headerlink" title="zrem"></a>zrem</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zrem key member [member ...] :从有序集合key中删除指定的成员member。返回删除的元素个数，key或者member返回0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span> </span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrem</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrem</span> <span class="string">key1</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zremrangebylex"><a href="#zremrangebylex" class="headerlink" title="zremrangebylex"></a>zremrangebylex</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zremrangebylex key min max	:删除成员名称按字典由低到高排序介于min和 max 之间的所有成员（集合中所有成员的分数相同）</span></span><br><span class="line"><span class="comment"># 参数min和max的详细使用方法，和zrangebylex相同。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key2</span> <span class="number">1</span> <span class="string">&quot;a&quot;</span> <span class="number">2</span> <span class="string">&quot;b&quot;</span> <span class="number">3</span> <span class="string">&quot;c&quot;</span> <span class="number">4</span> <span class="string">&quot;d&quot;</span> <span class="number">5</span> <span class="string">&quot;e&quot;</span> </span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zremrangebylex</span> <span class="string">key2</span> [<span class="string">b</span> <span class="string">(e</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key2</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;a&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;e&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zremrangebyrank"><a href="#zremrangebyrank" class="headerlink" title="zremrangebyrank"></a>zremrangebyrank</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zremrangebyrank key start stop :移除有序集key中，指定排名(rank)区间 start 和 stop 内的所有成员。下标参数start和stop都是从0开始计数，0是分数最小的那个元素。索引也可是负数，表示位移从最高分处开始数。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key3</span> <span class="number">10</span> <span class="string">&quot;value1&quot;</span> <span class="number">20</span> <span class="string">&quot;value2&quot;</span>  <span class="number">30</span> <span class="string">&quot;value3&quot;</span>  <span class="number">40</span> <span class="string">&quot;value4&quot;</span>  <span class="number">50</span> <span class="string">&quot;value5&quot;</span> </span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zremrangebyrank</span> <span class="string">key3</span> <span class="number">1</span> <span class="number">3</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key3</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;10&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="string">&quot;50&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="zremrangebyscore"><a href="#zremrangebyscore" class="headerlink" title="zremrangebyscore"></a>zremrangebyscore</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># zremrangebyscore key min max :移除有序集key中，所有score值介于min和max之间(包括等于min或max)的成员。</span></span><br><span class="line"><span class="comment"># 参数min和max的详细使用方法，和zrangebyscore相同。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zadd</span> <span class="string">key4</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span> <span class="number">2</span> <span class="string">&quot;value2&quot;</span>  <span class="number">3</span> <span class="string">&quot;value3&quot;</span>  <span class="number">4</span> <span class="string">&quot;value4&quot;</span>  <span class="number">5</span> <span class="string">&quot;value5&quot;</span> </span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zremrangebyscore</span> <span class="string">key4</span> <span class="number">2</span> <span class="number">4</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">zrange</span> <span class="string">key4</span> <span class="number">0</span> <span class="number">-1</span> <span class="string">WITHSCORES</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;1&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="string">&quot;5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://www.redis.com.cn/commands/zadd.html">Redis-ZSer命令</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/27/Redis/Redis-Set%E5%91%BD%E4%BB%A4/" rel="prev" title="Redis-Set命令">
+      <i class="fa fa-chevron-left"></i> Redis-Set命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/30/Redis/Redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" rel="next" title="Redis数据类型">
+      Redis数据类型 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E5%92%8C%E8%8E%B7%E5%8F%96%E6%93%8D%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">设置和获取操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#zadd%E3%80%81zrange%E3%80%81zrevrange"><span class="nav-number">1.1.</span> <span class="nav-text">zadd、zrange、zrevrange</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zincby"><span class="nav-number">1.2.</span> <span class="nav-text">zincby</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zrangebylex%E3%80%81zrangebuscore%E3%80%81zrevrangebylex%E3%80%81zrevrangebyscore"><span class="nav-number">1.3.</span> <span class="nav-text">zrangebylex、zrangebuscore、zrevrangebylex、zrevrangebyscore</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zscore"><span class="nav-number">1.4.</span> <span class="nav-text">zscore</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zrank%E3%80%81zrevrank"><span class="nav-number">1.5.</span> <span class="nav-text">zrank、zrevrank</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zscan"><span class="nav-number">1.6.</span> <span class="nav-text">zscan</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%93%8D%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">判断操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#zcard"><span class="nav-number">2.1.</span> <span class="nav-text">zcard</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zcount%E3%80%81zlexcount"><span class="nav-number">2.2.</span> <span class="nav-text">zcount、zlexcount</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">集合操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#zinterstore%E3%80%81zinter"><span class="nav-number">3.1.</span> <span class="nav-text">zinterstore、zinter</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zunionstore%E3%80%81zunion"><span class="nav-number">3.2.</span> <span class="nav-text">zunionstore、zunion</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C"><span class="nav-number">4.</span> <span class="nav-text">删除操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#zrem"><span class="nav-number">4.1.</span> <span class="nav-text">zrem</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zremrangebylex"><span class="nav-number">4.2.</span> <span class="nav-text">zremrangebylex</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zremrangebyrank"><span class="nav-number">4.3.</span> <span class="nav-text">zremrangebyrank</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zremrangebyscore"><span class="nav-number">4.4.</span> <span class="nav-text">zremrangebyscore</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

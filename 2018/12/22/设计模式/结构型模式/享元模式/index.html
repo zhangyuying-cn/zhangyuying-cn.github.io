@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="享元模式(Flyweight Pattern)定义运用共享技术有效地支持大量细粒度对象的复用。系统只使用少量的对象，而这些对象都很相似，状态变化很小，可以实现对象的多次复用。 又被称为蝇量模式，由于享元模式要求能够共享的对象必须是细粒度对象，因此它又称为轻量级模式 对象结构型模式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="享元模式">
+<meta property="og:url" content="http://zhangyuying.cn/2018/12/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="享元模式(Flyweight Pattern)定义运用共享技术有效地支持大量细粒度对象的复用。系统只使用少量的对象，而这些对象都很相似，状态变化很小，可以实现对象的多次复用。 又被称为蝇量模式，由于享元模式要求能够共享的对象必须是细粒度对象，因此它又称为轻量级模式 对象结构型模式。">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E7%B1%BB%E5%9B%BE.png">
+<meta property="article:published_time" content="2018-12-22T11:11:24.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.761Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.jpg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/12/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>享元模式 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/12/22/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          享元模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-12-22 19:11:24" itemprop="dateCreated datePublished" datetime="2018-12-22T19:11:24+08:00">2018-12-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="享元模式-Flyweight-Pattern"><a href="#享元模式-Flyweight-Pattern" class="headerlink" title="享元模式(Flyweight Pattern)"></a>享元模式(Flyweight Pattern)</h3><h5 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h5><p>运用共享技术有效地支持大量细粒度对象的复用。系统只使用少量的对象，而这些对象都很相似，状态变化很小，可以实现对象的多次复用。</p>
+<p>又被称为蝇量模式，由于享元模式要求能够共享的对象必须是细粒度对象，因此它又称为轻量级模式</p>
+<p>对象结构型模式。</p>
+<span id="more"></span>
+
+<blockquote>
+<p>共享模式是支持大量细粒度对象的复用，所以享元模式要求能够共享的对象必须是细粒度对象。</p>
+<p> 在了解享元模式之前我们先要了解两个概念：内部状态、外部状态。</p>
+<p>​      内部状态：在享元对象内部不随外界环境改变而改变的共享部分。</p>
+<p>​      外部状态：随着环境的改变而改变，不能够共享的状态就是外部状态。</p>
+<p>即：内部状态存储于享元对象内部，而外部状态则应该由客户端来考虑。</p>
+</blockquote>
+<h5 id="享元模式结构"><a href="#享元模式结构" class="headerlink" title="享元模式结构"></a>享元模式结构</h5><p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84%E5%9B%BE.jpg" alt="享元模式结构图"></p>
+<p>享元模式角色：</p>
+<p>​    ◊   Flyweight: 抽象享元类：</p>
+<p> 抽象享元类。所有具体享元类的超类或者接口，通过这个接口，<code>Flyweight</code>可以接受并作用于外部专题 </p>
+<p>​    ◊   ConcreteFlyweight: 具体享元类：</p>
+<p>具体享元类。指定内部状态，为内部状态增加存储空间。 </p>
+<p>​    ◊   UnsharedConcreteFlyweight: 非共享具体享元类：</p>
+<p>非共享具体享元类。指出那些不需要共享的<code>Flyweight</code>子类。 </p>
+<p>​    ◊   FlyweightFactory: 享元工厂类：</p>
+<p>用来创建并管理<code>Flyweight</code>对象，它主要用来确保合理地共享<code>Flyweight</code>，当用户请求一个<code>Flyweigh</code>t时，<code>FlyweightFactory</code>就会提供一个已经创建的<code>Flyweight</code>对象或者新建一个（如果不存在）。</p>
+<h5 id="模式分析"><a href="#模式分析" class="headerlink" title="模式分析"></a>模式分析</h5><p>享元模式是一个考虑系统性能的设计模式，通过使用享元模式可以节约内存空间，提高系统的性能。</p>
+<p>享元模式的核心在于享元工厂类，享元工厂类的作用在于提供一个用于存储享元对象的享元池，用户需要对象时，首先从享元池中获取，如果享元池中不存在，则创建一个新的享元对象返回给用户，并在享元池中保存该新增对象。</p>
+<p>享元模式以共享的方式高效地支持大量的细粒度对象，享元对象能做到共享的关键是区分内部状态(Internal State)和外部状态(External State)。</p>
+<ul>
+<li>内部状态是存储在享元对象内部并且不会随环境改变而改变的状态，因此内部状态可以共享。</li>
+<li>外部状态是随环境改变而改变的、不可以共享的状态。 <strong>享元对象的外部状态必须由客户端保存</strong>，并在享元对象被创建之后，在需要使用的时候再传入到享元对象内部。一个外部状态与另一个外部状态之间是相互独立的。</li>
+</ul>
+<h5 id="模式优缺点"><a href="#模式优缺点" class="headerlink" title="模式优缺点"></a>模式优缺点</h5><p><strong>优点</strong></p>
+<ul>
+<li>享元模式的优点在于它可以极大减少内存中对象的数量，使得相同对象或相似对象在内存中只保存一份。</li>
+<li>享元模式的外部状态相对独立，而且不会影响其内部状态，从而使得享元对象可以在不同的环境中被共享。</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>享元模式使得系统更加复杂，需要分离出内部状态和外部状态，这使得程序的逻辑复杂化。</li>
+<li>为了使对象可以共享，享元模式需要将享元对象的状态外部化，而读取外部状态使得运行时间变长。</li>
+</ul>
+<p><strong>模式适用场景</strong>  </p>
+<ul>
+<li>一个系统有大量相同或者相似的对象，由于这类对象的大量使用，造成内存的大量耗费。</li>
+<li>对象的大部分状态都可以外部化，可以将这些外部状态传入对象中。</li>
+<li>使用享元模式需要维护一个存储享元对象的享元池，而这需要耗费资源，因此，应当在多次重复使用享元对象时才值得使用享元模式。</li>
+</ul>
+<h5 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h5><ul>
+<li><p>享元模式在编辑器软件中大量使用，如在一个文档中多次出现相同的图片，则只需要创建一个图片对象，通过在应用程序中设置该图片出现的位置，可以实现该图片在不同地方多次重复显示。</p>
+</li>
+<li><p>单纯享元模式和复合享元模式</p>
+<ul>
+<li>单纯享元模式：在单纯享元模式中，所有的享元对象都是可以共享的，即所有抽象享元类的子类都可共享，不存在非共享具体享元类。</li>
+<li>复合享元模式：将一些单纯享元使用组合模式加以组合，可以形成复合享元对象，这样的复合享元对象本身不能共享，但是它们可以分解成单纯享元对象，而后者则可以共享。</li>
+</ul>
+</li>
+<li><p>享元模式与其他模式的联用</p>
+<ul>
+<li>在享元模式的享元工厂类中通常提供一个静态的工厂方法用于返回享元对象，使用简单工厂模式来生成享元对象。</li>
+<li>在一个系统中，通常只有唯一一个享元工厂，因此享元工厂类可以使用单例模式进行设计。</li>
+<li>享元模式可以结合组合模式形成复合享元模式，统一对享元对象设置外部状态。</li>
+</ul>
+</li>
+</ul>
+<h4 id="代码示例："><a href="#代码示例：" class="headerlink" title="代码示例："></a>代码示例：</h4><p>示例代码均在：<a target="_blank" rel="noopener" href="https://github.com/zhangyuying-cn/design-pattern">https://github.com/zhangyuying-cn/design-pattern</a></p>
+<p>代码类图</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E7%B1%BB%E5%9B%BE.png" alt="享元模式代码示例类图"></p>
+<p>Flyweight: </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MsgFlyWeight</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String MESSAGE_OUT_FORMAT = <span class="string">&quot;%s客户端，发送消息：%s&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * message 为外部状态</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message 消息内容</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(String message)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ConcreteFlyweight: </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QQFlyWeight</span> <span class="keyword">implements</span> <span class="title">MsgFlyWeight</span> </span>&#123;</span><br><span class="line">    <span class="comment">/** logger */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(QQFlyWeight.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**  内部状态 */</span></span><br><span class="line">    <span class="keyword">private</span> MsgType msgType;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">QQFlyWeight</span><span class="params">(MsgType msgType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.msgType = msgType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        logger.info(String.format(MESSAGE_OUT_FORMAT, msgType.getDescribe(), message));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SMSFlyWeight</span> <span class="keyword">implements</span> <span class="title">MsgFlyWeight</span> </span>&#123;</span><br><span class="line">    <span class="comment">/** logger */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(SMSFlyWeight.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**  内部状态 */</span></span><br><span class="line">    <span class="keyword">private</span> MsgType msgType;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SMSFlyWeight</span><span class="params">(MsgType msgType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.msgType = msgType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        logger.info(String.format(MESSAGE_OUT_FORMAT, msgType.getDescribe(), message));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WeChatFlyWeight</span> <span class="keyword">implements</span> <span class="title">MsgFlyWeight</span> </span>&#123;</span><br><span class="line">    <span class="comment">/** logger */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(WeChatFlyWeight.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**  内部状态 */</span></span><br><span class="line">    <span class="keyword">private</span> MsgType msgType;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">WeChatFlyWeight</span><span class="params">(MsgType msgType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.msgType = msgType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        logger.info(String.format(MESSAGE_OUT_FORMAT, msgType.getDescribe(), message));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>FlyweightFactory: </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MsgFlyWeightFactory</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Map&lt;MsgType, MsgFlyWeight&gt; flyWeightMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function">MsgFlyWeight <span class="title">getMsgClient</span><span class="params">(MsgType msgType)</span> </span>&#123;</span><br><span class="line">        MsgFlyWeight flyWeight = flyWeightMap.get(msgType);</span><br><span class="line">        <span class="keyword">if</span> (flyWeight != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> flyWeight;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">switch</span> (msgType) &#123;</span><br><span class="line">            <span class="keyword">case</span> QQ:</span><br><span class="line">                flyWeight = <span class="keyword">new</span> QQFlyWeight(msgType);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> SMS:</span><br><span class="line">                flyWeight = <span class="keyword">new</span> SMSFlyWeight(msgType);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> WECHAT:</span><br><span class="line">                flyWeight = <span class="keyword">new</span> WeChatFlyWeight(msgType);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;传入的消息客户端类型不存在。&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        flyWeightMap.put(msgType, flyWeight);</span><br><span class="line">        <span class="keyword">return</span> flyWeight;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAllFlyWeightSize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> flyWeightMap.size();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FlyweightApplication</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String MESSAGE_CONTEXT_FIRST = <span class="string">&quot;您有未读消息，请查收！&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String MESSAGE_CONTEXT_SECOND = <span class="string">&quot;您有未读消息即将过时，请及时查收！&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** logger */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(FlyweightApplication.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(FlyweightApplication.class, args);</span><br><span class="line">        MsgFlyWeightFactory msgFlyWeightFactory = <span class="keyword">new</span> MsgFlyWeightFactory();</span><br><span class="line">        sendQQMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendWeChatMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendSMSMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendQQMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendWeChatMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendSMSMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_FIRST);</span><br><span class="line">        sendQQMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_SECOND);</span><br><span class="line">        sendWeChatMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_SECOND);</span><br><span class="line">        sendSMSMessage(msgFlyWeightFactory, MESSAGE_CONTEXT_SECOND);</span><br><span class="line">        logger.info(<span class="string">&quot;当前客户端数量：&quot;</span> + msgFlyWeightFactory.getAllFlyWeightSize());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendSMSMessage</span><span class="params">(MsgFlyWeightFactory msgFlyWeightFactory, String message)</span> </span>&#123;</span><br><span class="line">        MsgFlyWeight msgFlyWeight = msgFlyWeightFactory.getMsgClient(MsgType.SMS);</span><br><span class="line">        msgFlyWeight.sendMessage(message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendWeChatMessage</span><span class="params">(MsgFlyWeightFactory msgFlyWeightFactory, String message)</span> </span>&#123;</span><br><span class="line">        MsgFlyWeight msgFlyWeight = msgFlyWeightFactory.getMsgClient(MsgType.WECHAT);</span><br><span class="line">        msgFlyWeight.sendMessage(message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendQQMessage</span><span class="params">(MsgFlyWeightFactory msgFlyWeightFactory, String message)</span> </span>&#123;</span><br><span class="line">        MsgFlyWeight msgFlyWeight = msgFlyWeightFactory.getMsgClient(MsgType.QQ);</span><br><span class="line">        msgFlyWeight.sendMessage(message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>参考资料</p>
+<p>《大话设计模式》</p>
+<p>《Head First 设计模式》</p>
+<p><a target="_blank" rel="noopener" href="https://design-patterns.readthedocs.io/zh_CN/latest/structural_patterns/flyweight.html">https://design-patterns.readthedocs.io/zh_CN/latest/structural_patterns/flyweight.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/chenssy/p/3330555.html">https://www.cnblogs.com/chenssy/p/3330555.html</a></p>
+<p><a target="_blank" rel="noopener" href="http://c.biancheng.net/view/1371.html">http://c.biancheng.net/view/1371.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/adamjwh/p/9070107.html">https://www.cnblogs.com/adamjwh/p/9070107.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/20/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E4%B8%AD%E4%BB%8B%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="prev" title="中介者模式">
+      <i class="fa fa-chevron-left"></i> 中介者模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/28/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="next" title="访问者模式">
+      访问者模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F-Flyweight-Pattern"><span class="nav-number">1.</span> <span class="nav-text">享元模式(Flyweight Pattern)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">1.0.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F%E7%BB%93%E6%9E%84"><span class="nav-number">1.0.2.</span> <span class="nav-text">享元模式结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90"><span class="nav-number">1.0.3.</span> <span class="nav-text">模式分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.0.4.</span> <span class="nav-text">模式优缺点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">1.0.5.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">代码示例：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

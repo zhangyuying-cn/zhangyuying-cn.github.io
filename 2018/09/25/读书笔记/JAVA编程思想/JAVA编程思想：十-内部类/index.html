@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="可以将一个类的定义放在另一个类的内部，这就是内部类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA编程思想：十-内部类">
+<meta property="og:url" content="http://zhangyuying.cn/2018/09/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81-%E5%86%85%E9%83%A8%E7%B1%BB/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="可以将一个类的定义放在另一个类的内部，这就是内部类">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-09-25T13:54:41.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.767Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Thinking in Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/09/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81-%E5%86%85%E9%83%A8%E7%B1%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA编程思想：十-内部类 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/09/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81-%E5%86%85%E9%83%A8%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA编程思想：十-内部类
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-09-25 21:54:41" itemprop="dateCreated datePublished" datetime="2018-09-25T21:54:41+08:00">2018-09-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>可以将一个类的定义放在另一个类的内部，这就是内部类</p>
+<span id="more"></span>
+
+<h4 id="1-创建内部类"><a href="#1-创建内部类" class="headerlink" title="1.创建内部类"></a>1.创建内部类</h4><p>把类定义在外围类的里面</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> Inner <span class="title">getInner</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Inner();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想在外部的非静态方法之外的任意位置创建某个内部类的对象，那么必须具体的指明这个对象的类型：<code>Outer.Inner</code></p>
+<p>例如： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Outer outer = <span class="keyword">new</span> Outer();</span><br><span class="line">Outer.inner = outer.getInner();</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-链接到外部类"><a href="#2-链接到外部类" class="headerlink" title="2.链接到外部类"></a>2.链接到外部类</h4><p>当生成一个内部类对象时，此对象与制造他的<code>外围对象</code>之间就有了一种<strong>联系</strong>，所以他能访问其<code>外围对象</code>的所有成员，而不需要任何特殊条件，此外，内部类还拥有其外围类的所有元素的访问权</p>
+<blockquote>
+<p> 为什么 内部类还拥有其外围类的所有元素的访问权？</p>
+<p> ​    当某个外围类的对象创建了一个内部类对象时，此内部类对象必定会秘密的捕获一个指向那个外围类的引用，然后当你访问此外围类的成员时，就是用那个引用来选择外围类的成员</p>
+<p> ​    //编译器帮我们处理细节，我们看到的只是：内部类对象只能在与其外围类对象相关联的情况下才能被创建</p>
+</blockquote>
+<h4 id="3-使用-this和-new"><a href="#3-使用-this和-new" class="headerlink" title="3.使用.this和.new"></a>3.使用.this和.new</h4><p>(1) <code> .this</code></p>
+<p>如果想要生成对外部类的引用，可以使用外部类的名字后面紧跟圆点和<code>this</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Outer <span class="title">getOuter</span><span class="params">()</span></span>&#123;</span><br><span class="line">      <span class="keyword">return</span> Outer.<span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这样产生的引用自动的具有正确的类型，</p>
+<p>这一点在编译期就被知晓并受到检查，因此没有任何运行时的开销。</p>
+</blockquote>
+<p>(2)  <code>.new</code></p>
+<p>创建某个内部类的对象，必须在new表达式提起器外部类的引用，使用<code>.new</code>语法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Inner为Outer中的内部类</span></span><br><span class="line">Outer outer = <span class="keyword">new</span> Outer();</span><br><span class="line">Outer.Inner inner = outer.<span class="function">new <span class="title">Inner</span><span class="params">()</span></span>;</span><br><span class="line"><span class="comment">// 错误写法 ： Outer.Inner inner = outer.new Outer.Inner();</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="4-内部类与向上转型"><a href="#4-内部类与向上转型" class="headerlink" title="4.内部类与向上转型"></a>4.内部类与向上转型</h4><p>内部类的向上转型为基类，尤其是转型为一个接口的时候：此内部类 <code>===</code> 某个接口的实现 <code>===</code> 能够完全不可见，并且不可用。</p>
+<p>所得到的只是指向基类或接口的引用，所以很方便的实现隐藏细节</p>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">  <span class="function">String <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> <span class="keyword">implements</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getInner</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Inner();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestInner</span> </span>&#123;</span><br><span class="line">  Outer outer = <span class="keyword">new</span> Outer();</span><br><span class="line">  <span class="comment">//所得到的只是指向基类或接口的引用</span></span><br><span class="line">  External external = outer.getInner();</span><br><span class="line">  <span class="comment">//报错： Outer.Inner inner = outer.new Inner() //can&#x27;t access private class</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>private</code> 的内部类给类的设计者提供了一种途径，通过这种方式可以完全阻止任何依赖于类型的编码，并且完全 <strong>隐藏了实现的细节</strong></p>
+<p>此外，从客户端程序员角度来看，由于不能访问任何新加的，不属于公共接口的方法，所以扩展接口是没有价值的，这位编译器提供了生成更高效代码的机会</p>
+</blockquote>
+<h4 id="5-在方法和作用域内的内部类"><a href="#5-在方法和作用域内的内部类" class="headerlink" title="5.在方法和作用域内的内部类"></a>5.在方法和作用域内的内部类</h4><p>可以在一个方法里面或者在任意的作用域内定义内部类内定义内部类</p>
+<p>理由：</p>
+<ul>
+<li><p>实现某类型的接口，于是可以创建并返回对其的应用</p>
+</li>
+<li><p>要解决一个复杂问题，想创建一个类来辅助你的解决方案，但是又不希望这个类是公共可用的</p>
+</li>
+<li><p>*局部内部类**：在方法的作用域内（而不是在类的作用域内），创建一个完整的类</p>
+</li>
+</ul>
+<p>局部内部类可以在任何作用域中，并且出了这个作用域之外是不可用的（但是这个内部类的创建不是有条件的是，是和其他类一起编译过了的）。</p>
+<blockquote>
+<p>局部内部类不能有访问说明符，因为他不是外围类的一部分，但是他可以访问当前代码块内的常量，以及此外围类的所有成员</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">  <span class="function">String <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">()</span></span>&#123;</span><br><span class="line">   <span class="comment">// if(true)&#123; 可以打开注释，这个完整的类，可以在任何作用域，并且除了这个作用域之外他是不可用的</span></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> <span class="keyword">implements</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  	&#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Inner();</span><br><span class="line">  &#125;</span><br><span class="line"> <span class="comment">// &#125;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-匿名内部类"><a href="#6-匿名内部类" class="headerlink" title="6.匿名内部类"></a>6.匿名内部类</h4><p>匿名内部类：如下示例。指的是：创建一个继承自<code>External</code> 的匿名类对象，通过<code>new</code> 表达式返回的引用被自动向上转型为<code>External</code> 的引用。例如示例1</p>
+<ul>
+<li>定义匿名内部类，并且希望他使用一个在其外部定义的对象，那么编译器会要求其参数引用时final的（传给匿名类的基类的构造器使用的参数不要求一定是final的，因为并不会在匿名类内部被直接使用），示例3</li>
+<li>匿名内部类不能有命名构造器（因为他根本没有名字），但是通过 <code>实例初始化</code> 能够达到为匿名内部类创建一个构造器的效果，（但是有限制：不能重载，所以仅有一种(即使多个代码块也是一种)）示例4</li>
+</ul>
+<p>匿名内部类与正规的继承相比有些受限，因为匿名内部类可以扩展类，也可以实现接口，但是不能两者兼备，而且如果是实现接口，也只能实现一个接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//外部接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">  <span class="function">String <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//示例1：匿名类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> External &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  	&#125;;<span class="comment">//需要分号</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">上述的匿名类是下面语法的简化形式：</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> <span class="keyword">implements</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">     &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">()</span></span>&#123;</span><br><span class="line">   <span class="function">reurn new <span class="title">Inner</span><span class="params">()</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//示例2：匿名类的基类需要有参构造器</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> External (<span class="keyword">int</span> param) &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  	&#125;;<span class="comment">//需要分号</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//示例3：在匿名内部类中定义字段可进行初始化操作</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">(<span class="keyword">final</span> String strParam)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> External (<span class="keyword">int</span> param) &#123;</span><br><span class="line">      ptivate String name = strParam;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  	&#125;;<span class="comment">//需要分号</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//示例4：匿名类中不可能有命名构造器，通过 实例初始化 可达到命名构造器的效果</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> External <span class="title">getExternal</span><span class="params">(<span class="keyword">final</span> String strParam,<span class="keyword">final</span> <span class="keyword">int</span> intParam)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> External (<span class="keyword">int</span> param) &#123;</span><br><span class="line">      <span class="keyword">private</span> String name = strParam;</span><br><span class="line">      <span class="keyword">private</span> String age;</span><br><span class="line">      &#123;</span><br><span class="line">        age = intParam;</span><br><span class="line">        <span class="keyword">if</span>(age &gt; <span class="number">150</span>) System.out.println(<span class="string">&quot;年龄过大！&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  	&#125;;<span class="comment">//需要分号</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用：匿名内部类可优雅的实现工厂方法。</p>
+<p>既然局部内部类的名在方法外事不是可见得，那为什么我们仍然使用局部内部类而不是匿名内部类呢：</p>
+<p>（1）.我们需要一个已命名的构造器，或者需要重载构造器，而匿名内部类只能用于实初始化。</p>
+<p>（2）.还有一个理由是：需要不止一个该内部类的对象。</p>
+<h4 id="7-嵌套类"><a href="#7-嵌套类" class="headerlink" title="7.嵌套类"></a>7.嵌套类</h4><p> 嵌套类：如果不需要内部类对象与其外围类对象之间有联系，那么可以将内部类声明为<code>static</code> </p>
+<ul>
+<li>要创建嵌套类的对象，并不需要其外围类的对象</li>
+<li>不能从嵌套类的对象中访问非静态的外围类对象</li>
+<li>普通的内部类不能有static数据和static字段，也不能包含嵌套类，但是嵌套类可以包含这些东西</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> <span class="keyword">implements</span> <span class="title">External</span> </span>&#123;</span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="string">&quot;inner name&quot;</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">static</span> <span class="keyword">int</span> age;</span><br><span class="line">     <span class="function"><span class="keyword">static</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">this</span>.age;</span><br><span class="line">     &#125; </span><br><span class="line">     <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MoreInner</span></span>&#123;</span><br><span class="line">       <span class="keyword">static</span> <span class="keyword">int</span> index;</span><br><span class="line">       <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fun</span><span class="params">()</span></span>&#123;&#125;;</span><br><span class="line">     &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接口中可以存在嵌套类（这个类中可以有实现），这种方式可以在接口中创建默认实现，使得接口的不同实现可共用</p>
+<p>一个内部类呗嵌套多少层不重要——他能透明的访问所有他嵌入的所有外围类的所有成员</p>
+<h4 id="8-为什么需要内部类"><a href="#8-为什么需要内部类" class="headerlink" title="8.为什么需要内部类"></a>8.为什么需要内部类</h4><p>内部类的优势：</p>
+<p>每个内部类都能独立的继承一个（接口的）实现，所以无论外围类是否已经继承了某个（接口的）实现，对于内部类都没有影响</p>
+<p>内部类允许继承多个非接口类型</p>
+<p>内部类特性：</p>
+<ul>
+<li><p>内部类可以有多个实例，每个实例都有自己的状态信息，并且与其外围类对象的信息相互独立</p>
+</li>
+<li><p>在单个外围类中，可以让多个内部类以不同的方式实现同一个接口，或继承同一个类</p>
+</li>
+<li><p>创建内部类对象的时候并不依赖于外部类的创建</p>
+</li>
+<li><p>内部类并没有令人迷惑的<code>is-a</code> 的关系，他就是一个独立的实体</p>
+</li>
+<li><p>*为什么需要内部类**</p>
+</li>
+<li><p>闭包和回调</p>
+<ul>
+<li><p>闭包是一个可调用对象，他记录了一些信息，这些信息来源于它的作用域</p>
+<p>内部类是面向对象的闭包：因为他不仅包含外围类对象（创建类的作用域）信息，还自动拥有一个指向此外围类的引用，在此作用域内，内部类有权操作所有成员</p>
+</li>
+<li><p>回调：通过回调，对象能携带一些信息，这些信息允许他在稍后的某个时刻调用初始的对象</p>
+</li>
+</ul>
+</li>
+<li><p>控制框架与内部类</p>
+<p>应用程序框架：被设计用以解决某类特定问题的一个类或一组类（例如模板方法）</p>
+<p>控制框架：是一类特殊的应用程序框架，他用来解决响应事件的请求，主要用来响应事件的系统被称作事件驱动系统</p>
+</li>
+</ul>
+<h4 id="9-内部类的继承"><a href="#9-内部类的继承" class="headerlink" title="9.内部类的继承"></a>9.内部类的继承</h4><p>只继承内部类而不是外围类，生成一个构造器时需要传递一个指向外围类对象的引用，使用如下语法，编译才会通过：</p>
+<p>enclosingClassReference.super()</p>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Outer</span> </span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Inner</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OtherInner</span> <span class="keyword">extends</span> <span class="title">Outer</span>.<span class="title">Inner</span> </span>&#123;</span><br><span class="line">    OtherInner(Outer outer) &#123;</span><br><span class="line">        <span class="comment">//enclosingClassReference.super()</span></span><br><span class="line">        outer.<span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="10-内部类可以被覆盖吗"><a href="#10-内部类可以被覆盖吗" class="headerlink" title="10.内部类可以被覆盖吗"></a>10.内部类可以被覆盖吗</h4><p>当继承了某个外围类的时候，内部类并没有发生什么特别神奇的变化，这两个内部类是完全独立的两个实体，各自在自己的命名空间内。</p>
+<ul>
+<li>可在子类中明确的继承某个内部类，实现内部类和普通方法一样的子类覆盖父类的效果</li>
+</ul>
+<h4 id="11-内部类标识符"><a href="#11-内部类标识符" class="headerlink" title="11.内部类标识符"></a>11.内部类标识符</h4><p>每个类都会产生一个<code>.class</code>,其中包含了如何创建该类型对象的全部信息（此信息产生一个<code>“meta-class”</code>，叫做<code>class</code>对象）<br>内部类也必须生成一个<code>.class</code>文件，以包含他们的对象信息，<br>这些类文件的命名有严格规则：外围类的名字，加上<code>$</code>,在加上内部类的名字，如果内部类是匿名的，编译器会简单的生成一个数字作为其标识符。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Outer.class</span><br><span class="line">Outer$Inner.class</span><br><span class="line"><span class="comment">//匿名内部类</span></span><br><span class="line">Outer$<span class="number">1.</span>class</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AThinking-in-Java%E3%80%8B/" rel="tag"># 《Thinking in Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/09/14/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F/" rel="prev" title="迭代器模式">
+      <i class="fa fa-chevron-left"></i> 迭代器模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/09/28/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/" rel="next" title="代理模式">
+      代理模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%88%9B%E5%BB%BA%E5%86%85%E9%83%A8%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">1.创建内部类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E9%93%BE%E6%8E%A5%E5%88%B0%E5%A4%96%E9%83%A8%E7%B1%BB"><span class="nav-number">2.</span> <span class="nav-text">2.链接到外部类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8-this%E5%92%8C-new"><span class="nav-number">3.</span> <span class="nav-text">3.使用.this和.new</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%86%85%E9%83%A8%E7%B1%BB%E4%B8%8E%E5%90%91%E4%B8%8A%E8%BD%AC%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">4.内部类与向上转型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%9C%A8%E6%96%B9%E6%B3%95%E5%92%8C%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%86%85%E7%9A%84%E5%86%85%E9%83%A8%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">5.在方法和作用域内的内部类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB"><span class="nav-number">6.</span> <span class="nav-text">6.匿名内部类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-%E5%B5%8C%E5%A5%97%E7%B1%BB"><span class="nav-number">7.</span> <span class="nav-text">7.嵌套类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E9%83%A8%E7%B1%BB"><span class="nav-number">8.</span> <span class="nav-text">8.为什么需要内部类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E5%86%85%E9%83%A8%E7%B1%BB%E7%9A%84%E7%BB%A7%E6%89%BF"><span class="nav-number">9.</span> <span class="nav-text">9.内部类的继承</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10-%E5%86%85%E9%83%A8%E7%B1%BB%E5%8F%AF%E4%BB%A5%E8%A2%AB%E8%A6%86%E7%9B%96%E5%90%97"><span class="nav-number">10.</span> <span class="nav-text">10.内部类可以被覆盖吗</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-%E5%86%85%E9%83%A8%E7%B1%BB%E6%A0%87%E8%AF%86%E7%AC%A6"><span class="nav-number">11.</span> <span class="nav-text">11.内部类标识符</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

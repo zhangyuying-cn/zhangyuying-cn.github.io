@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="正则的进阶 正则表达式引擎 正则中部分概念 断言（环视）区别举例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="正则的进阶">
+<meta property="og:url" content="http://zhangyuying.cn/2018/10/26/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E8%BF%9B%E9%98%B6/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="正则的进阶 正则表达式引擎 正则中部分概念 断言（环视）区别举例">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E4%B8%AD%E6%96%AD%E8%A8%80%E5%8C%B9%E9%85%8D%E7%A4%BA%E4%BE%8B.png">
+<meta property="article:published_time" content="2018-10-26T05:00:33.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.759Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="正则表达式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E4%B8%AD%E6%96%AD%E8%A8%80%E5%8C%B9%E9%85%8D%E7%A4%BA%E4%BE%8B.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/10/26/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E8%BF%9B%E9%98%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>正则的进阶 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/10/26/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E8%BF%9B%E9%98%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          正则的进阶
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-26 13:00:33" itemprop="dateCreated datePublished" datetime="2018-10-26T13:00:33+08:00">2018-10-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="正则的进阶"><a href="#正则的进阶" class="headerlink" title="正则的进阶"></a>正则的进阶</h2><ul>
+<li>正则表达式引擎</li>
+<li>正则中部分概念</li>
+<li>断言（环视）区别举例</li>
+</ul>
+<span id="more"></span>
+
+<h4 id="正则表达式引擎"><a href="#正则表达式引擎" class="headerlink" title="正则表达式引擎"></a>正则表达式引擎</h4><p>正则引擎大致分为两类：<code>DFA</code>和<code>NFA</code>,而<code>NFA</code>又基本上可以分为<code>传统型NFA</code>和<code>POSIX NFA</code></p>
+<ul>
+<li><p><code>DFA Deterministic finite automaton</code> 确定型有穷自动机</p>
+<ul>
+<li><code>DFA</code>引擎因为不需要回溯，所以匹配快速，但不支持捕获组，所以也就不支持反向引用和<code>$number</code>这种引用方式</li>
+</ul>
+</li>
+<li><p><code>NFA Non-deterministic finite automaton</code>　非确定型有穷自动机</p>
+<ul>
+<li><p><code>POSIX NFA</code></p>
+<ul>
+<li><code>POSIX NFA</code>主要指符合<code>POSIX</code>标准的<code>NFA</code>引擎，它的特点主要是提供<code>longest-leftmost</code>匹配，也就是在找到最左侧最长匹配之前，它将继续回溯。同<code>DFA</code>一样，非贪婪模式或者说忽略优先量词对于<code>POSIX NFA</code>同样是没有意义的。</li>
+</ul>
+</li>
+<li><p><code>Traditional NFA</code></p>
+<ul>
+<li><p>大多数语言和工具使用的是传统型的NFA引擎，它有一些<code>DFA</code>不支持的特性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">捕获组、反向引用和$number引用方式；</span><br><span class="line">环视(Lookaround，(?&lt;&#x3D;…)、(?&lt;!…)、(?&#x3D;…)、(?!…))，或者有的有文章叫做预搜索；</span><br><span class="line">忽略优化量词（??、*?、+?、&#123;m,n&#125;?、&#123;m,&#125;?），或者有的文章叫做非贪婪模式；</span><br><span class="line">占有优先量词（?+、*+、++、&#123;m,n&#125;+、&#123;m,&#125;+，目前仅Java和PCRE支持），固化分组(?&gt;…)。</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="正则中部分概念"><a href="#正则中部分概念" class="headerlink" title="正则中部分概念"></a>正则中部分概念</h4><p><strong>贪婪</strong>：默认情况下，* 、?、+ 和 {min,max} 是贪婪的，因为它们消耗到<em>最后一个</em>能满足整个模式的可能的所有字符。要让它们停在 <em>首个</em> 可能的字符, 请在它们后面加上问号. 例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">贪婪： 模式 &lt;.+&gt; (其中没有问号) 表示: &quot;搜索一个 &lt;, 接着一个或多个任意字符, 然后是一个 &gt;&quot;</span><br><span class="line"> 要在匹配 整个字符串 &lt;em&gt;text&lt;&#x2F;em &gt;时停止,</span><br><span class="line">非贪婪： 请在加号后加上问号: &lt;.+?&gt;. 这样会让匹配在第一个 &#39;&gt;&#39; 处停止, 因此它只匹配第一个标签 &lt;em&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>回溯</strong> ：NFA引擎的正则表达式会依次处理各个子表达式或者组成元素，遇到需要在两个都可能进行成功匹配的子表达式或者组成元素之间进行选择的时候，会首先选择其一，同时会记录另一个的状态，以备后面使用。<br>注意:这里所说的子表达式并非只有用小括号括起来的表达式，而是正则表达式中的任意匹配单元。</p>
+<p>需要回溯的情况：无论是哪一种选择，如果本身匹配成功，而且正则表达式余下的部分也能够成功匹配的话，那么整个匹配就成功了，如果正则表达式当前选择或者后面的部分无法匹配成功，那么正则表达式引擎会回溯到之前作出选择的地方，然后选择其他备用的分支继续匹配。</p>
+<p><strong>预测和回顾断言</strong>：这组 (?=…)、(?!…)、(?&lt;=…) 和 (?&lt;!…) 被称为<em>断言</em>，因为它们要求符合某个条件但不消耗任何字符。</p>
+<p>例如, </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abc(?&#x3D;.*xyz) 中含有预测断言, 它要求在字符串 abc 右边的某个位置存在字符串 xyz (如果不存在, 则匹配失败).</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>(?=…) 被称为 正预测断言, 因为它要求指定的模式存在. </li>
+<li>相反地, (?!…) 是 负预测断言, 因为它要求指定的模式 不存在. </li>
+<li>同样地, (?&lt;=…) 和 (?&lt;!…) 分别是正的和负的 回顾 断言, 因为它们检查当前位置的 左边 而不是右边. </li>
+</ul>
+<p>回顾比预测受到更多的限制, 因为它们不支持可变大小的限定符, 例如 *, ? 和 +. 转义序列 \K 类似于回顾断言, 因为它会让前一个匹配的字符在最后的匹配字符串中省略. 例如, foo\Kbar 可以匹配 “foobar” 但报告匹配的结果为 “bar”.</p>
+<h4 id="具体举例"><a href="#具体举例" class="headerlink" title="具体举例"></a>具体举例</h4><p>(?:pattern)与(?=pattern)的区别：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(pattern) ： 匹配 pattern 并获取这一匹配，所获取的匹配可以从产生的 Matches 集合得到。 </span><br><span class="line">(?:pattern) ：匹配 pattern 但不获取匹配结果，也就是说这是一个非获取匹配，不进行存储供以后使用。 </span><br><span class="line">(?&#x3D;pattern) ：正向预查，在任何匹配 pattern 的字符串开始处匹配查找字符串。这是一个非获取匹配，也就是说，该匹配不需要获取供以后使用。预查不消耗字符，也就是说，在一个匹配发生后，在最后一次匹配之后立即开始下一次匹配的搜索，而不是从包含预查的字符之后开始。</span><br></pre></td></tr></table></figure>
+
+<p>共同点： <code>(?:pattern)</code> 与 <code>(?=pattern)</code>都匹配pattern，但不会把pattern结果放到Matches的集合中。</p>
+<p>区别：</p>
+<ul>
+<li><p><code>(?:pattern)</code> 匹配得到的结果包含pattern，<code>(?=pattern)</code> 则不包含。如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">对字符串：&quot;industry abc&quot;的匹配结果：</span><br><span class="line">industr(?:y|ies) ---&gt; &quot;industry&quot;</span><br><span class="line">industr(?&#x3D;y|ies) ---&gt; &quot;industr&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>是否消耗字符 </p>
+<p><code>(?:pattern)</code> 消耗字符，下一字符匹配会从已匹配后的位置开始。<br><code>(?=pattern)</code> 不消耗字符，下一字符匹配会从预查之前的位置开始。<br>即后者只预查，不移动匹配指针。如：</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E4%B8%AD%E6%96%AD%E8%A8%80%E5%8C%B9%E9%85%8D%E7%A4%BA%E4%BE%8B.png" alt="正则中断言的匹配示例"></p>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/lxcnn/article/details/4304651">https://blog.csdn.net/lxcnn/article/details/4304651</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/shashagcsdn/article/details/80017678">https://blog.csdn.net/shashagcsdn/article/details/80017678</a></p>
+<p><a target="_blank" rel="noopener" href="https://ahkcn.github.io/docs/misc/RegEx-QuickRef.htm">https://ahkcn.github.io/docs/misc/RegEx-QuickRef.htm</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/h5monkey/p/5902137.html">https://www.cnblogs.com/h5monkey/p/5902137.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="tag"># 正则表达式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/23/%E6%AD%A3%E5%88%99/%E6%AD%A3%E5%88%99%E5%85%83%E5%AD%97%E7%AC%A6/" rel="prev" title="正则元字符">
+      <i class="fa fa-chevron-left"></i> 正则元字符
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/26/%E8%AE%B0%E5%BD%95/%E5%8D%9A%E5%AE%A2%E8%AE%B0%E5%BD%95/" rel="next" title="博客记录">
+      博客记录 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E7%9A%84%E8%BF%9B%E9%98%B6"><span class="nav-number">1.</span> <span class="nav-text">正则的进阶</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%95%E6%93%8E"><span class="nav-number">1.0.1.</span> <span class="nav-text">正则表达式引擎</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E4%B8%AD%E9%83%A8%E5%88%86%E6%A6%82%E5%BF%B5"><span class="nav-number">1.0.2.</span> <span class="nav-text">正则中部分概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E4%B8%BE%E4%BE%8B"><span class="nav-number">1.0.3.</span> <span class="nav-text">具体举例</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

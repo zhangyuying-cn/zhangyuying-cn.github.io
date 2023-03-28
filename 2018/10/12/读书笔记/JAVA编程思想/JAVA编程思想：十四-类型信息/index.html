@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="运行时类型信息使得你可以在程序运行时发现和使用类型信息">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA编程思想：十四.类型信息">
+<meta property="og:url" content="http://zhangyuying.cn/2018/10/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E5%9B%9B-%E7%B1%BB%E5%9E%8B%E4%BF%A1%E6%81%AF/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="运行时类型信息使得你可以在程序运行时发现和使用类型信息">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-10-12T14:00:46.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.768Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《Thinking in Java》">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/10/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E5%9B%9B-%E7%B1%BB%E5%9E%8B%E4%BF%A1%E6%81%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>JAVA编程思想：十四.类型信息 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/10/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/JAVA%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3%EF%BC%9A%E5%8D%81%E5%9B%9B-%E7%B1%BB%E5%9E%8B%E4%BF%A1%E6%81%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JAVA编程思想：十四.类型信息
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-10-12 22:00:46" itemprop="dateCreated datePublished" datetime="2018-10-12T22:00:46+08:00">2018-10-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>运行时类型信息使得你可以在程序运行时发现和使用类型信息</p>
+<span id="more"></span>
+
+<h4 id="1-为什么需要RTTI"><a href="#1-为什么需要RTTI" class="headerlink" title="1.为什么需要RTTI"></a>1.为什么需要RTTI</h4><p><code>RTTI</code> (<code>Runtime Type Information</code>)：运行时类型信息</p>
+<p>面向对象编程的基本的目的是：让代码只操纵对基类的引用<br><code>RTTI</code>最基本的形式(示例)：<br>从容器（<code>List&lt;Animal&gt;</code>：实际上这些容器是将所有的事物都当做<code>Object</code>持有）中取出元素时，会自动将结果转型为<code>Animal</code>。<br>但是这个例子中<code>RTTI</code>转型并不彻底，<code>Object</code>被转型为<code>Animal</code>，而不是具体的子类：<br>这是因为目前我们只知道这个<code>List&lt;Animal&gt;</code>里面保存的都是<code>Animal</code>,在编译时由容器和<code>java</code>的泛型系统来强制确保这一点，而在运行时，由类型转换操作来确保这一点</p>
+<p>在<code>java</code>中所有类型，都是在运行时进行正确性检查的，这也是<code>RTTI</code>名字的含义：在运行时，识别一个对象的类型</p>
+<p>使用RTTI可以查询某个引用（例如<code>animal</code>）所指向对象的确切类型</p>
+<h4 id="2-class对象"><a href="#2-class对象" class="headerlink" title="2.class对象"></a>2.class对象</h4><p><code>Class</code>对象：包含了与类有关的信息，事实上，<code>Class</code>对象就是用来创建类的所有的“常规”对象的</p>
+<p>类是程序的一部分，<strong>每个类都有一个<code>Class</code>对象</strong>，</p>
+<ul>
+<li>换言之：每当编写并且编译了一个新类，就会产生一个<code>Class</code>对象（是被保存在一个同名的<code>.class</code>文件中）</li>
+<li>为了生成这个对象，运行这个程序的<code>java</code>虚拟机（<code>JVM</code>）将使用被称为“类加载器”的子系统（类加载器首先检查这个类的<code>Class</code>对象是否已经加载，如果尚未加载，默认的类加载器就会根据类名查找<code>.class</code>文件）</li>
+<li>一旦某个类的<code>Class</code>对象被载入内存，他就用来创建这个类的所有对象</li>
+<li><code>Class</code>对象仅在需要的时候才被加载</li>
+<li><code>Class.forName</code>(“全限定名（包含包名）”)：取得<code>Class</code>对象引用的一种方法：无论何时，只要你想在运行时使用类型信息，就必须首先获得对恰当的<code>Class</code>对象的引用</li>
+<li><code>Class</code>的<code>newInstance()</code>方法是实现“虚拟构造器”的一种途径（使用<code>newInstance()</code>来创建的类，必须带有默认的构造器）</li>
+</ul>
+<p>（1）、类字面常量：</p>
+<p>类的字面常量是java提供的另一种生成<code>java</code>引用的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">Animal</span><span class="params">()</span></span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//类的字面量</span></span><br><span class="line">Animal.class</span><br></pre></td></tr></table></figure>
+
+<p>类字面常量不仅可以应用于普通的类，也可以应用于接口、数组、以及基本数据类型</p>
+<p>另外：对于基本数据类型的包装器类，还有一个标准字段<code>TYPE</code>,<code>TYPE</code>字段是一个引用，指向对应的基本数据类型的<code>Class</code>对象</p>
+<p>注意：当使用<code>.Class</code>来创建对<code>Class</code>对象的引用时，不会自动的初始化该<code>Class</code>对象，（但是<code>Class.forName()</code>会立即进行初始化）为了使用类而做的准备工作实际上包含三个步骤：</p>
+<ul>
+<li><strong>1.加载</strong>，这是由类加载器执行的，该步骤将查找字节码（通常在<code>classpath</code>所指定的路径中查找，但这并非是必需的），并从这些字节码中创建一个<code>Class</code>对象</li>
+<li><strong>2.链接</strong>，在链接阶段将验证类中的字节码，为静态域分配存储空间，并且如果必须的话，将解析这个类创建的对其他类的所有引用</li>
+<li><strong>3.初始化</strong>，如果该类具有超类，则对其初始化，执行静态初始化器和静态初始化块</li>
+</ul>
+<p>初始化被延迟到了对静态方法（构造器隐式的是静态的）或者非常量静态域进行首次引用时才执行</p>
+<p>（2）、泛化的<code>Class</code>引用</p>
+<p><code>Class</code>引用总是指向某个<code>Class</code>对象，他可以制造类的示例，并包含可作用于这些实例的所有方法代码，他还包含该类的静态成员，因此，<code>Class</code>引用表示的就是他所指向的对象的确切类型，而该对象便是<code>Class</code>类的一个对象</p>
+<p>javaSE5将<code>Class</code>引用的类型变得更具体了一些：例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Class intClass=<span class="keyword">int</span>.class;</span><br><span class="line">Class&lt;Integer&gt; integerClass=<span class="keyword">int</span>.class;</span><br><span class="line">integerClass=Integer.class;</span><br><span class="line"><span class="comment">//integerClass=double.class; 编译器报错（泛型语法编译器执行额外的类型检查）</span></span><br><span class="line">intClass=<span class="keyword">double</span>.class;</span><br><span class="line"></span><br><span class="line"><span class="comment">//此时泛型影响newInstance()的返回类型:1.intClass未指定泛型类型，只能返回Object类型 2.integerClas指定了泛型类型为Integer，所以可直接返回Integer类型</span></span><br><span class="line">Object test1 = intClass.newInstance(); <span class="comment">//1</span></span><br><span class="line">Integer test2 = integerClass.newInstance(); <span class="comment">//2</span></span><br></pre></td></tr></table></figure>
+
+<p>比如此时想放松一下限制，该如果做：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Integer是继承自Number类的，但是此时下面的语句是不能通过编译检查的：因为Integer Class对象不是 Number Class对象的子类</span></span><br><span class="line"><span class="comment">//Class&lt;Number&gt; numberClass=Integer.class;</span></span><br></pre></td></tr></table></figure>
+
+<p>java中使用通配符解决放松<code>Class</code>引用限制的问题：通配符<code>？</code>表示“任何事物”：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//？与extends关键字一起使用，创建一个范围，本例中表示继承自Number的子类</span></span><br><span class="line">Class&lt;? extends Number&gt; numberClass=Integer.class;</span><br></pre></td></tr></table></figure>
+
+<p>向<code>Class</code>引用添加泛型语法的原因仅仅是为了提供编译器类型检查</p>
+<p>（3）、转型语法</p>
+<p>Java SE5添加了用于<code>Class</code>引用的转型语法：<code>cast()</code>方法</p>
+<p><code>cast</code>方法接受方法参数，并将其转化为<code>Class</code>引用的类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Number number=<span class="keyword">new</span> Integer(<span class="number">3</span>);</span><br><span class="line">Class&lt;Integer&gt; integerClass=Integer.class;</span><br><span class="line"><span class="comment">//cast()方法</span></span><br><span class="line">Integer integer=integerClass.cast(number); <span class="comment">//1</span></span><br><span class="line"><span class="comment">//相当于：</span></span><br><span class="line">integer=(Integer)number;<span class="comment">//2</span></span><br><span class="line"><span class="comment">//但是在使用泛型时，有事会出现 语句2 无法使用的情况，此时只能使用语句1 </span></span><br></pre></td></tr></table></figure>
+
+<h4 id="3-类型转换前先做检查"><a href="#3-类型转换前先做检查" class="headerlink" title="3.类型转换前先做检查"></a>3.类型转换前先做检查</h4><p><code>RTTI</code>形式：</p>
+<ul>
+<li><p>1.传统的类型转换，如“<code>（Animal）</code>”,由RTTI确保类型转换的正确性，如果执行了一个错误的类型转换，就会抛出一个<code>ClassCastException</code>异常(“<code>（Animal）</code>”在java中要执行类型检查，这通常被称为“类型安全的向下转型”)</p>
+</li>
+<li><p>2.代表对象的类型的<code>Class</code>对象，通过查询<code>Class</code>对象可以获取运行时所需的信息</p>
+</li>
+<li><p>3.关键字<code>instanceof</code>：他返回一个布尔值：对象是不是某个特定类型，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Animal animal =<span class="keyword">new</span> Animal()</span><br><span class="line"><span class="keyword">if</span>(animal <span class="keyword">instanceof</span> Cat) &#123;</span><br><span class="line">  <span class="comment">//此时经过 instanceof 判断过的类型是不会出现 ClassCastException 异常的</span></span><br><span class="line">   ((Cat)animal).goTree();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>instanceof</code>有比较严格的限制：只可将其与命名类型进行比较，而不能与<code>Class</code>对象作比较</p>
+<ul>
+<li><p>动态的<code>instanceof</code></p>
+<p><code>Class.isInstance</code>方法提供了一种动态的测试对象的途径，示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Number number = <span class="keyword">new</span> Integer(<span class="number">987</span>);</span><br><span class="line"><span class="keyword">if</span> (number <span class="keyword">instanceof</span> Integer) &#123;<span class="comment">//true</span></span><br><span class="line">  <span class="keyword">if</span> (Integer.class.isInstance(number)) &#123;<span class="comment">//true</span></span><br><span class="line">    System.out.println(<span class="string">&quot;Integer.class.isInstance(number) :true&quot;</span>); </span><br><span class="line">  &#125;</span><br><span class="line">  System.out.println(<span class="string">&quot;number instanceof Integer :true&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-instanceof与Class的等价性"><a href="#4-instanceof与Class的等价性" class="headerlink" title="4.instanceof与Class的等价性"></a>4.instanceof与Class的等价性</h4><p>查询类型信息时：以<code>instanceof</code>（<code>instanceof</code>或<code>isInstance</code>）的形式与直接比较<code>Class</code>对象有一个很重要的差别</p>
+<ul>
+<li><code>instanceof</code>保持了类型的概念：他指的是：你是这个类或是这个类的派生类么</li>
+<li>而<code>==</code>（或者<code>equals</code>）比较的<code>Class</code>对象，就没有考虑继承：是这个确切类型或者不是</li>
+</ul>
+<h4 id="5-反射：运行时的类型信息"><a href="#5-反射：运行时的类型信息" class="headerlink" title="5.反射：运行时的类型信息"></a>5.反射：运行时的类型信息</h4><p>如果不知道某个对象的确切类型，<code>RTTI</code>可以告诉你，但是有一个限制：这个类在编译时必须已知，这样<code>RTTI</code>才能识别他，换言之，在编译时，编译器必须知道所有要通过RTTI来处理的类</p>
+<p>但是有一些场景可能不能满足上述条件：GUI、RMI</p>
+<p><code>Class</code>类与<code>java.lang.reflect</code>类库一起对 <strong>反射</strong>的概念进行了支持。</p>
+<ul>
+<li><p>该类库包含了：<code>Filed</code>、<code>Method</code>、<code>Constructor</code>类（每个类都实现了<code>Member</code>接口）</p>
+</li>
+<li><p>这些类型的对象是由JVM在运行时创建的，用以表示未知类里对应的成员，这样就可以使用<code>Constructor</code>创建新的对象、用<code>get()</code>和<code>set()</code>方法读取和修改与<code>Field</code>对象关联的字段、用<code>invoke()</code>方法调用与<code>Method</code>对象关联的方法，还可以调用<code>getFields()</code>、<code>getMethods()</code>、<code>getConstructors()</code>等便利的方法以返回表示字段、方法、以及构造器的对象的数组。</p>
+<p>这样匿名对象的类信息就能在运行时被完全确定下来，而在编译时不需要知道任何事情</p>
+</li>
+</ul>
+<p>通过反射与一个未知类型的对象打交道时，JVM只是简单的检查这个对象看他属于哪个特定的类（就像<code>RTTI</code>那样），在用他做其他事之前必须先加载那个类的<code>Class</code>对象，因此<code>.class</code>文件对于JVM来说必须是可获取的：要么在本地机器上，要么可通过网络获得</p>
+<p>所以<code>RTTI</code>和反射真正的区别在于：</p>
+<ul>
+<li>对<code>RTTI</code>来说，编译器在编译时打开和检查<code>.class</code>文件(换句话说就是我们可以用“普通”方式调用对象的所有方法)</li>
+<li>而对于反射机制来说：<code>.class</code>文件在编译时实不可获取的，所以在运行时打开和检查<code>.class</code>文件</li>
+</ul>
+<p>动态代理（<code>Proxy.newProxyInstance()</code> :创建动态代理）是对反射应用的重要实例。可以非常好的解决某些类型问题</p>
+<ul>
+<li>动态代理可以动态的引用空对象</li>
+</ul>
+<h4 id="6-接口与类型信息"><a href="#6-接口与类型信息" class="headerlink" title="6.接口与类型信息"></a>6.接口与类型信息</h4><p><code>interface</code>关键字的一种重要目标就是允许程序员隔离构件，进而降低耦合性。</p>
+<p>但是通过类型信息，这种耦合性还是会传播出去，——接口并非是对解耦的一种无懈可击的保障。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">A</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">implements</span> <span class="title">A</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">g</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">C</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">    A a=<span class="keyword">new</span> B()</span><br><span class="line">    a.f();</span><br><span class="line">    <span class="comment">//a.g(); //不可调用</span></span><br><span class="line">    <span class="keyword">if</span>(a <span class="keyword">instanceof</span> B)&#123;</span><br><span class="line">      B b=(B)a</span><br><span class="line">      b.g();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时客户端的调用方式耦合程度超出原本的想象，解决办法：</p>
+<ul>
+<li><p>一种是直接声明，如果决定使用实际的类而不是接口，他们需要自己负责</p>
+</li>
+<li><p>最简单的方式是实现包访问权限</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span> <span class="keyword">implements</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">h</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">E</span></span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> A <span class="title">makeA</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> D();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是此时通过反射，仍旧可以拿到并调用所有方法，甚至<code>private</code>方法（<code>setAccessible(true)</code>）</p>
+<p>只发布编译后的代码也不能解决通过反射查看的问题：javap可突破限制</p>
+<p><code>java -private D </code></p>
+<ul>
+<li><code>-private </code>表示的所有成员都应该显示，甚至包括私有成员</li>
+<li>所以运行这个命令，任何人可获取你的私有方法的名字和签名，并调用他们</li>
+</ul>
+<p>没有任何方式可以阻止反射到达并调用那些非公共访问权限的方法，对于此：</p>
+<ul>
+<li>如果有人使用反射调用这些<code>private</code>或是包访问权限的方法，后来人的修改，他们不能“抱怨”</li>
+<li>另一方面，总在类中留下后门，也许能解决某些特定问题，反射带来的好处是不可否认的</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8AThinking-in-Java%E3%80%8B/" rel="tag"># 《Thinking in Java》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/10/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F/" rel="prev" title="命令模式">
+      <i class="fa fa-chevron-left"></i> 命令模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/10/15/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="next" title="观察者模式">
+      观察者模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81RTTI"><span class="nav-number">1.</span> <span class="nav-text">1.为什么需要RTTI</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-class%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">2.class对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E5%89%8D%E5%85%88%E5%81%9A%E6%A3%80%E6%9F%A5"><span class="nav-number">3.</span> <span class="nav-text">3.类型转换前先做检查</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-instanceof%E4%B8%8EClass%E7%9A%84%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="nav-number">4.</span> <span class="nav-text">4.instanceof与Class的等价性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%8F%8D%E5%B0%84%EF%BC%9A%E8%BF%90%E8%A1%8C%E6%97%B6%E7%9A%84%E7%B1%BB%E5%9E%8B%E4%BF%A1%E6%81%AF"><span class="nav-number">5.</span> <span class="nav-text">5.反射：运行时的类型信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E6%8E%A5%E5%8F%A3%E4%B8%8E%E7%B1%BB%E5%9E%8B%E4%BF%A1%E6%81%AF"><span class="nav-number">6.</span> <span class="nav-text">6.接口与类型信息</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

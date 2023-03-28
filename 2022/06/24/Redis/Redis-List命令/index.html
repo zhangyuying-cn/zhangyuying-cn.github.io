@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Redis-List操作命令">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-List命令">
+<meta property="og:url" content="http://zhangyuying.cn/2022/06/24/Redis/Redis-List%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="Redis-List操作命令">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-06-24T08:01:37.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.750Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2022/06/24/Redis/Redis-List%E5%91%BD%E4%BB%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Redis-List命令 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2022/06/24/Redis/Redis-List%E5%91%BD%E4%BB%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis-List命令
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-24 16:01:37" itemprop="dateCreated datePublished" datetime="2022-06-24T16:01:37+08:00">2022-06-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>Redis-List操作命令</strong></p>
+<span id="more"></span>
+
+<blockquote>
+<p>命令参数统一说明:</p>
+<ol>
+<li><p>索引（<code>index</code>）：</p>
+<ul>
+<li><code>0</code>表示第一个，<code>1</code>表示第二个，以此往后推</li>
+<li><code>-1</code>表示列表的最后一个，<code>-2</code>表示倒数第二个，以此往前推</li>
+</ul>
+</li>
+<li><p>阻塞时的超时时间（<code>timeout</code>）</p>
+<p>表示的是一个指定阻塞的最大秒数的整型值，Redis版本<code>&gt;=6.0</code>，<code>timeout</code> 支持双精度浮点。</p>
+<p>当<code>timeout</code>为<code>0</code>是表示永久阻塞</p>
+</li>
+</ol>
+</blockquote>
+<h4 id="设置和获取操作"><a href="#设置和获取操作" class="headerlink" title="设置和获取操作"></a>设置和获取操作</h4><h5 id="lpush、rpush、lrange"><a href="#lpush、rpush、lrange" class="headerlink" title="lpush、rpush、lrange"></a>lpush、rpush、lrange</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#lpush key value1 [value2] :在列表头部插入一个或者多个值,如果key不存在，那么在进行push操作前会创建一个空列表,元素从左到右依次插入到list的头部,返回操作后的列表长度</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="comment"># rpush key value1 [value2] :在列表尾部添加一个或多个值。如果key不存在，那么会创建一个空的列表然后再进行push操作，元素是从左到右按序从list尾部插入，返回操作后的列表长度</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value4&quot;</span> <span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="comment">#lrange key start stop :获取列表指定范围内的元素,0表示第一个1表示第二个，-1表示列表的最后一个，-2表示倒数第二个</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">-3</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="lpushx、rpushx"><a href="#lpushx、rpushx" class="headerlink" title="lpushx、rpushx"></a>lpushx、rpushx</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lpushx key value :当储存列表的key存在时，用于将值插入到列表的头部，key不存在不会进行任何操作，返回操作后list的长度</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpushx</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpushx</span> <span class="string">key1</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="comment"># rpushx key value :当存储列表的key存在时，用于将值插入到列表的尾部，key不存在不会进行任何操作，返回操作后list的长度</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpushx</span> <span class="string">key2</span> <span class="string">&quot;value1&quot;</span> </span><br><span class="line"><span class="number">0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpushx</span> <span class="string">key1</span> <span class="string">&quot;value4&quot;</span> <span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="lset、lindex"><a href="#lset、lindex" class="headerlink" title="lset、lindex"></a>lset、lindex</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lset key index value :表示通过其索引设置列表中元素的值,当index超出列表索引范围时会返回错误</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lset</span> <span class="string">key1</span> <span class="number">0</span> <span class="string">&quot;value3-new&quot;</span></span><br><span class="line"><span class="string">&quot;OK&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lset</span> <span class="string">key1</span> <span class="number">-1</span> <span class="string">&quot;value1-new&quot;</span></span><br><span class="line"><span class="string">&quot;OK&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3-new&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1-new&quot;</span></span><br><span class="line"><span class="comment"># lindex key index :通过索引获取列表中的元素。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lindex</span> <span class="string">key1</span> <span class="number">0</span></span><br><span class="line"><span class="string">&quot;value3-new&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lindex</span> <span class="string">key1</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value1-new&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lindex</span> <span class="string">key1</span> <span class="number">1</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="linsert"><a href="#linsert" class="headerlink" title="linsert"></a>linsert</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># linsert key before|after pivot value :用于把value插入到列表key中参考值pivot的前面或后面。key不存在什么都不执行，返回操作后列表的长度，如果pivot参考值不存在的时候返回-1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">linsert</span> <span class="string">key1</span> <span class="string">before</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value2-before&quot;</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value2-before&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="ltrim"><a href="#ltrim" class="headerlink" title="ltrim"></a>ltrim</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ltrim key start stop :只保留列表中指定范围内的元素值。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value3&quot;</span> <span class="string">&quot;value4&quot;</span> <span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">ltrim</span> <span class="string">key1</span> <span class="number">1</span> <span class="number">-2</span></span><br><span class="line"><span class="string">&quot;OK&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">ltrim</span> <span class="string">key1</span> <span class="number">1</span> <span class="number">1</span></span><br><span class="line"><span class="string">&quot;OK&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="判断操作"><a href="#判断操作" class="headerlink" title="判断操作"></a>判断操作</h4><h5 id="llen"><a href="#llen" class="headerlink" title="llen"></a>llen</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># llen key :用于获取列表的长度,key不存在返回0</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">llen</span> <span class="string">key1</span></span><br><span class="line"><span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h4><h5 id="lrem"><a href="#lrem" class="headerlink" title="lrem"></a>lrem</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lrem key count value :从列表key中删除前count个值等于value的元素,返回删除元素的个数，key不存在会被当作空list处理，返回0</span></span><br><span class="line"><span class="comment"># count取值说明：(1)count&gt;0:从头到尾删除值为value的元素。(2)count&lt;0:从尾到头删除值为value的元素。(3)count=0:移除所有值为value的元素。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value4&quot;</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value6&quot;</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">7</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrem</span> <span class="string">key1</span> <span class="number">-2</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value6&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrem</span> <span class="string">key1</span> <span class="number">1</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value6&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value8&quot;</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value10&quot;</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">9</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrem</span> <span class="string">key1</span> <span class="number">0</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value6&quot;</span></span><br><span class="line"><span class="string">&quot;value8&quot;</span></span><br><span class="line"><span class="string">&quot;value10&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="lpop、rpop"><a href="#lpop、rpop" class="headerlink" title="lpop、rpop"></a>lpop、rpop</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lpop key :删除并返回存储在key中的列表的第一个元素，key不存在的时候返回nil 。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpop</span> <span class="string">key1</span> </span><br><span class="line"><span class="string">(nil)</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span> <span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpop</span> <span class="string">key1</span> </span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="comment"># rpop key :删除并返回存储在key中的列表的最后一个元素，key 不存在时返回nil。</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value4&quot;</span> <span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpop</span> <span class="string">key1</span> </span><br><span class="line"><span class="string">&quot;value5&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="blpop、brpop"><a href="#blpop、brpop" class="headerlink" title="blpop、brpop"></a>blpop、brpop</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># blpop key1 [key2 ] timeout :用于删除并返回列表中的第一个元素（头部操作），如果列表中没有元素，就会发生阻塞，直到列表等待超时或发现可弹出元素为止。timeout参数表示的是一个指定阻塞的最大秒数的整型值。当timeout为0是表示永久阻塞，lpop的阻塞版本</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key2</span> <span class="string">&quot;value3&quot;</span> <span class="string">&quot;vbalue4&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">blpop</span> <span class="string">key1</span> <span class="string">key2</span> <span class="number">0</span></span><br><span class="line"><span class="string">&quot;key1&quot;</span></span><br><span class="line"><span class="string">&quot;vlaue2&quot;</span></span><br><span class="line"><span class="comment"># brpop key1 [key2 ] timeout :用于删除并返回列表中的最后一个元素（尾部操作），如果列表中没有元素，就会发生阻塞，直到列表等待超时或发现可弹出元素为止。timeout参数表示的是一个指定阻塞的最大秒数的整型值。当timeout为0是表示永久阻塞，rpop的阻塞版本</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lpush</span> <span class="string">key3</span> <span class="string">&quot;value5&quot;</span> <span class="string">&quot;value6&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key4</span> <span class="string">&quot;value7&quot;</span> <span class="string">&quot;vbalue8&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">brpop</span> <span class="string">key4</span> <span class="string">key3</span> <span class="number">0</span></span><br><span class="line"><span class="string">&quot;key4&quot;</span></span><br><span class="line"><span class="string">&quot;value8&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="rpoplpush、brpoplpush"><a href="#rpoplpush、brpoplpush" class="headerlink" title="rpoplpush、brpoplpush"></a>rpoplpush、brpoplpush</h5><blockquote>
+<p>从 Redis 6.2.0起</p>
+<p><code>rpoplpush</code> 使用 <code>lmove</code>替代</p>
+<p><code>brpoplpush</code> 使用<code>blmove</code>替代</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># rpoplpush source destination :从列表source中移除并返回最后一个元素，然后把这个元素插入为列表destination的第一个元素，如果source不存在返回nil</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key2</span> <span class="string">&quot;value3&quot;</span> <span class="string">&quot;vbalue4&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpoplpush</span> <span class="string">key1</span> <span class="string">key2</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key2</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="comment"># brpoplpush source destination timeout :rpoplpush的阻塞版本。如果列表中没有元素，就会发生阻塞，直到等待超时或发现可弹出元素时为止。timeout参数表示的是一个指定阻塞的最大秒数的整型值。当timeout为0是表示永久阻塞</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">brpoplpush</span> <span class="string">key2</span> <span class="string">key1</span> </span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key2</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="lmove、blmove"><a href="#lmove、blmove" class="headerlink" title="lmove、blmove"></a>lmove、blmove</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lmove source destination left|right left|right :原子地从列表source中移除并返回第一个或最后一个元素（头或尾取决于wherefrom参数)，然后把这个元素插入到列表destination的第一个或最后一个元素（头或尾取决于 wherefrom参数)，返回移除并在此插入的元素，如果source不存在，返回nil，什么也不执行</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key1</span> <span class="string">&quot;value1&quot;</span> <span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">rpush</span> <span class="string">key2</span> <span class="string">&quot;value3&quot;</span> <span class="string">&quot;vbalue4&quot;</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lmove</span> <span class="string">key1</span> <span class="string">key2</span> <span class="string">right</span> <span class="string">left</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key2</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lmove</span> <span class="string">key2</span> <span class="string">key1</span> <span class="string">left</span> <span class="string">right</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key1</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value1&quot;</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">lrange</span> <span class="string">key2</span> <span class="number">0</span> <span class="number">-1</span> </span><br><span class="line"><span class="string">&quot;value3&quot;</span></span><br><span class="line"><span class="string">&quot;value4&quot;</span></span><br><span class="line"><span class="comment"># blmove source destination left|right left|right timeout，lmove的阻塞版本，如果列表中没有元素，就会发生阻塞，直到等待超时或发现可弹出元素时为止。timeout参数表示的是一个指定阻塞的最大秒数的整型值。当timeout为0是表示永久阻塞</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:6379&gt;</span> <span class="string">blmove</span> <span class="string">key1</span> <span class="string">key2</span> <span class="string">right</span> <span class="string">left</span></span><br><span class="line"><span class="string">&quot;value2&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://www.redis.com.cn/commands/blpop.html">Redis-List命令</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/23/Redis/Redis-Hash%E5%91%BD%E4%BB%A4/" rel="prev" title="Redis-Hash命令">
+      <i class="fa fa-chevron-left"></i> Redis-Hash命令
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/27/Redis/Redis-Set%E5%91%BD%E4%BB%A4/" rel="next" title="Redis-Set命令">
+      Redis-Set命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E5%92%8C%E8%8E%B7%E5%8F%96%E6%93%8D%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">设置和获取操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#lpush%E3%80%81rpush%E3%80%81lrange"><span class="nav-number">1.1.</span> <span class="nav-text">lpush、rpush、lrange</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#lpushx%E3%80%81rpushx"><span class="nav-number">1.2.</span> <span class="nav-text">lpushx、rpushx</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#lset%E3%80%81lindex"><span class="nav-number">1.3.</span> <span class="nav-text">lset、lindex</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#linsert"><span class="nav-number">1.4.</span> <span class="nav-text">linsert</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ltrim"><span class="nav-number">1.5.</span> <span class="nav-text">ltrim</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%93%8D%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">判断操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#llen"><span class="nav-number">2.1.</span> <span class="nav-text">llen</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">删除操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#lrem"><span class="nav-number">3.1.</span> <span class="nav-text">lrem</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#lpop%E3%80%81rpop"><span class="nav-number">3.2.</span> <span class="nav-text">lpop、rpop</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#blpop%E3%80%81brpop"><span class="nav-number">3.3.</span> <span class="nav-text">blpop、brpop</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#rpoplpush%E3%80%81brpoplpush"><span class="nav-number">3.4.</span> <span class="nav-text">rpoplpush、brpoplpush</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#lmove%E3%80%81blmove"><span class="nav-number">3.5.</span> <span class="nav-text">lmove、blmove</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本次记录的实践主要是可重入锁和联锁 1. 可重入锁（Reentrant Lock）Redisson的分布式可重入锁RLock Java对象实现了java.util.concurrent.locks.Lock接口，同时还支持自动过期解锁。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记redis锁的一次实践">
+<meta property="og:url" content="http://zhangyuying.cn/2018/08/12/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="本次记录的实践主要是可重入锁和联锁 1. 可重入锁（Reentrant Lock）Redisson的分布式可重入锁RLock Java对象实现了java.util.concurrent.locks.Lock接口，同时还支持自动过期解锁。">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E4%BB%A3%E7%A0%81.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/redis%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E5%BA%93%E5%AD%98%E5%82%A8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/%E8%81%94%E9%94%81%E4%BB%A3%E7%A0%81.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/redis%E8%81%94%E9%94%81%E5%AD%98%E5%82%A8.png">
+<meta property="article:published_time" content="2018-08-12T11:08:07.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.752Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E4%BB%A3%E7%A0%81.png">
+
+<link rel="canonical" href="http://zhangyuying.cn/2018/08/12/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>记redis锁的一次实践 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2018/08/12/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记redis锁的一次实践
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-12 19:08:07" itemprop="dateCreated datePublished" datetime="2018-08-12T19:08:07+08:00">2018-08-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li><p>本次记录的实践主要是<code>可重入锁</code>和<code>联锁</code></p>
+<h3 id="1-可重入锁（Reentrant-Lock）"><a href="#1-可重入锁（Reentrant-Lock）" class="headerlink" title="1. 可重入锁（Reentrant Lock）"></a>1. 可重入锁（Reentrant Lock）</h3><p>Redisson的分布式可重入锁RLock Java对象实现了java.util.concurrent.locks.Lock接口，同时还支持自动过期解锁。</p>
+<span id="more"></span>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testReentrantLock</span><span class="params">(RedissonClient redisson)</span></span>&#123;</span><br><span class="line">	RLock lock = redisson.getLock(<span class="string">&quot;anyLock&quot;</span>);</span><br><span class="line">	<span class="keyword">try</span>&#123;</span><br><span class="line">		<span class="comment">// 1. 最常见的使用方法</span></span><br><span class="line">		<span class="comment">//lock.lock();</span></span><br><span class="line">		<span class="comment">// 2. 支持过期解锁功能,10秒钟以后自动解锁, 无需调用unlock方法手动解锁</span></span><br><span class="line">		<span class="comment">//lock.lock(10, TimeUnit.SECONDS);</span></span><br><span class="line">		<span class="comment">// 3. 尝试加锁，最多等待3秒，上锁以后10秒自动解锁</span></span><br><span class="line">		<span class="keyword">boolean</span> res = lock.tryLock(<span class="number">3</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">		<span class="keyword">if</span>(res)&#123; <span class="comment">//成功</span></span><br><span class="line">		<span class="comment">// do your business</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">		e.printStackTrace();</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Redisson同时还为分布式锁提供了异步执行的相关方法(本次实践不涉及，在此不做介绍)</p>
+<h3 id="2-联锁（MultiLock）"><a href="#2-联锁（MultiLock）" class="headerlink" title="2. 联锁（MultiLock）"></a>2. 联锁（MultiLock）</h3><p>Redisson的RedissonMultiLock对象可以将多个RLock对象关联为一个联锁，每个RLock对象实例可以来自于不同的Redisson实例。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMultiLock</span><span class="params">(RedissonClient redisson1,RedissonClient redisson2, RedissonClient redisson3)</span></span>&#123;</span><br><span class="line">	RLock lock1 = redisson1.getLock(<span class="string">&quot;lock1&quot;</span>);</span><br><span class="line">	RLock lock2 = redisson2.getLock(<span class="string">&quot;lock2&quot;</span>);</span><br><span class="line">	RLock lock3 = redisson3.getLock(<span class="string">&quot;lock3&quot;</span>);</span><br><span class="line">	RedissonMultiLock lock = <span class="keyword">new</span> RedissonMultiLock(lock1, lock2, lock3);</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="comment">// 同时加锁：lock1 lock2 lock3, 所有的锁都上锁成功才算成功。</span></span><br><span class="line">		lock.lock();</span><br><span class="line">		<span class="comment">// 尝试加锁，最多等待100秒，上锁以后10秒自动解锁</span></span><br><span class="line">		<span class="keyword">boolean</span> res = lock.tryLock(<span class="number">100</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">	&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">		e.printStackTrace();</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>redis中的锁可参考：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/l1028386804/article/details/73523810">https://blog.csdn.net/l1028386804/article/details/73523810</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/redisson/redisson/wiki/8.-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%92%8C%E5%90%8C%E6%AD%A5%E5%99%A8">https://github.com/redisson/redisson/wiki/8.-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%92%8C%E5%90%8C%E6%AD%A5%E5%99%A8</a></p>
+</li>
+</ul>
+<h3 id="实践场景描述"><a href="#实践场景描述" class="headerlink" title="实践场景描述"></a>实践场景描述</h3><p>  现在需要redis可重入锁和联锁的场景是：</p>
+<p>  在工作的业务中，有人员，有角色，可以对人员赋予角色的，针对当前业务现在有两种存储方式：redis（主要使用内存缓存）和DB</p>
+<p>  redis中关于这部分有两块缓存存储：</p>
+<ul>
+<li><p>一块是角色缓存存储：roleStorage</p>
+</li>
+<li><p>另一块是人员角色存储：UserRoleStorage</p>
+<p>操作：</p>
+</li>
+</ul>
+<p>  1.在删除角色的时候，需要调用UserRoleStorage中的deleteUserRoleByRoleIds()方法将对应的缓存在redis中删除。</p>
+<p>  删除的时操作顺序：是先删除redis数据，再删除db中的数据</p>
+<p>  2.在查询方法中要查询人员是否有角色。</p>
+<p>  查询的时操作顺序：先查询redis，redis中没有的时候再去db中查询。</p>
+<h3 id="问题及解决"><a href="#问题及解决" class="headerlink" title="问题及解决"></a>问题及解决</h3><p>  问题1.因为删除和查询对redis和db的 <strong>操作顺序</strong>问题，在并发的情况下会导致redis和db数据不一致！</p>
+<p>  例如：A线程在删除角色时，B线程在查询，A线程执行到删除了redis缓存之后，B线程来查询，因为此时redis缓存为空，B会去数据库查询，但是数据库还未被删除，此时从数据库中加载到缓存中的数据是错误的数据（里面存在需要删除的数据），之后再来查询因为redis中存在数据就不会在去数据库重新查询，致使redis和db数据不一致</p>
+<h5 id="可重入锁解决问题1："><a href="#可重入锁解决问题1：" class="headerlink" title="可重入锁解决问题1："></a>可重入锁解决问题1：</h5><p>  使用<code>可重入锁</code>解决由于<em>删除和查找对redis和db操作顺序</em>产生的不一致问题：</p>
+<ul>
+<li><p>get方法,只有在需要查询db的时候在会进行加锁，【锁之中还是会在查询一边缓存，防止并发线程过来之后多次查询数据库】</p>
+</li>
+<li><p>查询方法（get）和删除方法（del）采用同一把锁。这样保证del和get是互斥性操作。不会导致数据不一致的问题</p>
+<p>代码如下：</p>
+<p>UserRoleStorage:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//查询方法：</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Set&lt;String&gt; <span class="title">getUserIdsByRoleId</span><span class="params">(String systemId, String roleId)</span> </span>&#123;</span><br><span class="line">        String redisKey = getUserRoleRedisKey(systemId, roleId, SYSTEMID_USER_ROLE_ROLEID);</span><br><span class="line">        <span class="keyword">if</span> (redisTemplate.hasKey(redisKey)) &#123;</span><br><span class="line">            <span class="keyword">return</span> redisTemplate.opsForSet().members(redisKey);</span><br><span class="line">        &#125;</span><br><span class="line">        RLock lock = redissonClient.getLock(<span class="string">&quot;人员角色的锁&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            lock.lock(RedisLockConsts.LEASE_TIME, TimeUnit.SECONDS);</span><br><span class="line">            <span class="keyword">if</span> (redisTemplate.hasKey(redisKey)) &#123;</span><br><span class="line">                <span class="keyword">return</span> redisTemplate.opsForSet().members(redisKey);</span><br><span class="line">            &#125;</span><br><span class="line">            Set&lt;String&gt; userIdsFromDB = roleMapper.getUserIdByRoleId(roleId, systemId);</span><br><span class="line">            <span class="keyword">if</span> (CollectionUtils.isNotEmpty(userIdsFromDB)) &#123;</span><br><span class="line">                redisTemplate.opsForSet().add(redisKey, userIdsFromDB.toArray(<span class="keyword">new</span> String[<span class="number">0</span>]));</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> userIdsFromDB;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//删除方法：</span></span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteUserRoles</span><span class="params">(List&lt;String&gt; roleIds)</span> </span>&#123;</span><br><span class="line">     RLock lock = redissonClient.getLock(<span class="string">&quot;人员角色的锁&quot;</span>);</span><br><span class="line">     <span class="keyword">try</span> &#123;</span><br><span class="line">         lock.lock(RedisLockConsts.LEASE_TIME, TimeUnit.SECONDS);</span><br><span class="line">         deleteInRedis(roleIds);</span><br><span class="line">         deleteUserRole2DB(roleIds);</span><br><span class="line">     &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">         lock.unlock();</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<p>  问题2.上述1问题解决之后，在删除角色时调用人员角色的删除，并发情况下也会导致redis和db的数据不一致！</p>
+<p>  例如：A线程在删除角色定义，即将要删除人员角色的时候，B线程来查询，此时A还未获取<code>&quot;人员角色的锁&quot;</code>,所以此时B还是可能获取锁并执行查库操作，导致redis和db数据不一致问题</p>
+<h5 id="联锁解决问题2："><a href="#联锁解决问题2：" class="headerlink" title="联锁解决问题2："></a>联锁解决问题2：</h5><p>  使用<code>联锁</code>来解决删除角色中调用人员角色中的删除方法导致数据可不一致的问题</p>
+<ul>
+<li><p>在删除角色（delRole）的方法中，获取两把可重入锁:一个是保证角色的数据性一直问题（和人员角色一样：删除和查询的操作redis和db的顺序导致数据不一致），另一个是 **”人员角色的锁”**，然后将两个可重入锁，做成联锁。【此时在delRole方法中，A线程开始删除，查询线程是不能查询的，因为 **”人员角色的锁”**，已经被占用，从而保证数据一致性】</p>
+<p>代码如下：</p>
+<p>UserRoleStorage:参照第一个问题中的代码</p>
+<p>RoleStorage:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional(rollbackFor = Exception.class)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteRole</span><span class="params">(List&lt;String&gt; roleIds)</span> </span>&#123;</span><br><span class="line">    RLock userRoleLock = redissonClient.getLock(<span class="string">&quot;人员角色的锁&quot;</span>);</span><br><span class="line">    RLock roleLock = redissonClient.getLock(<span class="string">&quot;角色的锁&quot;</span>);</span><br><span class="line">    RedissonMultiLock lock = <span class="keyword">new</span> RedissonMultiLock(userRoleLock,roleLock);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        lock.lock(RedisLockConsts.LEASE_TIME, TimeUnit.SECONDS);</span><br><span class="line">        deleteInRedis(roleIds);</span><br><span class="line">        deleteRoleInDB(roleIds);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h3 id="疑问排查"><a href="#疑问排查" class="headerlink" title="疑问排查"></a>疑问排查</h3><p>  在使用<code>联锁</code> 解决问题的时候：思考一个问题：</p>
+<p>  我在删除角色中获取了<strong>“人员角色的锁”</strong>，然后这个方法又调用了人员角色中的删除方法，人员角色的删除会再次获取 <strong>“人员角色的锁”</strong>，</p>
+<p>  那么会不会锁死？？？</p>
+<p>  答案是不会。</p>
+<p>  因为**”人员角色的锁”**是可重入锁！</p>
+<p>  1.<code>可重入锁</code>在 <strong>同一个线程中</strong>是可以多次获取，并上锁的。</p>
+<p>  代码示例如下：</p>
+<p>  <img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E4%BB%A3%E7%A0%81.png" alt="可重入锁代码"></p>
+<p>  redis中锁存储：</p>
+<p>  <img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/redis%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E5%BA%93%E5%AD%98%E5%82%A8.png" alt="reids可重入锁库存储"></p>
+<p>  分析：</p>
+<ul>
+<li>可以看到在代码实现中，同一个线程中，可重入锁是可以重复获取并上锁的，并且只要有一个被锁住，其余的状态显示的都是已经被锁住！</li>
+<li>redis锁的存储中可以看到：锁在数据库中是key-value存储的<ul>
+<li>key(对应图中：8bcef576-0e4a-4944-96ec-cd975c30e903:38)，是根据线程生成的，一个线程只会生成一个key</li>
+<li>value:(对应图中：4)，是在当前线程中锁住了锁的次数，在代码中（lock、lock1、lock2、lock3）,上锁了4次，所以value为4</li>
+</ul>
+</li>
+</ul>
+<p>  2.<code>联锁</code>示例</p>
+<p>  <img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/%E8%81%94%E9%94%81%E4%BB%A3%E7%A0%81.png" alt="联锁代码"></p>
+<p>  redis中锁存储：</p>
+<p>  <img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Redis/%E8%AE%B0redis%E9%94%81%E7%9A%84%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5/redis%E8%81%94%E9%94%81%E5%AD%98%E5%82%A8.png" alt="redisl联锁存储"></p>
+<p>  分析：</p>
+<ul>
+<li>可以看到在代码实现中，联锁同时锁住了3个可重入锁（lock、lock1、lock2），lock3还是可以获取锁并上锁和解锁，因为联锁没有解锁，所以4把可重入锁的状态还是锁住的！</li>
+<li>redis中，联锁锁住了3把可重入锁，lock3 上锁之后又解锁了，所以最后锁的次数是3（联锁锁住的可重入锁个数）</li>
+<li>所以联锁中使用的可重入锁在同一个线程中是可重复获取的！不会锁死！</li>
+<li>如果上述代码中的allLock.unlock()，注释去掉，那么redis中是没有锁的，因为所有锁已经全部都被解锁！</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E9%87%8D%E6%9E%84,%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1/%E9%87%8D%E6%9E%84-%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%8D%81%E4%BA%8C-%E5%A4%A7%E5%9E%8B%E9%87%8D%E6%9E%84/" rel="prev" title="重构-改善既有代码的设计：十二.大型重构">
+      <i class="fa fa-chevron-left"></i> 重构-改善既有代码的设计：十二.大型重构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/08/12/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E9%87%8D%E6%9E%84,%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1/%E9%87%8D%E6%9E%84-%E6%94%B9%E5%96%84%E6%97%A2%E6%9C%89%E4%BB%A3%E7%A0%81%E7%9A%84%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%8D%81%E4%B8%89-%E9%87%8D%E6%9E%84%E3%80%81%E5%A4%8D%E7%94%A8%E4%B8%8E%E7%8E%B0%E5%AE%9E/" rel="next" title="重构-改善既有代码的设计：十三.重构、复用与现实">
+      重构-改善既有代码的设计：十三.重构、复用与现实 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%EF%BC%88Reentrant-Lock%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">1. 可重入锁（Reentrant Lock）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%81%94%E9%94%81%EF%BC%88MultiLock%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">2. 联锁（MultiLock）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E5%9C%BA%E6%99%AF%E6%8F%8F%E8%BF%B0"><span class="nav-number">3.</span> <span class="nav-text">实践场景描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3"><span class="nav-number">4.</span> <span class="nav-text">问题及解决</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%981%EF%BC%9A"><span class="nav-number">4.0.1.</span> <span class="nav-text">可重入锁解决问题1：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%81%94%E9%94%81%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%982%EF%BC%9A"><span class="nav-number">4.0.2.</span> <span class="nav-text">联锁解决问题2：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%96%91%E9%97%AE%E6%8E%92%E6%9F%A5"><span class="nav-number">5.</span> <span class="nav-text">疑问排查</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

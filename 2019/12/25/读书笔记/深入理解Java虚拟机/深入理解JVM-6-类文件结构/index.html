@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="越来的越多的语言选择与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解JVM-6-类文件结构">
+<meta property="og:url" content="http://zhangyuying.cn/2019/12/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-6-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="越来的越多的语言选择与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/Class%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.jpg">
+<meta property="article:published_time" content="2019-12-25T06:26:11.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.770Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="《深入理解Java虚拟机》">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/Class%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.jpg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/12/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-6-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>深入理解JVM-6-类文件结构 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/12/25/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-6-%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入理解JVM-6-类文件结构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-12-25 14:26:11" itemprop="dateCreated datePublished" datetime="2019-12-25T14:26:11+08:00">2019-12-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">读书笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>越来的越多的语言选择与操作系统和机器指令集无关的、平台中立的格式作为程序编译后的存储格式</p>
+<span id="more"></span>
+
+<h3 id="无关性的基石"><a href="#无关性的基石" class="headerlink" title="无关性的基石"></a>无关性的基石</h3><p>Java : <code>Write Once , Run Anywhere</code></p>
+<p>各种不同平台的虚拟机与所有平台都统一使用的程序存储格式——字节码（<code>ByteCode</code>）是构成平台无关性的基石，也实现了语言无关性</p>
+<h3 id="Class类文件的结构"><a href="#Class类文件的结构" class="headerlink" title="Class类文件的结构"></a>Class类文件的结构</h3><p>Class文件是Java虚拟机执行引擎的数据入口，也是Java技术体系的基础构成之一</p>
+<p>Class文件是一组以8位字节为基础单位的二进制流，各个数据项目严格按照顺序紧凑的排列在Class文件之中，中间没有添加任何分隔符，Class文件中存储的内容几乎全部都是程序运行的必要数据，没有空隙。</p>
+<p>Class中只有两种数据类型：无符号数和表</p>
+<ul>
+<li>无符号数：属于基本的数据类型，以<code>u1</code>、<code>u2</code>、<code>u4</code>、<code>u8</code>来分别代表1个字节、2个字节、4个字节和8个字节的无符号数，无符号数可以用来描述数字、索引引用、数量值或者按照UTF-8编码构成字符串值</li>
+<li>表：是多个无符号数或者其他表作为数据项构成的复合数据类型，所有表都习惯性的以 <code>_info</code> 结尾，表用于描述有层次关系的复合结构的数据，整个Class文件本质上就是一张表</li>
+</ul>
+<p>无论是无符号数还是表，当需要描述同一类型但数量不定的多个数据时，经常会使用一个前置的容量计数器加若干个连续的数据项的形式，这时称这一系列连续的某一类型的数据为某一类型的集合</p>
+<p>Class文件格式各个数据项如下：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/Class%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F.jpg"></p>
+<ol>
+<li><p>头4个字节称为魔数(<code>Magic Number</code>)，唯一作用是确定这个文件是否为一个能被虚拟机接受的Class文件，Class文件的魔数值为：<code>0xCAFEBABE</code></p>
+</li>
+<li><p>紧接着的4个字节是版本号，5、6字节是次版本号(<code>Minor Version</code>)，7、8字节是主版本号(<code>Major Version</code>)，Java的版本号从45开始，JDK7是51</p>
+</li>
+<li><p>紧接着是常量池入口，常量池可以理解为Class文件之中的资源仓库，是Class文件结构中与其他项目关联最多的数据类型，也是占用Class文件空间最大的数据项目之一，是Class文件中第一个出现的表类型数据项目</p>
+<p>常量池数量不固定，常量池入口放置了一个<code>u2</code>类型的数据，代表常量池容量计数值(<code>constant_pool_count</code>)，从1开始计数，0表示不引用任何一个常量池项目</p>
+<p>常量池主要存放两大类型常量：字面量(<code>Literal</code>)和符号引用(<code>Symbolic References</code>)</p>
+<ul>
+<li>字面量比较接近于Java语言层面的常量感念，如字符串、声明为<code>final</code>的常量值等</li>
+<li>符号引用则属于编译原理方面的概念，包括了下面三类常量<ul>
+<li>类和接口的全限定名（<code>Fully Qualified Name</code>）</li>
+<li>字段的名称和描述符（<code>Descriptor</code>）</li>
+<li>方法的名称和描述符</li>
+</ul>
+</li>
+</ul>
+<p>常量池中每一项常量都是一个表，JDK1.7为止共有14中结构不同的表结构，这14中表开始的第一位是一个<code>u1</code>类型的标志位，代表中这个常量属于那种常量类型，每种常量类型各自均有自己的结构</p>
+<p>常量池的作用：Java在编译的时候，并不像C/C++一样有<code>link</code>这一步骤，而是在虚拟机加载Class文件的时候动态加载，也就是说在Class文件中不会保存各个方法，字段的最终内存布局信息，因此这些字段，方法的符号引用需要在运行期转换为对应的内存入口地址。当虚拟机运行的时候，需要从常量池获取对应的符号引用，再在类创建的时候或者运行时解析，翻译到具体的内存地址之中</p>
+</li>
+<li><p>后面两个字节代表访问标志（<code>access_flags</code>），用于识别一些类或者接口层次的访问信息，包括：这个Class是类还是接口；是否定义为public类型；是否定义为abstract类型；如果是类是否被声明为final等</p>
+<p><code>access_flags</code>一共16个标志位，例如<code>ACC_PUBLIC</code></p>
+</li>
+<li><p>然后是类索引、父类索引和接口索引集合</p>
+<p>类索引(<code>this_class</code>)和父类索引(<code>super_class</code>)都是<code>u2</code>类型的数据，紧接着是<code>u2</code>类型的接口计数器(<code>interfaces_count</code>)，表示索引表的容量，然后才是接口索引集合(<code>interfaces</code>)，是一组<code>u2</code>类型的数据的集合</p>
+<p>Class文件中由这三个数据项来确定类的继承关系</p>
+<ul>
+<li>类索引确定类的全限定名</li>
+<li>父类索引确定这个类的父类的全限定名(不允许多继承，所以只有一个)，<code>Java.lang.Object</code>的父类索引是0</li>
+<li>接口索引集合确定这个类实现了哪些接口</li>
+</ul>
+</li>
+<li><p>字段表集合</p>
+<p>字段表(<code>filed_info</code>)用于描述接口或者类中声明的变量，字段表前也有一个<code>u2</code>类型的数据为容量计数器<code>fields_count</code></p>
+<p>字段表集合不会列出从超类或者父接口中继承而来的字段，但是可能列出原本Java代码中不存在字段(例如内部类中对外部类的实例字段)</p>
+<p>对于字段表，都使用简单的标识字符描述字段类型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">- B： byte</span><br><span class="line">- C： char</span><br><span class="line">- D: double</span><br><span class="line">- F:  float</span><br><span class="line">- I : int</span><br><span class="line">- J： long</span><br><span class="line">- S : short</span><br><span class="line">- Z:  boolean</span><br><span class="line">- V:  void</span><br><span class="line">- L: 引用，如Ljava&#x2F;lang&#x2F;Object</span><br><span class="line">数组：[ 如[I 标识int数组</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>描述符描述方法：</p>
+<ol>
+<li>当前类中的方法：()V</li>
+<li>toString ： ()Ljava/lang/String</li>
+<li>int indexOf(char[] source, int sourceOffset, int sourceCount, char[] target, int tagetOffset, int targetCount, int fromIndex) ： ([CII[CIII)I </li>
+</ol>
+</blockquote>
+</li>
+<li><p>方法表集合</p>
+<p>描述接口或类中定义的方法</p>
+<ul>
+<li>在Java中，方法特征名包括参数，方法名，但是不包括返回值</li>
+<li>在JVM中，方法特征名包括参数，方法名以及返回值，也就是说，在JVM中，返回值不同的方法是可以重载的</li>
+</ul>
+<p>方法里面的代码存放在方法属性表集合中一个名为<code>Code</code>的属性里面</p>
+</li>
+<li><p>属性表集合</p>
+<p>在Class文件、字段表、方法表都可以携带自己的属性集合，以用于描述某些场景专有信息</p>
+<p>关于异常：使用异常表处理，编译器使用异常表而不是简单的跳转命令来实现Java异常及<code>finally</code>处理机制</p>
+</li>
+</ol>
+<h3 id="字节码指令简介"><a href="#字节码指令简介" class="headerlink" title="字节码指令简介"></a>字节码指令简介</h3><p>Java虚拟机的指令由操作码(一个字节)以及跟随其后的操作数构成的</p>
+<ul>
+<li>不过Java虚拟机采用面向操作数栈而不是寄存器的架构，所以大多数的指令都不包含操作数</li>
+<li>由于Java的操作码长度为一个字节(<code>0~255</code>)，所以指令集的操作码中暑不可能超过<code>256</code></li>
+</ul>
+<p><code>JVM</code>没有单独对<code>byte,short,char,boolean</code>的指令，他们都是使用的<code>int</code>的指令类型，在使用的时候，<code>byte,short</code>会被带符号扩展为<code>int</code>类型，<code>char,boolean</code>会被零位扩展为<code>int</code>类型（对应的数组也会进行转换）</p>
+<p>指令简介：</p>
+<blockquote>
+<p>指令_<n>  :一组指令，某个带有一个操作数的通用指令的特殊形式，例如iload_1的语义与操作数为1时的iload指令语义完全一致</p>
+</blockquote>
+<p>字节码指令在此按照用途大致分为9类</p>
+<ul>
+<li><p>加载和存储指令</p>
+<p>加载和存储指令用于将数据在栈帧中的局部变量表和操作数栈之间来回传输</p>
+<ul>
+<li>将一个局部变量加载到操作栈：<code>iload、iload_&lt;n&gt;、lload、lload_&lt;n&gt;、fload、fload_&lt;n&gt;、dload、dload_&lt;n&gt;、aload、aload_&lt;n&gt;</code>。</li>
+<li>将一个数值从操作数栈到局部变量表：<code>istore、istore_&lt;n&gt;、lstore、lstore_&lt;n&gt;、fstore、fstore_&lt;n&gt;、dstore、dstore_&lt;n&gt;、astore、astore_&lt;n&gt;</code>。</li>
+<li>将一个常量加载到操作数栈：<code>bipush、sipush、ldc、ldc_w、ldc2_w、aconst_null、iconst_m1、iconst_&lt;i&gt;、lconst_&lt;l&gt;、fconst_&lt;f&gt;、dconst_&lt;d&gt;</code>。</li>
+<li>扩充局部变量表的访问索引的指令：<code>wide</code>。</li>
+</ul>
+</li>
+<li><p>运算指令</p>
+<p>运算或算术指令用于对两个操作数栈上的值进行某种特定运算，并把运算结果重新存入到操作栈顶</p>
+<ul>
+<li>加法指令：<code>iadd，ladd，fadd，dadd</code>。</li>
+<li>减法指令：<code>isub，lsub，fsub，dsub</code>。</li>
+<li>乘法指令：<code>imul，lmul，fmul，dmul</code>。</li>
+<li>除法指令：<code>idiv，ldiv，fdiv，ddiv</code>。</li>
+<li>求余指令：<code>irem，lrem，frem，drem</code>。</li>
+<li>取反指令：<code>ineg，lneg，fneg，dneg</code>。</li>
+<li>位移指令：<code>ish1，ishr，iushr，lshl，lshr，lushr</code>。</li>
+<li>按位或指令：<code>ior，lor</code>。</li>
+<li>按位与指令：<code>iand，land</code>。</li>
+<li>按位异或指令：<code>ixor，lxor</code>。</li>
+<li>局部变量自增指令：<code>iinc</code>。</li>
+<li>比较指令：<code>dcmpg，dcmpl，fcmpg，fcmpl，lcmp</code>。</li>
+</ul>
+</li>
+<li><p>类型转换指令</p>
+<p>可以将两种不同的数值类型进行相互转换</p>
+<ul>
+<li>Java虚拟机直接支持(即转换时无需显式的转换指令)宽化类型转换(即小范围类型向大范围类型的安全转换)：</li>
+<li>窄化类型转换，必须显示的使用转换指令来完成，包括：<code>i2b、i2c、i2s、l2i、f2i、f2l、d2i、d2l、d2f</code></li>
+<li>Java虚拟机明确规定数值类型的窄化转化指令永远不可能导致虚拟机抛出异常</li>
+</ul>
+</li>
+<li><p>对象创建与访问指令</p>
+<p>类实例和数组使用不同的字节码，对象创建后即可通过访问指令访问</p>
+<ul>
+<li>创建类实例的指令：<code>new</code>。</li>
+<li>常见数组的指令：<code>newarray、anewarray、multianewarray</code>。</li>
+<li>访问类字段(<code>static</code>字段，类变量)和实例字段(非<code>static</code>字段，实例变量)的指令：<code>getstatic、putstatic；getfield、putfield</code>。</li>
+<li>把一个数组元素加载到操作数栈的指令：<code>baload、caload、saload、iaload、laload、faload、daload、aaload</code>。</li>
+<li>将一个操作数栈的值存储到数组元素中的指令：<code>bastore、castore、sastore、iastore、fastore，dastore，aastore</code>。</li>
+<li>取数组长度的指令：<code>arraylength</code>。</li>
+<li>检查类实例类型的指令：<code>instanceof、checkcast</code>。</li>
+</ul>
+</li>
+<li><p>操作数栈管理指令</p>
+<p>直接操作操作数栈的指令</p>
+<ul>
+<li>将操作数栈的栈顶一个或两个元素出栈：<code>pop、pop2</code>。</li>
+<li>复制栈顶一个或两个数值并将复制值或双份的复制重新压入栈顶：<code>dup、dup2、dup_x1、dup2_x1、dup_x2、dup1_x2</code>。</li>
+<li>将栈最顶端的两个数值互换：<code>swap</code>。</li>
+</ul>
+</li>
+<li><p>控制转移指令</p>
+<p>让Java虚拟机有条件或无条件的从指定的位置指令而不是控制转移指令的下一条指令继续执行程序</p>
+<p>各种类型的比较最终都会转化为<code>int</code>类型的比较操作，所以Java虚拟机<code>int</code>类的条件分支指令是最为丰富和强大的</p>
+<ul>
+<li>条件分支：<code>ifeq、iflt、ifle、ifne、ifgt、ifge、ifnull、ifnonnull、if_icmpeq、if_icmpne、if_icmplt、if_icmpgt、if_icmple、if_icmpge、if_acmpeq、if_acmpne</code>。</li>
+<li>复合条件分支：<code>tableswitch、lookupswitch</code>。</li>
+<li>无条件分支：<code>goto、goto_w、jsr、jsr_w、ret</code>。</li>
+</ul>
+</li>
+<li><p>方法调用和返回指令</p>
+<p>方法调用指令与数据类型无关，而方法返回指令是根据返回值的类型区分的</p>
+<ul>
+<li><code>invokevirtual</code>：指令用于调用对象的实例方法，根据对象的实例类型进行分派(虚方法分派)，这也是Java语言中最常见的方法分派方式。</li>
+<li><code>invokeinterface</code>：指令用于调用接口方法，它会再运行时搜索一个实现了这个接口方法的对象，找出适合的方法进行调用。</li>
+<li><code>invokespecial</code>：指令用于调用一些需要特殊处理的实例方法，包括实例初始化方法，私有方法和分类方法。</li>
+<li><code>invokestatic</code>：指令用于调用类方法(<code>static</code>方法)。</li>
+<li><code>invokedynamic</code>：指令用于在运行时动态解析出调用点限定符所引用的方法，并执行该方法。前4条固化在Java虚拟机内部，而<code>invokedynamic</code>指令的分派逻辑是由用户所设定的引导方法决定的</li>
+<li>返回指令：<code>ireture</code>(当返回值时<code>boolean，byte，char，short</code>和<code>int</code>类型时使用)、<code>lreturn、freture、dreturn</code>和<code>areturn</code>，<code>return</code>指令供声明为<code>void</code>的方法、实例初始化方法以及类和接口的类初始化方法使用。</li>
+</ul>
+</li>
+<li><p>异常处理指令</p>
+<p>Java程序中显示抛出异常的操作（<code>throw</code>语句）都由<code> athrow</code>指令实现</p>
+<p>还有许多运行时异常会在其他指令检测到异常情况时自动抛出</p>
+<p>而处理异常(<code>catch</code>)是异常表实现的</p>
+</li>
+<li><p>同步指令</p>
+<p>Java虚拟机可以支持方法级同步和方法内部一段指令序列同步，这两种同步结构都是使用管程(<code>Monitor</code>)来支持的，同步方法执行时先获取管程，执行完成释放管程</p>
+<ul>
+<li><p>方法级同步无需指令控制，使用<code>ACC_SYNCHRONIZED</code>访问标志来确定方法是否为同步，</p>
+<p>如果执行期间发生异常，所持有管程将在异常抛出到同步方法之外时自动释放</p>
+</li>
+<li><p>一段指令序列的同步：使用的指令集是<code>monitorenter</code>和<code>monitorexit</code></p>
+<p>为保证<code>monitorexit</code>指令的必须执行，编译器会自动产生一个异常处理器</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="虚拟机实现"><a href="#虚拟机实现" class="headerlink" title="虚拟机实现"></a>虚拟机实现</h3><p>对于规范的Class文件格式和字节码指令集，虚拟机的主要实现方式有两种</p>
+<ul>
+<li>将输入的Java虚拟机代码在加载或执行时翻译成另外一种虚拟机的指令集</li>
+<li>将输入的Java虚拟机代码在加载或执行时翻译成宿主机CPU的本地指令集（即JIT代码生成技术）</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B/" rel="tag"># 《深入理解Java虚拟机》</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/13/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" rel="prev" title="深入理解JVM-3-垃圾收集器与内存分配策略">
+      <i class="fa fa-chevron-left"></i> 深入理解JVM-3-垃圾收集器与内存分配策略
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/27/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JVM-7-%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/" rel="next" title="深入理解JVM-7-虚拟机类加载机制">
+      深入理解JVM-7-虚拟机类加载机制 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%85%B3%E6%80%A7%E7%9A%84%E5%9F%BA%E7%9F%B3"><span class="nav-number">1.</span> <span class="nav-text">无关性的基石</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Class%E7%B1%BB%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">Class类文件的结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%8C%87%E4%BB%A4%E7%AE%80%E4%BB%8B"><span class="nav-number">3.</span> <span class="nav-text">字节码指令简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">虚拟机实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="基于Java5.0的注解，Spring AOP支持使用@AspectJ注解非常容易地定义一个切面">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于@AspectJ的AOP">
+<meta property="og:url" content="http://zhangyuying.cn/2020/03/26/Spring/%E5%9F%BA%E4%BA%8E@AspectJ%E7%9A%84AOP/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="基于Java5.0的注解，Spring AOP支持使用@AspectJ注解非常容易地定义一个切面">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E5%88%87%E9%9D%A2%E7%9A%84%E4%BF%A1%E6%81%AF%E6%9E%84%E6%88%90.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E5%88%87%E7%82%B9%E5%87%BD%E6%95%B0.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/SpringLTW%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.jpg">
+<meta property="article:published_time" content="2020-03-26T09:02:24.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.754Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E5%88%87%E9%9D%A2%E7%9A%84%E4%BF%A1%E6%81%AF%E6%9E%84%E6%88%90.jpg">
+
+<link rel="canonical" href="http://zhangyuying.cn/2020/03/26/Spring/%E5%9F%BA%E4%BA%8E@AspectJ%E7%9A%84AOP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>基于@AspectJ的AOP | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2020/03/26/Spring/%E5%9F%BA%E4%BA%8E@AspectJ%E7%9A%84AOP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于@AspectJ的AOP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-03-26 17:02:24" itemprop="dateCreated datePublished" datetime="2020-03-26T17:02:24+08:00">2020-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>基于Java5.0的注解，Spring AOP支持使用<code>@AspectJ</code>注解非常容易地定义一个切面</p>
+<span id="more"></span>
+
+<p><code>@AspectJ</code>是Aspect1.5新增的功能，通过Java注解技术，允许开发者在POJO中定义切面，Spring使用和<code>@AspectJ</code>相同风格的注解，并通过Aspect提供的注解库和解析库处理切点，不过由于Spring只支持方法级的切点，所以仅对<code>@AspectJ</code>提供了有限的支持</p>
+<p>Spring可以集成Aspect，但AspectJ本身不属于Spring AOP的范畴</p>
+<h4 id="着手使用-AspectJ"><a href="#着手使用-AspectJ" class="headerlink" title="着手使用@AspectJ"></a>着手使用<code>@AspectJ</code></h4><p>准备：</p>
+<ol>
+<li>需要将Spring的<code>asm</code>模块添加到类路径中，<code>asm</code>是轻量级的字节码处理框架，因为Java的反射机制无法获取入参名，Spring就利用<code>asm</code>处理<code>@AspectJ</code>中所描述的方法入参名</li>
+<li>需要在<code>pom.xml</code>中添加<code>aspectj.weaver</code>和<code>aspectj.tools</code>类包的依赖</li>
+</ol>
+<p>简单示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NaiveWaiter</span> <span class="keyword">implements</span> <span class="title">Waiter</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">greetTo</span><span class="params">(String name)</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;greet to &quot;</span>+ name);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">serveTo</span><span class="params">(String name)</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;serving &quot;</span>+name);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 切面，通过@AspectJ将PreGreetAspect标识为一个切面</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PreGreetAspect</span></span>&#123;  </span><br><span class="line">  <span class="meta">@Before(&quot;execution(* greetTo(..))&quot;)</span>  <span class="comment">// 定义切点和增强类型</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeGreet</span><span class="params">()</span></span>&#123;   <span class="comment">// 增强的横切逻辑</span></span><br><span class="line">    System.out.println(<span class="string">&quot;How are you&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合上述示例，切面的信息构成可通过下图来描述：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E5%88%87%E9%9D%A2%E7%9A%84%E4%BF%A1%E6%81%AF%E6%9E%84%E6%88%90.jpg" alt="切面的信息构成"></p>
+<p>使用上述示例的切面：</p>
+<ol>
+<li><p>编程的方式使用切面：</p>
+<p>通过<code>AspectJProxyFactory</code>为<code>NaiveWaiter</code>生成织入<code>PreGreetAspect</code>切面的代理，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJProcyTest</span> </span>&#123;</span><br><span class="line">  Waiter target = <span class="keyword">new</span> NaiveWaiter();</span><br><span class="line">  AspectJProxyFactory factory = <span class="keyword">new</span> AspectJProxyFactory();</span><br><span class="line">  <span class="comment">//设置目标对象</span></span><br><span class="line">  factory.setTarget(target);</span><br><span class="line">  <span class="comment">//添加切面类</span></span><br><span class="line">  fatory.addAspect(PreGreetAspect.class);</span><br><span class="line">  <span class="comment">//生成织入切面的代理对象</span></span><br><span class="line">  Waiter proxy = factory.getProxy();</span><br><span class="line">  proxy.greetTo(<span class="string">&quot;John&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过配置使用<code>@Aspect</code>切面：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--目标Bean--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;waiter&quot;</span> <span class="attr">class</span>=<span class="string">&quot;cn.zhangyuying.NaiveWaiter&quot;</span> /&gt;</span></span><br><span class="line"><span class="comment">&lt;!--使用了@AspectJ注解的切面类--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;cn.zhangyuying.PreGreetAspect&quot;</span> /&gt;</span></span><br><span class="line"><span class="comment">&lt;!--自动代理创建器，自动将@AspectJ注解切面类织入目标Bean中--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>AnnotationAwareAspectJAutoProxyCreator</code>是自动代理器的一个，能够将<code>@Aspect</code>注解切面类自动织入到目标Bean中，还可以使用基于Schema的<code>aop</code>命名空间进行配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--基于@AspectJ切面的驱动器--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;waiter&quot;</span> <span class="attr">class</span>=<span class="string">&quot;cn.zhangyuying.NaiveWaiter&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;cn.zhangyuying.PreGreetAspect&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>&lt;aop:aspectj-autoproxy /&gt;</code>自动为Spring容器中那些匹配<code>@AspectJ</code>切面的Bean创建代理，完成切面织入，当然Spring在内部依旧采用<code>AnnotationAwareAspectJAutoProxyCreator</code>进行代理的创建工作，只不过具体的实现细节被<code>&lt;aop:aspectj-autoproxy /&gt;</code>隐藏起来</p>
+<p><code>&lt;aop:aspectj-autoproxy /&gt;</code>有一个<code>proxy-targe-class</code>属性，默认为<code>false</code>，表示使用JDK动态代理技术织入增强，如果为<code>true</code>，则表示使用CGLib动态代理技术织入增强，不过即使<code>proxy-targe-class</code>设置为<code>false</code>，如果目标类没有声明接口，则Spring将自动使用CGLib动态代理</p>
+</li>
+</ol>
+<h4 id="AspectJ语法基础"><a href="#AspectJ语法基础" class="headerlink" title="@AspectJ语法基础"></a><code>@AspectJ</code>语法基础</h4><h5 id="切点表达式函数"><a href="#切点表达式函数" class="headerlink" title="切点表达式函数"></a>切点表达式函数</h5><p>切点表达式由关键字和操作参数组成，如<code>execution(* greetTo(..))</code>，<code>execution</code>为关键字，又称为函数，<code>* greetTo(..)</code>为操作参数，又称为函数的入参</p>
+<p>Spring支持<code>9</code>个<code>@AspectJ</code>切点表达式函数，他们用不同的方式描述目标类的连接点，根据描述对象的不同，可以大致分为4种类型</p>
+<ul>
+<li>方法切点函数：通过描述目标类方法的信息定义连接点</li>
+<li>方法入参切点函数：通过描述目标类方法的入参的信息定义连接点</li>
+<li>目标类切点函数：通过描述目标类类型的信息定义连接点</li>
+<li>代理类切点函数：通过描述目标类的代理类的信息定义连接点</li>
+</ul>
+<p>具体的切点函数如下表：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/%E5%88%87%E7%82%B9%E5%87%BD%E6%95%B0.jpg" alt="切点函数"></p>
+<p><strong>在函数入参中使用通配符</strong></p>
+<p>有些函数入参可以支持通配符，<code>@AspectJ</code> 支持三种通配符</p>
+<ul>
+<li><p><code>*</code> ：匹配任意字符，但是只能匹配一个元素</p>
+</li>
+<li><p><code>..</code> ：匹配任意字符，可以匹配上下文多个元素，表示入参时可以单独使用，但是在表示类的时候，必须和<code>*</code>联合使用</p>
+</li>
+<li><p><code>+</code> ：按类型匹配指定类的所有类，包括子类，同时还包括指定类本事，必须跟在类名后面</p>
+</li>
+</ul>
+<p><code>@AspectJ</code>函数按照其是否支持通配符及支持的程度，可以分为如下三类</p>
+<ul>
+<li><p>支持所有通配符的：<code>execution()</code>和<code>within()</code></p>
+</li>
+<li><p>仅支持<code>+</code>通配符的有:<code>args()</code>,<code>this()</code>和<code>target()</code></p>
+<p>这3个标注默认都有<code>+</code>，因此使用<code>+</code>和不使用<code>+</code>都是一样的</p>
+<p>也就是说，按类型匹配的，默认都会把子类算为其类型</p>
+</li>
+<li><p>其余的都不支持通配符：<code>@args()</code>、<code>@within()</code>、<code>@target()</code>和<code>@annotation()</code></p>
+</li>
+</ul>
+<p><strong>逻辑运算符</strong></p>
+<p>切点函数之间可以进行逻辑运算，组成复合切点，Spring 支持与或非运算</p>
+<ul>
+<li><code>&amp;&amp;</code>：与运算符，相当于切点的交集，Spring提供了等效运算符：<code>and</code></li>
+<li><code>||</code>：或操作符，相当于切点的并集，Spring提供了等效运算符：<code>or</code></li>
+<li><code>!</code>：非操作符，相当于切点反集运算，Spring提供了等效运算符：<code>not</code></li>
+</ul>
+<h5 id="不同的增强类型"><a href="#不同的增强类型" class="headerlink" title="不同的增强类型"></a>不同的增强类型</h5><p><code>@AspectJ</code>为不同的增强提供了注解类，这些注解的存留期限都是<code>RetentionPolicy.RUNTIME</code>，标注目标都是<code>ElementType.METHOD</code></p>
+<ul>
+<li><p><code>@before</code>:</p>
+<p>前置增强，相当于<code>BeforeAdvice</code>,包含两个成员：</p>
+<ul>
+<li><p><code> value</code>:定义切点</p>
+</li>
+<li><p><code>argNames</code>:<strong>由于无法通过<code>Java</code>反射机制获取方法入参名</strong>，所以可以通过此参数指定需要的引用表达式的参数名。可通过这个参数指定注解所标注增强方法的参数名（两者必须完全相同）获取参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Before(value = &quot;execution(* greetTo(..)) &amp;&amp; args(name,*,sex)&quot;,argNames = &quot;name,sex&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeGreeting</span><span class="params">(String name,String sex)</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">对于无法知道参数名的(没有argNames参数)，Spring会按顺序进行赋值,可参照<span class="meta">@Aspect</span>进阶，有详细描述</span><br><span class="line">知道参数名的，Sping会按名称匹配，配置时要注意配置顺序</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><code>@AfterReturning</code>:</p>
+<p>后置增强，相当于<code>AfterReturningAdvice</code>,包含四个成员</p>
+<ul>
+<li><p><code>value</code>：定义切点</p>
+</li>
+<li><p><code>pointcut</code>:切点信息，如果指定<code>pointcut</code>，则它将覆盖<code>value</code></p>
+</li>
+<li><p><code>returning</code>:将目标对象方法的返回值绑定给增强的方法</p>
+</li>
+<li><p><code>argNames</code>:同上</p>
+</li>
+</ul>
+<blockquote>
+<p>注意：<code>argNames</code>和<code>returning</code>不能同时使用，如果需要同时使用可以使用<code>&amp;&amp; args()</code>绑定</p>
+</blockquote>
+</li>
+<li><p><code>@around</code>:</p>
+<p>环绕增强，相当于<code>MethodInterceptor</code>,包含两个成员</p>
+<ul>
+<li><p><code>value</code>:切点</p>
+</li>
+<li><p><code>argNames</code>:同上</p>
+</li>
+</ul>
+</li>
+<li><p><code>@AfterThrowing</code>:</p>
+<p>异常增强，相当于<code>ThrowsAdvice</code>，包含四个成员</p>
+<ul>
+<li><p><code>value</code>:定义切点</p>
+</li>
+<li><p><code>pointcut</code>:切点信息，如果指定<code>pointcut</code>，则它将覆盖<code>value</code></p>
+</li>
+<li><p><code>throwing</code>：将抛出的信息绑定到增强中</p>
+</li>
+<li><p><code>argNames</code>:同上</p>
+</li>
+</ul>
+</li>
+<li><p><code>@after</code>:</p>
+<p><code>Final</code>增强，不管是抛出异常还是正常退出，该增强都将得到执行，没有对应的接口，一般用于释放资源，相当于<code>try&#123;&#125;finally&#123;&#125;</code>的控制流，包含两个成员</p>
+<ul>
+<li><p><code>value</code>：切点</p>
+</li>
+<li><p><code>argNames</code>:同上</p>
+</li>
+</ul>
+</li>
+<li><p><code>@DeclareParents</code>:</p>
+<p>引介增强，相当于<code>IntroductionInterceptor</code>，包含两个成员：</p>
+<ul>
+<li><p><code>value</code>:切点，表示在哪个目标类上添加引介增强</p>
+</li>
+<li><p><code>defaultImpl</code>:接口的默认实现类</p>
+</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Declare</span> </span>&#123;</span><br><span class="line">    <span class="meta">@DeclareParents(value=&quot;cn.zhangyuying.demo.springaop.NativeWaiter&quot;,defaultImpl = SmartSeller.class)</span></span><br><span class="line">    <span class="keyword">private</span> Seller seller;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 有了以上引介增强的定义，Waiter 实例即可当作Seller接口实现类使用</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span></span>&#123;</span><br><span class="line">  nativeWaiter.greet();</span><br><span class="line">  ((Seller)nativeWaiter).sell();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="切点函数详解"><a href="#切点函数详解" class="headerlink" title="切点函数详解"></a>切点函数详解</h4><p>切点函数是<code>AspectJ</code>表达式语言的核心，也是难点</p>
+<ol>
+<li><p><code>@annotation()</code></p>
+<p>标注了某个注解的所有方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AfterReturning(&quot;@annotation(cn.zhangyuying.demo.pointcut.NeedTest)&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">annotationTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;after return : annotation&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>execution()</code></p>
+<p><code>execution()</code>是最常用的切点函数，其语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">execution(&lt;修饰符&gt;？&lt;返回类型模式&gt; &lt;方法名模式&gt;(&lt;参数模式&gt;) &lt;异常模式&gt;?)</span><br><span class="line">&#x2F;&#x2F;修饰模式默认public</span><br></pre></td></tr></table></figure>
+
+<p>其中，除了返回类型模式，方法名模式和参数模式外，其他项都是可选的。即：<code>返回类型 方法名(参数)</code></p>
+<p>例如：</p>
+<ul>
+<li><p>通过方法签名定义切点：</p>
+<p><code>execution(public * *(..))</code>：匹配所有<code>public</code>方法</p>
+<p><code>execution(* *To(..))</code>：匹配所有目标类以<code>To</code>为后缀的方法</p>
+</li>
+<li><p>通过类定义切点</p>
+<p><code>execution(* cn.zhangyuying.Waiter.*(..))</code>：匹配<code>Waiter</code>接口的所有方法</p>
+<blockquote>
+<p>注意:仅仅是这个接口的方法</p>
+</blockquote>
+<p><code>execution(* cn.zhangyuying.Waiter+.*(..))</code>：匹配<code>Waiter</code>接口及其实现类的所有方法</p>
+<blockquote>
+<p>注意：是匹配实现了这个接口的类的所有的方法</p>
+</blockquote>
+</li>
+<li><p>通过类包定义切点</p>
+<p><code>execution(* cn.zhangyuying.*(..))</code>：匹配<code>cn.zhangyuying</code>包下所有类的方法</p>
+<p><code>execution(* cn.zhangyuying..*(..))</code>：匹配<code>cn.zhangyuying</code>包及其子包下所有类的方法</p>
+<p><code>execution(* cn..*.*Dao.find(..))</code>：匹配包前缀为<code>cn</code>的任何包下类名后缀为<code>Dao</code>的方法，方法名必须以<code>find</code>为前缀</p>
+</li>
+<li><p>通过方法入参定义切点</p>
+<p>入参可以使用<code>“*”</code>和<code>“..”</code>通配符，<code>“*”</code>：表示任意类型的参数，<code>“..”</code>：表示任意类型的参数且参数个数不限</p>
+<p><code>execution(* joke(String,int))</code>：匹配所有<code>joke(String,int)</code>方法</p>
+<p><code>execution(* joke(String,*))</code>：匹配所有两个参数，其中第一个参数为<code>String</code>的<code>joke</code>方法</p>
+<p><code>execution(* joke(String,..))</code>：匹配第一个入参为<code>String</code>，后面可以有任意个入参且入参类型不限的<code>joke</code>方法</p>
+<p><code>execution(* joke(Object+))</code>：匹配仅包含一个参数，这个参数是<code>Object</code>类或子类的<code>joke</code>方法</p>
+</li>
+</ul>
+</li>
+<li><p><code>args()</code></p>
+<p>该函数接收一个类名，表示目标类方法<strong>入参对象</strong>是指定类(包含子类)时，切点匹配，即类名后面加不加<code>+</code>都一样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">args(cn.zhangyuying.Waiter)  <span class="comment">//表示入参是Waiter类型的方法</span></span><br><span class="line"><span class="comment">//针对运行时入参而言，而execution(* *(cn.zhangyuying.Waiter))是针对类方法签名而言的，即等价于execution(* *(cn.zhangyuying.Waiter+))</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>@args()</code></p>
+<p>该函数接收一个注解类的类名，当方法的运行时入参对象标注了指定的注解时，匹配切点，也是类名后面加不加<code>+</code>都一样</p>
+<blockquote>
+<p>在继承关系中，注解所标注的类需得在<code>@args(M)</code>中M类的下方，这样注解所标注的类及其子类作为入参才会被匹配</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@args(cn.zhangyuying.demo.pointcut.NeedTest)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>within()</code></p>
+<p>该函数接收一个类名，最小范围也只能是类，表示目标类的所有方法匹配切点，<code>within()</code>函数定义的连接点是针对目标类而言的，而非针对运行期对象的类型而言，这一点和<code>execution</code>是相同的</p>
+<blockquote>
+<p>注意：<code>within(cn.zhangyuying.Waiter)</code>，匹配接口是没有意义的，因为<code>within</code>匹配的是确切的类名，并且不会传递子类</p>
+<p>但是<code>execution</code>可以匹配子类和接口，回忆<code>exection(* cn.zhangyuying.Waiter.*(..))</code>：表示匹配所有实现了这个接口的接口方法</p>
+<p><code>within(com.dengchengchao.Waiter+)</code>可以解决这个问题</p>
+</blockquote>
+<p><code>within(cn.zahngyuying.NativeWaiter)</code>：匹配目标类<code>NativeWaiter</code>的所有方法</p>
+<p><code>within(cn.zhangyuying.*)</code>：匹配<code>cn.zhangyuying</code>包中的所有类，但不包括子孙包</p>
+<p><code>within(cn.zhangyuying..*)</code>：匹配<code>cn.zhangyuying</code>包以及子孙包中所有类</p>
+</li>
+<li><p><code>@within()</code></p>
+<p>只接受注解类名作为入参，<code>@within(M)</code>匹配标注了<code>@M</code>的目标类，表示这些类的所有方法匹配切点</p>
+<blockquote>
+<p>注意，<code>@within(M)</code>对于接口是无效的，如果是M标注在实现类上，且M上标注了<code>@Inherited</code>，那么可以匹配标注M的类和该类的实现类，但是如果M标注在接口上，那么接口的实现类不会被匹配</p>
+</blockquote>
+</li>
+<li><p><code>@target()</code></p>
+<p>只接受注解类名作为入参，<code>@target(M)</code>匹配任意标注了<code>@M</code>的目标类，表示这些类的所有方法匹配切点</p>
+<blockquote>
+<p>注意，<code>@target(M)</code>对于接口依然是无效的，如果是M标注在实现类上，且M上标注了<code>@Inherited</code>，那么可以匹配标注M的类和该类的实现类，但是如果M标注在接口上，那么接口的实现类不会被匹配</p>
+</blockquote>
+</li>
+<li><p><code>target()</code></p>
+<p>仅接受类名入参，通过判断目标类是否按类型匹配指定类来决定连接点是否匹配，是否使用<code>+</code>效果一样</p>
+<p><code>target(M)</code>表示如果目标类按类型匹配于M，则目标类的所有方法都匹配切点</p>
+<p><code>target(cn.zhangyuying.Waiter)</code>，则所有实现了这个接口的所有类以及类中的所有方法都会匹配(包括<code>Waiter</code>接口中未定义，但是实现类中定义的方法)。</p>
+</li>
+<li><p><code>this()</code></p>
+<p>仅接受类名入参，通过判断代理类是否按类型匹配指定类来决定是否和切点匹配，是否使用<code>+</code>效果一样</p>
+<p>一般来说使用<code>this()</code>和<code>target()</code>来匹配定义切点，二者是等效的</p>
+<p>二者的区别体现在通过引介切面产生代理对象时的具体表现：</p>
+<ul>
+<li><code>this</code>(引介实现的接口)：匹配代理对象的所有方法，包括本身的方法和通过引介引入的方法</li>
+<li><code>target</code>(引介引入的接口)：不匹配通过引介切面产生的代理对象</li>
+</ul>
+</li>
+</ol>
+<h4 id="AspectJ进阶"><a href="#AspectJ进阶" class="headerlink" title="@AspectJ进阶"></a><code>@AspectJ</code>进阶</h4><ol>
+<li><p>切点复合运算</p>
+<p>即切点之间使用逻辑运算符</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AfterReturning(&quot;@within(cn.zhangyuying.demo.NeedTest) &amp;&amp; execution(* *.test2(..))&quot;)</span>  <span class="comment">// &amp;&amp; 可用 and代替</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pointcutTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">   System.out.println(<span class="string">&quot;after return&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命名切点</p>
+<p>在致此之前的举例，切点都是直接声明在增强方法处，这种切点声明方式成为匿名切点，匿名切点只能在声明处使用，如果希望在其他地方重用一个切点，则可以通过<code>@Pointcut</code>注解及切面类方法对切点进行命名</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PointcutName</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Pointcut(&quot;within(cn.zhangyuying.*)&quot;)</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">inPackage</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Pointcut(&quot;inPackage() and execution(* greetTo(..))&quot;)</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inPackcgeGreetTo</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用命名切点</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PointcutNameTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Before(&quot;PointCutName.inPackcgeGreetTo()&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">nameTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="meta">@Before(&quot;PointCutName.inPackcgeGreetTo() &amp;&amp; args(cn.zhangyuying.demo.ParamClass)&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">nameTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>增强织入顺序</p>
+<p>一个连接点可以同时匹配多个切点，切点对应的增强的顺序安排：</p>
+<ul>
+<li>如果增强在同一个切面中声明，则依照增强在切面类中定义的顺序织入</li>
+<li>如果增强位于不同的类中，且这些类都实现了<code>Ordered</code>接口，则由顺序号决定，</li>
+<li>如果没有实现<code>Ordered</code>接口，则顺序是不确定的</li>
+</ul>
+</li>
+<li><p>访问连接点信息</p>
+<p><code>AspectJ</code>使用<code>JoinPoint</code>接口表示目标类连接点对象，如果是环绕增强，则使用<code>JoinPoint</code>的子类<code>ProceedingJoinPoint</code>表示连接点对象，任何增强方法都可以通过将第一个入参声明为<code>JoinPoint</code>访问连接点上下文信息</p>
+<p><code>JoinPoint中</code>的主要方法：</p>
+<ul>
+<li> <code>Object[] getArgs();</code> ：获取连接点方法运行时的入参列表</li>
+<li> <code>Signature getSignature();</code>：获取连接点的方法签名对象</li>
+<li> <code>Object getTarget();</code> ：获取连接点所在的目标对象</li>
+<li> <code>Object getThis();</code> ：获取代理对象本身</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AfterReturning(&quot;@within(cn.zhangyuying.demo.NeedTest) &amp;&amp; execution(* *.test3(..))&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">targetTest</span><span class="params">(JoinPoint joinPoint)</span></span>&#123;</span><br><span class="line">    System.out.println(joinPoint.getArgs().toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绑定连接点方法入参</p>
+<p>对于：<code>args()</code>、<code>this()</code>、<code>target()</code>、<code>@args()</code>、<code>@within()</code>、<code>@target()</code>、<code>@annotation()</code>，除了指定类名，还可以指定参数名，将目标对象连接点上的方法入参绑定到增强的方法中，当指定参数名时，就同时具有匹配切点和绑定参数双重功能</p>
+<p>其中<code>args()</code>用于绑定连接点方法的入参，<code>args()</code>绑定参数使用实例（其他函数同理）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Before(&quot;target(cn.zhangyuying.NativeWaiter) &amp;&amp; args(name,num,..)&quot;)</span>  <span class="comment">//(1) </span></span><br><span class="line"><span class="comment">//首先，根据(2)处的增强方法入参，找到name和num对应的类型，以得到真实的切点表达式：target(cn.zhangyuying.NativeWaiter) &amp;&amp; args(String,int,..)</span></span><br><span class="line"><span class="comment">//其次，在增强方法织入目标连接点时，增强方法可以通过num和name访问到连接点的方法入参</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bindParams</span><span class="params">(<span class="keyword">int</span> num, String name)</span></span>&#123;  <span class="comment">//(2)</span></span><br><span class="line">  System.out.println(name+num);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当<code>args()</code>函数入参为参数名时，共包括两方面的信息</p>
+<ol>
+<li>连接点匹配规则信息：连接点方法的第一个入参是<code>String</code>类型，第二个参数是<code>int</code>类型</li>
+<li>连接点方法入参和增强方法入参的绑定信息：连接点方法的第一个入参绑定到增强方法的<code>name</code>参数上，第二个入参绑定到增强方法的<code>num</code>参数上（<code>args()</code>函数的参数顺序决定了匹配的切点的参数顺序）</li>
+</ol>
+<p>切点匹配和参数绑定的过程：首先，<code>args()</code>根据参数名称在增强方法中查到名称相同的入参并获知对应的类型，这样就知道了匹配连接点方法的入参类型，其次，连接点方法入参类型所在的位置则由参数名在<code>args()</code>函数中声明的位置决定</p>
+</li>
+<li><p>绑定连接点信息的函数</p>
+<p>这些函数虽然绑定的信息不同，但是使用方法和原理都和args()函数相同</p>
+<ul>
+<li><p>绑定连接点方法入参：<code>args()</code></p>
+</li>
+<li><p>绑定连接点方法入参的注解：<code>@args()</code></p>
+</li>
+<li><p>绑定连接点方法的注解：<code>@annotation()</code></p>
+</li>
+<li><p>绑定被代理对象实例：<code>this()</code>、<code>target()</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Before(&quot;this(waiter)&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bindThis</span><span class="params">(Waiter waiter)</span></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绑定目标类的注解对象：<code>@within</code>和<code>@target</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Before(&quot;@within(nt)&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bindWithin</span><span class="params">(NeedTest nt)</span></span>&#123;&#125;</span><br><span class="line"><span class="comment">//测试可发现CGLib代理类时，其类的注解对象也被代理了</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绑定返回值</p>
+<p>后置增强中，可以通过<code>returning</code>绑定连接点方法的返回值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AfterReturning(value=&quot;target(cn.zhangyuying.NativeWaiter)&quot;,returning=&quot;retVal&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">bindReturnValue</span><span class="params">(<span class="keyword">int</span> retVal)</span></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绑定抛出的异常</p>
+<p><code>@AfterThrowin</code>g<code>解可以使用</code>throwing`成员绑定抛出的异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AfterThrowing(value=&quot;target(cn.zhangyuying.NativeWaiter)&quot;,throwing=&quot;iae&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bingException</span><span class="params">(IllegalArgumentException iae)</span></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="混合切面类型"><a href="#混合切面类型" class="headerlink" title="混合切面类型"></a>混合切面类型</h4><p>Spring提供了<code>4</code>中定义切面的方式：</p>
+<ol>
+<li>基于<code>@AspectJ</code>注解的方式：项目在Java5以上，优先考虑</li>
+<li>基于<code>&lt;aop:aspect&gt;</code>的方式：JDK版本低，不支持注解，可以考虑这种方式</li>
+<li>基于<code>&lt;aop:advisor&gt;</code>的方式：在升级一个基于低版本的Spring AOP开发的项目，可以使用它复用已经存在的<code>Advice</code>类</li>
+<li>基于<code>Advisor</code>的方式：低版本的Spring只能使用这种方式</li>
+</ol>
+<p>我们只细致的学习了第一种，其他三种不在此详述</p>
+<p>虽然提供了4种定义切面的方式，但其底层的实现技术却是一样的，那就是基于CGLib和JDk动态代理，所以在同一个Spring项目中可以混合使用Spring所提供的各种切面定义方式，但是一般不会同时使用，示例如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;controlFlowAdvisor&quot;</span>  //(<span class="attr">1</span>)使用<span class="attr">Advisor</span> <span class="attr">API</span>方式实现的流程控制切面</span></span><br><span class="line"><span class="tag">      <span class="attr">class</span>=<span class="string">&quot;org.springframework.aop.support.DefaultPointcutAdvisor&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;pointcut&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;org.springframework.aop.support.ControlFlowPointcut&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">type</span>=<span class="string">&quot;java.lang.Class&quot;</span></span></span><br><span class="line"><span class="tag">                       <span class="attr">value</span>=<span class="string">&quot;com.smart.advisor.WaiterDelegate&quot;</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">type</span>=<span class="string">&quot;java.lang.String&quot;</span> <span class="attr">value</span>=<span class="string">&quot;service&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;advice&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;com.smart.advisor.GreetingBeforeAdvice&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span> /&gt;</span> //(2)使用@AspectJ方式定义的切面</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">&quot;com.smart.aspectj.example.PreGreetingAspect&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:config</span> <span class="attr">proxy-targe-class</span>=<span class="string">&quot;true&quot;</span>&gt;</span>  //(3)使用基于Schema配置方式定义的切面</span><br><span class="line">  <span class="tag">&lt;<span class="name">aop:advisor</span> <span class="attr">advice-ref</span>=<span class="string">&quot;testAdvice&quot;</span> <span class="attr">pointcut</span>=<span class="string">&quot;execution(* com..*.Waiter.greetTo(..))&quot;</span> /&gt;</span>  //使用<span class="tag">&lt;<span class="name">aop:advisor</span>&gt;</span>配置方式定义的切面</span><br><span class="line">  </span><br><span class="line">  <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">ref</span>=<span class="string">&quot;adviceMethods&quot;</span>&gt;</span>  //(5)使用<span class="tag">&lt;<span class="name">aop:aspect</span>&gt;</span>配置方式定义的切面</span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">pointcut</span>=<span class="string">&quot;target(com.smart.NaiveWaiter) and execution(* greetTo(..))&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">method</span>=<span class="string">&quot;preGreeting&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;adviceMethods&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.smart.schema.AdviceMethods&quot;</span> /&gt;</span> //POJO的增强类</span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;testAdvice&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.smart.schema.TestBeforeAdvice&quot;</span> /&gt;</span> //基于特定增强接口的增强类</span><br></pre></td></tr></table></figure>
+
+<p>在内部Spring使用<code>AspectJExpressionPointcut</code>为<code>@Aspect</code>J、<code>&lt;aop:aspect&gt;</code>及<code>&lt;aop:advisor&gt;</code>提供具体的切点实现</p>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>除了在运行期织入切面的方式外，还可以在类加载期通过字节码编辑技术将切面织入目标类中，这种织入方式称为<code>LTW</code>（<code>Load Time Weaving</code>）</p>
+<p>Java5.0提供了代理功能(<code>agent</code>)完成加载期切面织入工作，JDK的代理功能能够让代理期访问到JVM的底层部件，借此向JVM注册类文件转换器，在类加载时对类文件的字节码进行转换，具体如下：</p>
+<p>JDK5.0新增了一个<code>java.lang.instrument</code>包，里面有两个能对JVM底层组件进行访问的类，具体的说就是通过JVM的<code>-javaagent</code>代理参数在启动时获取JVM内部组件的引用，一边在后续流程使用，借助JDK动态代理，可以在JVM启动时装配并应用<code>ClassTransformer</code>对类字节码进行转换，实现AOP功能</p>
+<ul>
+<li><code>ClassFileTransformer</code>：Class文件转换器接口</li>
+<li><code>Instrumentation</code>：代表JVM内部的一个构件，可称其为组件，可通过<code>addTransformer(ClassFileTransformer transformer)</code>注册一些<code>ClassFileTransformer</code>，这样在JVM加载Class文件时，就会先使用<code>ClassFileTransformer </code>按顺序对Class文件的字节码进行转换实现增强</li>
+</ul>
+<p>AspectJ就是基于此技术工作的，但是这样的作用范围是整个JVM，对于单一JVM多个应用的情况不合适</p>
+<p>Spring的<code>LTW</code></p>
+<p>Spring为<code>LTW</code>提供了细粒度的控制，支持在单个<code>ClassLoader</code>范围内实施类文件转换，且配置更为简单，不过仅支持AspectJ定义的切面，即可以是直接采用AspectJ语法定义的切面，也可以是采用基于<code>@AspectJ</code>注解通过Java类定义的切面</p>
+<p>Spring利用类路径下的<code>META-INF/aop.xm</code>l配置文件找到切面定义及切面所要实施的候选目标类信息，通过<code>LTW</code>在<code>ClassLoader</code>加载类文件时将切面织入目标类中，工作原理如下：</p>
+<p><img src="https://raw.githubusercontent.com/zhangyuying-cn/images/master/Spring/SpringLTW%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.jpg" alt="Spring LTW工作原理"></p>
+<p>Spring利用特定的Web容器的<code>ClassLoader</code>，通过<code>LTW</code>将Spring提供的<code>ClassFileTransformer</code>注册到<code>ClassLoader</code>中，类加载的时候注册的<code>ClassFileTransformer</code>将读取配置文件(<code>aop.xml</code>)，获取切面,对加载到VM中的Bean类进行字节码转换，注入切面，Spring容器在初始化Bean实例时，采用的Bean类就是已经被织入了切面的类</p>
+<p>Spring为Web应用服务器都提供了专门的<code>LoadTimeWeaver</code>：Spring的<code>LoadTimeWeaver</code>接口规定了类加载器织入器的高层协议，且Spring为<code>LoadTimeWeaver</code>提供了多个实现类，即各个Web服务器的专门<code>LoadTimeWeaver</code></p>
+<p>Spring中配置<code>&lt;context:load-time-weaver&gt;</code>，负责向运行期的<code>ClassLoader</code>注册多个<code>ClassFileTransformer</code>，以便实施<code>LTW</code>的功能</p>
+<blockquote>
+<p> 大多数Web应用服务器无需通过<code>javaagent</code>而<code>ClassLoader</code>能支持直接访问<code>Instrument</code>的能力，称为为组件使能，上述说的“Spring为Web应用服务器都提供了专门的<code>LoadTimeWeaver</code>”都是指的这类有组件使能的Web服务器，而无这种能力的Web应用服务器要特殊处理，比如Tomcat，但是在此不详述</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/24/Spring/Spring-AOP%E5%9F%BA%E7%A1%80/" rel="prev" title="Spring AOP基础">
+      <i class="fa fa-chevron-left"></i> Spring AOP基础
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/01/Spring/Spring%E7%9A%84%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" rel="next" title="Spring的事务管理">
+      Spring的事务管理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9D%80%E6%89%8B%E4%BD%BF%E7%94%A8-AspectJ"><span class="nav-number">1.</span> <span class="nav-text">着手使用@AspectJ</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AspectJ%E8%AF%AD%E6%B3%95%E5%9F%BA%E7%A1%80"><span class="nav-number">2.</span> <span class="nav-text">@AspectJ语法基础</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%87%E7%82%B9%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">切点表达式函数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E7%9A%84%E5%A2%9E%E5%BC%BA%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.2.</span> <span class="nav-text">不同的增强类型</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E7%82%B9%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="nav-number">3.</span> <span class="nav-text">切点函数详解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AspectJ%E8%BF%9B%E9%98%B6"><span class="nav-number">4.</span> <span class="nav-text">@AspectJ进阶</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%B7%E5%90%88%E5%88%87%E9%9D%A2%E7%B1%BB%E5%9E%8B"><span class="nav-number">5.</span> <span class="nav-text">混合切面类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">6.</span> <span class="nav-text">其他</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zhangyuying.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="函数式接口：为了支持将lambda表达式作为参数传入接口中，Java 8 定义了函数式接口的概念，函数式接口一般只有一个抽象的方法，并且通过@FunctionalInterface标记。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java8 函数式接口归纳">
+<meta property="og:url" content="http://zhangyuying.cn/2019/11/06/Java/java8%E6%96%B0%E7%89%B9%E6%80%A7/Java8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E5%BD%92%E7%BA%B3/index.html">
+<meta property="og:site_name" content="张玉莹的个人博客">
+<meta property="og:description" content="函数式接口：为了支持将lambda表达式作为参数传入接口中，Java 8 定义了函数式接口的概念，函数式接口一般只有一个抽象的方法，并且通过@FunctionalInterface标记。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-11-06T09:30:29.000Z">
+<meta property="article:modified_time" content="2023-03-28T02:25:12.747Z">
+<meta property="article:author" content="张玉莹">
+<meta property="article:tag" content="java8">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://zhangyuying.cn/2019/11/06/Java/java8%E6%96%B0%E7%89%B9%E6%80%A7/Java8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E5%BD%92%E7%BA%B3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+
+  <title>Java8 函数式接口归纳 | 张玉莹的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">张玉莹的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/aboutme/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://zhangyuying.cn/2019/11/06/Java/java8%E6%96%B0%E7%89%B9%E6%80%A7/Java8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E5%BD%92%E7%BA%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="张玉莹">
+      <meta itemprop="description" content="路漫漫其修远兮 吾将上下而求索">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张玉莹的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java8 函数式接口归纳
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-11-06 17:30:29" itemprop="dateCreated datePublished" datetime="2019-11-06T17:30:29+08:00">2019-11-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-03-28 10:25:12" itemprop="dateModified" datetime="2023-03-28T10:25:12+08:00">2023-03-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">java基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>函数式接口：为了支持将<code>lambda</code>表达式作为参数传入接口中，Java 8 定义了函数式接口的概念，函数式接口一般只有一个抽象的方法，并且通过<code>@FunctionalInterface</code>标记。</p>
+<span id="more"></span>
+
+<p>在日常开发中，如果我们想让自己定义的方法支持传入一个<code>lambda</code>表达式，有两种方法可以做到：</p>
+<ul>
+<li>自己定义一个函数式接口</li>
+<li>使用<code>JDK</code>自带的函数式接口</li>
+</ul>
+<p>一般来说，都推荐第二种，因为<code>JDK</code>自带函数式接口基本都能满足日常所用。并且使用通用的接口能让你的API更加通俗，减少其他人阅读源码时的不必要的学习。并且<code>JDK</code>自带的函数式接口提供了很多通用的的默认方法。</p>
+<p><code>JDK</code>一共提供了43个函数式接口，不过分类来看差不多有4类，记住这4类中每一类最通用的接口便能理解其他的接口，他们分别为：</p>
+<ul>
+<li><p><code>Function&lt;T&gt;</code>函数类接口，此接口方法接收参数，并返回结果</p>
+<ul>
+<li><code>Operator&lt;T&gt;</code>操作类接口，特殊的函数类接口，此接口方法的参数和结果类型相同</li>
+</ul>
+</li>
+<li><p><code>Predicate&lt;T&gt;</code>断言类接口，此接口接受一个参数并返回一个布尔值</p>
+</li>
+<li><p><code>Supplier&lt;T&gt;</code>生产类接口，此接口不接受参数，但是会有返回值</p>
+</li>
+<li><p><code>Consumer&lt;T&gt;</code>消费类接口，此接口只接受参数，但是不会有返回值</p>
+</li>
+</ul>
+<p>可以发现函数式接口的分类都是根据参数和返回类型进行分类，因此想要记住他们并不困难。</p>
+<blockquote>
+<p>可能有些人比较疑惑<code>Consumer&lt;T&gt;</code>会怎么使用，此类接口用在消费对象的时候，比如发消息，更典型的比如：System.out::println</p>
+</blockquote>
+<p>如果需要更加细分的话，还有根据参数个数进行区分。不过对于基本数据类型，上述接口都有基本数据类型的变体，主要是为了不必要的<code>Box</code>和<code>UnBox</code>操作。</p>
+<h2 id="Function"><a href="#Function" class="headerlink" title="Function"></a>Function</h2><p>表示一个方法接收参数并返回结果。</p>
+<h3 id="接收单个参数"><a href="#接收单个参数" class="headerlink" title="接收单个参数"></a>接收单个参数</h3><table>
+<thead>
+<tr>
+<th align="left"><code>Interface</code></th>
+<th align="left"><code>functional method</code></th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Function&lt;T,R&gt;</code></td>
+<td align="left"><code>R apply(T t)</code></td>
+<td align="left">接收参数类型为T，返回参数类型为R</td>
+</tr>
+<tr>
+<td align="left"><code>IntFunction&lt;R&gt;</code></td>
+<td align="left"><code>R apply(int value)</code></td>
+<td align="left">以下三个接口，指定了接收参数类型，返回参数类型为泛型R</td>
+</tr>
+<tr>
+<td align="left"><code>LongFunction&lt;R&gt;</code></td>
+<td align="left"><code>R apply(long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>Double&lt;R&gt;</code></td>
+<td align="left"><code>R apply(double value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>ToIntFunction&lt;T&gt;</code></td>
+<td align="left"><code>int applyAsInt(T value)</code></td>
+<td align="left">以下三个接口，指定了返回参数类型，接收参数类型为泛型T</td>
+</tr>
+<tr>
+<td align="left"><code>ToLongFunction&lt;T&gt;</code></td>
+<td align="left"><code>long applyAsLong(T value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>ToDoubleFunction&lt;T&gt;</code></td>
+<td align="left"><code>double applyAsDouble(T value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>IntToLongFunction</code></td>
+<td align="left"><code>long applyAsLong(int value)</code></td>
+<td align="left">以下六个接口，既指定了接收参数类型，也指定了返回参数类型</td>
+</tr>
+<tr>
+<td align="left"><code>IntToDoubleFunction</code></td>
+<td align="left"><code>double applyAsLong(int value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>LongToIntFunction</code></td>
+<td align="left"><code>int applyAsLong(long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>LongToDoubleFunction</code></td>
+<td align="left"><code>double applyAsLong(long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>DoubleToIntFunction</code></td>
+<td align="left"><code>int applyAsLong(double value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>DoubleToLongFunction</code></td>
+<td align="left"><code>long applyAsLong(double value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>UnaryOperator&lt;T&gt;</code></td>
+<td align="left"><code>T apply(T t)</code></td>
+<td align="left">特殊的Function，接收参数类型和返回参数类型一样</td>
+</tr>
+<tr>
+<td align="left"><code>IntUnaryOperator</code></td>
+<td align="left"><code>int applyAsInt(int left, int right)</code></td>
+<td align="left">以下三个接口，制定了接收参数和返回参数类型，并且都一样</td>
+</tr>
+<tr>
+<td align="left"><code>LongUnaryOperator</code></td>
+<td align="left"><code>long applyAsInt(long left, long right)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>DoubleUnaryOperator</code></td>
+<td align="left"><code>double applyAsInt(double left, double right)</code></td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h3 id="接收两个参数"><a href="#接收两个参数" class="headerlink" title="接收两个参数"></a>接收两个参数</h3><table>
+<thead>
+<tr>
+<th align="left"><code>interface</code></th>
+<th align="left"><code>functional method</code></th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>BiFunction&lt;T,U,R&gt;</code></td>
+<td align="left"><code>R apply(T t, U u)</code></td>
+<td align="left">接收两个参数的Function</td>
+</tr>
+<tr>
+<td align="left"><code>ToIntBiFunction&lt;T,U&gt;</code></td>
+<td align="left"><code>int applyAsInt(T t, U u)</code></td>
+<td align="left">以下三个接口，指定了返回参数类型，接收参数类型分别为泛型T, U</td>
+</tr>
+<tr>
+<td align="left"><code>ToLongBiFunction&lt;T,U&gt;</code></td>
+<td align="left"><code>long applyAsLong(T t, U u)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>ToDoubleBiFunction&lt;T,U&gt;</code></td>
+<td align="left"><code>double appleyAsDouble(T t, U u)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>BinaryOperator&lt;T&gt;</code></td>
+<td align="left"><code>T apply(T t, T u)</code></td>
+<td align="left">特殊的BiFunction, 接收参数和返回参数类型一样</td>
+</tr>
+<tr>
+<td align="left"><code>IntBinaryOperator</code></td>
+<td align="left"><code>int applyAsInt(int left, int right)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>LongBinaryOperator</code></td>
+<td align="left"><code>long applyAsInt(long left, long right)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DoubleBinaryOperator</td>
+<td align="left">double applyAsInt(double left, double right)</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h2 id="Consumer"><a href="#Consumer" class="headerlink" title="Consumer"></a>Consumer</h2><p>表示一个方法接收参数但不产生返回值。</p>
+<h3 id="接收一个参数"><a href="#接收一个参数" class="headerlink" title="接收一个参数"></a>接收一个参数</h3><table>
+<thead>
+<tr>
+<th align="left">interface</th>
+<th align="left">functional method</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Consumer&lt;T&gt;</code></td>
+<td align="left"><code>void accept(T t)</code></td>
+<td align="left">接收一个泛型参数，无返回值</td>
+</tr>
+<tr>
+<td align="left"><code>IntConsumer</code></td>
+<td align="left"><code>void accept(int value)</code></td>
+<td align="left">以下三个类，接收一个指定类型的参数</td>
+</tr>
+<tr>
+<td align="left"><code>LongConsumer</code></td>
+<td align="left"><code>void accept(long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DoubleConsumer</td>
+<td align="left">void accept(double value)</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h3 id="接收两个参数-1"><a href="#接收两个参数-1" class="headerlink" title="接收两个参数"></a>接收两个参数</h3><table>
+<thead>
+<tr>
+<th align="left"><code>interface</code></th>
+<th align="left"><code>functional method</code></th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>BiConsumer&lt;T,U&gt;</code></td>
+<td align="left"><code>void accept(T t, U u)</code></td>
+<td align="left">接收两个泛型参</td>
+</tr>
+<tr>
+<td align="left"><code>ObjIntConsumer&lt;T&gt;</code></td>
+<td align="left"><code>void accept(T t, int value)</code></td>
+<td align="left">以下三个类，接收一个泛型参数，一个指定类型的参</td>
+</tr>
+<tr>
+<td align="left"><code>ObjLongConsumer&lt;T&gt;</code></td>
+<td align="left"><code>void accept(T t, long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">ObjDoubleConsumer<T></td>
+<td align="left">void accept(T t, double value)</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h2 id="Supplier"><a href="#Supplier" class="headerlink" title="Supplier"></a>Supplier</h2><p>返回一个结果，并不要求每次调用都返回一个新的或者独一的结果</p>
+<table>
+<thead>
+<tr>
+<th align="left"><code>interface</code></th>
+<th align="left"><code>functional method</code></th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Supplier&lt;T&gt;</code></td>
+<td align="left"><code>T get()</code></td>
+<td align="left">返回类型为泛型T</td>
+</tr>
+<tr>
+<td align="left"><code>BooleanSupplier</code></td>
+<td align="left"><code>boolean getAsBoolean()</code></td>
+<td align="left">以下三个接口，返回指定类型</td>
+</tr>
+<tr>
+<td align="left"><code>IntSupplier</code></td>
+<td align="left"><code>int getAsInt()</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>LongSupplier</code></td>
+<td align="left"><code>long getAsLong()</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>DoubleSupplier</code></td>
+<td align="left"><code>double getAsDouble()</code></td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+<h2 id="Predicate"><a href="#Predicate" class="headerlink" title="Predicate"></a>Predicate</h2><p>根据接收参数进行断言，返回boolean类型</p>
+<table>
+<thead>
+<tr>
+<th align="left"><code>interface</code></th>
+<th align="left"><code>functional method</code></th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Predicate&lt;T&gt;</code></td>
+<td align="left"><code>boolean test(T t)</code></td>
+<td align="left">接收一个泛型参数</td>
+</tr>
+<tr>
+<td align="left"><code>IntPredicate</code></td>
+<td align="left"><code>boolean test(int value)</code></td>
+<td align="left">以下三个接口，接收指定类型的参数</td>
+</tr>
+<tr>
+<td align="left"><code>LongPredicate</code></td>
+<td align="left"><code>boolean test(long value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>DoublePredicate</code></td>
+<td align="left"><code>boolean test(double value)</code></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left"><code>BiPredicate&lt;T,U&gt;</code></td>
+<td align="left"><code>boolean test(T t, U u)</code></td>
+<td align="left">接收两个泛型参数，分别为T，U</td>
+</tr>
+</tbody></table>
+<p>参考资料</p>
+<p>《Effective Java》 3th</p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000016596774">java 8 函数式接口</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java8/" rel="tag"># java8</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/05/%E5%A4%9A%E7%BA%BF%E7%A8%8B/Java-synchronized/" rel="prev" title="Java synchronized">
+      <i class="fa fa-chevron-left"></i> Java synchronized
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/06/Java/java8%E6%96%B0%E7%89%B9%E6%80%A7/Java8-Streams-API/" rel="next" title="Java8 Streams API">
+      Java8 Streams API <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Function"><span class="nav-number">1.</span> <span class="nav-text">Function</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E5%8D%95%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="nav-number">1.1.</span> <span class="nav-text">接收单个参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E4%B8%A4%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.</span> <span class="nav-text">接收两个参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Consumer"><span class="nav-number">2.</span> <span class="nav-text">Consumer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E4%B8%80%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">接收一个参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E4%B8%A4%E4%B8%AA%E5%8F%82%E6%95%B0-1"><span class="nav-number">2.2.</span> <span class="nav-text">接收两个参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Supplier"><span class="nav-number">3.</span> <span class="nav-text">Supplier</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Predicate"><span class="nav-number">4.</span> <span class="nav-text">Predicate</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">张玉莹</p>
+  <div class="site-description" itemprop="description">路漫漫其修远兮 吾将上下而求索</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">185</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张玉莹</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
