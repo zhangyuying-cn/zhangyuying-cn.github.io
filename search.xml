@@ -12360,6 +12360,8 @@
     <title>Java中的线程</title>
     <url>/2023/03/07/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/Java%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B/</url>
     <content><![CDATA[<p>进程（Process）：是程序的运行实例，进程是程序向操作系统申请资源(如内存空间和文件句柄)的基本单位，进程和程序之间的关系好比播放中的视频与响应的视频文件之间的关系，前者从动态的角度刻画事物而后者从静态的角度刻画事物</p>
+<span id="more"></span>
+
 <blockquote>
 <p>运行一个Java程序的实质是启动一个Java虚拟机进程，一个运行的Java程序就是一个Java虚拟机进程</p>
 </blockquote>
